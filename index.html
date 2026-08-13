@@ -177,7 +177,9 @@ footer a:hover{color:var(--teal)}
 .claire-launcher{position:fixed;right:24px;bottom:24px;z-index:220;width:62px;height:62px;border:0;border-radius:50%;background:linear-gradient(145deg,var(--teal),var(--navy));color:#fff;box-shadow:0 10px 30px rgba(14,31,53,.3);cursor:pointer;display:grid;place-items:center;transition:transform .2s,box-shadow .2s}
 .claire-launcher:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(14,31,53,.38)}
 .claire-launcher:focus-visible,.claire-close:focus-visible,.claire-choice:focus-visible,.claire-send:focus-visible{outline:3px solid var(--gold-light);outline-offset:3px}
-.claire-launcher svg{width:28px;height:28px}
+.claire-launcher img{width:100%;height:100%;object-fit:cover;object-position:center 28%;border-radius:50%;display:block}
+.claire-launcher{padding:0;overflow:visible;border:3px solid #fff}
+.claire-launcher .claire-dot{z-index:2}
 .claire-launcher .claire-dot{position:absolute;right:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#47d16c;border:3px solid #fff}
 .claire-panel{position:fixed;right:24px;bottom:98px;z-index:219;width:min(380px,calc(100vw - 32px));height:min(590px,calc(100vh - 130px));background:#fff;border:1px solid rgba(27,58,92,.1);border-radius:22px;box-shadow:0 20px 60px rgba(14,31,53,.25);overflow:hidden;display:none;flex-direction:column}
 .claire-panel.open{display:flex;animation:claireIn .22s ease-out}
@@ -515,13 +517,13 @@ footer a:hover{color:var(--teal)}
 
 
 <!-- ===== CLAIRE HEUREUSE — ASSISTANTE VIRTUELLE CAPRI ===== -->
-<button class="claire-launcher" id="claireLauncher" type="button" aria-label="Ouvrir l’assistante virtuelle Claire Heureuse" aria-expanded="false" aria-controls="clairePanel">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3v-7a4 4 0 0 1-1-2.6V7a4 4 0 0 1 4-4h11a4 4 0 0 1 4 4z"/><path d="M7 9h10M7 13h6"/></svg>
+<button class="claire-launcher" id="claireLauncher" type="button" aria-label="Ouvrir l’assistante virtuelle Claire" aria-expanded="false" aria-controls="clairePanel">
+  <img src="./assets/claire-heureuse.png" alt="" aria-hidden="true">
   <span class="claire-dot" aria-hidden="true"></span>
 </button>
 <section class="claire-panel" id="clairePanel" role="dialog" aria-label="Conversation avec Claire Heureuse" aria-hidden="true">
   <div class="claire-head">
-    <div class="claire-avatar" aria-hidden="true"><span>CH</span><img src="assets/claire-heureuse.png" alt=""></div>
+    <div class="claire-avatar" aria-hidden="true"><span>CH</span><img src="./assets/claire-heureuse.png" alt=""></div>
     <div class="claire-id"><strong>Claire</strong><span>Assistante virtuelle CAPRI</span></div>
     <button class="claire-close" id="claireClose" type="button" aria-label="Fermer">×</button>
   </div>

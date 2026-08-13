@@ -172,6 +172,35 @@ footer a:hover{color:var(--teal)}
 .page-hero{padding:140px 28px 60px;background:linear-gradient(165deg,var(--navy-deep),var(--navy));text-align:center;color:#fff}
 .page-hero h1{font-family:var(--display);font-size:clamp(1.8rem,4vw,2.8rem);margin-bottom:12px}
 .page-hero p{color:rgba(255,255,255,.7);font-size:1.05rem;max-width:600px;margin:0 auto}
+
+/* ========== CLAIRE HEUREUSE — ASSISTANTE VIRTUELLE ========== */
+.claire-launcher{position:fixed;right:24px;bottom:24px;z-index:220;width:62px;height:62px;border:0;border-radius:50%;background:linear-gradient(145deg,var(--teal),var(--navy));color:#fff;box-shadow:0 10px 30px rgba(14,31,53,.3);cursor:pointer;display:grid;place-items:center;transition:transform .2s,box-shadow .2s}
+.claire-launcher:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(14,31,53,.38)}
+.claire-launcher:focus-visible,.claire-close:focus-visible,.claire-choice:focus-visible,.claire-send:focus-visible{outline:3px solid var(--gold-light);outline-offset:3px}
+.claire-launcher svg{width:28px;height:28px}
+.claire-launcher .claire-dot{position:absolute;right:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#47d16c;border:3px solid #fff}
+.claire-panel{position:fixed;right:24px;bottom:98px;z-index:219;width:min(380px,calc(100vw - 32px));height:min(590px,calc(100vh - 130px));background:#fff;border:1px solid rgba(27,58,92,.1);border-radius:22px;box-shadow:0 20px 60px rgba(14,31,53,.25);overflow:hidden;display:none;flex-direction:column}
+.claire-panel.open{display:flex;animation:claireIn .22s ease-out}
+@keyframes claireIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.claire-head{background:linear-gradient(135deg,var(--navy-deep),var(--navy));color:#fff;padding:18px;display:flex;align-items:center;gap:12px}
+.claire-avatar{width:45px;height:45px;border-radius:50%;background:linear-gradient(145deg,var(--gold-light),var(--gold));color:var(--navy-deep);font-family:var(--display);font-weight:800;display:grid;place-items:center;flex:none}
+.claire-id{flex:1}.claire-id strong{display:block;font-family:var(--display);font-size:1.05rem}.claire-id span{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.72);font-size:.78rem}.claire-id span:before{content:"";width:7px;height:7px;border-radius:50%;background:#47d16c}
+.claire-close{border:0;background:rgba(255,255,255,.1);color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1.3rem}
+.claire-messages{flex:1;overflow:auto;padding:18px;background:#f7f8fa;scroll-behavior:smooth}
+.claire-msg{max-width:88%;padding:11px 14px;border-radius:16px;margin-bottom:10px;font-size:.92rem;line-height:1.45;white-space:pre-line}
+.claire-msg.bot{background:#fff;color:var(--dark);border:1px solid rgba(27,58,92,.08);border-bottom-left-radius:5px}
+.claire-msg.user{background:var(--navy);color:#fff;margin-left:auto;border-bottom-right-radius:5px}
+.claire-choices{display:flex;gap:7px;flex-wrap:wrap;margin:2px 0 12px}
+.claire-choice{border:1px solid rgba(42,157,143,.35);background:#fff;color:var(--teal-dark);padding:7px 10px;border-radius:999px;font:600 .78rem var(--body);cursor:pointer}
+.claire-choice:hover{background:var(--teal-pale)}
+.claire-form{display:flex;gap:8px;padding:12px;background:#fff;border-top:1px solid rgba(27,58,92,.08)}
+.claire-input{min-width:0;flex:1;border:1px solid #d7dce2;border-radius:999px;padding:11px 14px;font:inherit}
+.claire-input:focus{outline:2px solid rgba(42,157,143,.3);border-color:var(--teal)}
+.claire-send{width:44px;height:44px;flex:none;border:0;border-radius:50%;background:var(--teal);color:#fff;cursor:pointer;font-size:1.1rem}
+.claire-note{text-align:center;color:var(--grey);font-size:.69rem;padding:0 12px 10px;background:#fff}
+@media(max-width:600px){.claire-launcher{right:16px;bottom:16px}.claire-panel{right:16px;bottom:88px;height:min(570px,calc(100vh - 110px))}}
+@media(prefers-reduced-motion:reduce){.claire-panel.open{animation:none}.claire-launcher{transition:none}}
+
 </style>
 </head>
 <body>
@@ -482,6 +511,35 @@ footer a:hover{color:var(--teal)}
 </section>
 </div>
 
+
+<!-- ===== CLAIRE HEUREUSE — ASSISTANTE VIRTUELLE CAPRI ===== -->
+<button class="claire-launcher" id="claireLauncher" type="button" aria-label="Ouvrir l’assistante virtuelle Claire Heureuse" aria-expanded="false" aria-controls="clairePanel">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3v-7a4 4 0 0 1-1-2.6V7a4 4 0 0 1 4-4h11a4 4 0 0 1 4 4z"/><path d="M7 9h10M7 13h6"/></svg>
+  <span class="claire-dot" aria-hidden="true"></span>
+</button>
+<section class="claire-panel" id="clairePanel" role="dialog" aria-label="Conversation avec Claire Heureuse" aria-hidden="true">
+  <div class="claire-head">
+    <div class="claire-avatar" aria-hidden="true">CH</div>
+    <div class="claire-id"><strong>Claire Heureuse</strong><span>Assistante virtuelle CAPRI</span></div>
+    <button class="claire-close" id="claireClose" type="button" aria-label="Fermer">×</button>
+  </div>
+  <div class="claire-messages" id="claireMessages" aria-live="polite">
+    <div class="claire-msg bot">Bonjour et bienvenue chez CAPRI. Je suis Claire Heureuse. Comment puis-je vous orienter&nbsp;?</div>
+    <div class="claire-choices">
+      <button class="claire-choice" type="button" data-question="Quels sont vos services ?">Nos services</button>
+      <button class="claire-choice" type="button" data-question="Quelle est votre méthode ?">Notre méthode</button>
+      <button class="claire-choice" type="button" data-question="Comment contacter CAPRI ?">Nous contacter</button>
+      <button class="claire-choice" type="button" data-question="Je veux présenter un projet">Présenter un projet</button>
+    </div>
+  </div>
+  <form class="claire-form" id="claireForm">
+    <input class="claire-input" id="claireInput" type="text" maxlength="240" autocomplete="off" placeholder="Écrivez votre question…" aria-label="Votre question">
+    <button class="claire-send" type="submit" aria-label="Envoyer">➜</button>
+  </form>
+  <div class="claire-note">Claire fournit une première orientation. Pour une demande officielle, écrivez à contact@capri-haiti.org.</div>
+</section>
+
+
 <!-- FOOTER -->
 <footer>
 <div class="footer-inner">
@@ -522,6 +580,57 @@ function go(p){
 window.addEventListener('scroll',()=>{
   document.getElementById('topbar').classList.toggle('scrolled',window.scrollY>20);
 });
+
+/* Claire Heureuse — orientation locale, sans collecte de données */
+const claireLauncher=document.getElementById('claireLauncher');
+const clairePanel=document.getElementById('clairePanel');
+const claireClose=document.getElementById('claireClose');
+const claireForm=document.getElementById('claireForm');
+const claireInput=document.getElementById('claireInput');
+const claireMessages=document.getElementById('claireMessages');
+
+function claireToggle(force){
+  const open=typeof force==='boolean'?force:!clairePanel.classList.contains('open');
+  clairePanel.classList.toggle('open',open);
+  clairePanel.setAttribute('aria-hidden',String(!open));
+  claireLauncher.setAttribute('aria-expanded',String(open));
+  if(open)setTimeout(()=>claireInput.focus(),100);
+}
+function claireAdd(text,who='bot'){
+  const msg=document.createElement('div');
+  msg.className='claire-msg '+who;
+  msg.textContent=text;
+  claireMessages.appendChild(msg);
+  claireMessages.scrollTop=claireMessages.scrollHeight;
+}
+function claireReply(question){
+  const q=question.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  if(/service|offre|faites|activite/.test(q))return "CAPRI propose notamment : diagnostic institutionnel, formation et professionnalisation, création d’outils institutionnels, accompagnement post-formation, analyse juridique, études comparatives et transformation numérique.";
+  if(/methode|approche|comment travail/.test(q))return "Notre méthode suit 12 mouvements : connaître, diagnostiquer, mesurer, expliquer, comparer, adapter, préparer, former, tester, implémenter, évaluer et transférer.";
+  if(/contact|email|courriel|telephone|adresse/.test(q))return "Vous pouvez écrire à contact@capri-haiti.org. Vous pouvez aussi ouvrir la page Contact grâce au bouton que je vais afficher.";
+  if(/projet|proposition|partenariat|cooper/.test(q))return "Pour présenter un projet ou un partenariat, précisez l’institution concernée, le problème constaté, les résultats recherchés et vos coordonnées, puis écrivez à contact@capri-haiti.org.";
+  if(/formation|atelier|seminaire/.test(q))return "CAPRI conçoit des formations adaptées aux besoins réels des cadres et agents : administration, rédaction, éthique, gestion, planification et suivi-évaluation.";
+  if(/diagnostic|evaluation/.test(q))return "Le diagnostic institutionnel examine l’organisation, les procédures, les compétences et les besoins afin de produire une cartographie et un plan d’action mesurable.";
+  if(/bonjour|bonsoir|salut|shalom/.test(q))return "Bonjour ! Heureuse de vous accueillir. Je peux vous renseigner sur les services, la méthode ou la manière de contacter CAPRI.";
+  return "Je n’ai pas encore une réponse précise à cette question. Pour une réponse personnalisée, écrivez à contact@capri-haiti.org ou consultez la page Contact.";
+}
+function claireAsk(question){
+  const clean=question.trim();
+  if(!clean)return;
+  claireAdd(clean,'user');
+  claireInput.value='';
+  setTimeout(()=>claireAdd(claireReply(clean),'bot'),260);
+}
+claireLauncher.addEventListener('click',()=>claireToggle());
+claireClose.addEventListener('click',()=>claireToggle(false));
+claireForm.addEventListener('submit',e=>{e.preventDefault();claireAsk(claireInput.value)});
+document.querySelectorAll('.claire-choice').forEach(btn=>btn.addEventListener('click',()=>{
+  const q=btn.dataset.question;
+  claireAsk(q);
+  if(/contacter|projet/i.test(q))setTimeout(()=>{const b=document.createElement('button');b.type='button';b.className='claire-choice';b.textContent='Ouvrir la page Contact';b.onclick=()=>{claireToggle(false);go('contact')};claireMessages.appendChild(b);claireMessages.scrollTop=claireMessages.scrollHeight},350);
+}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&clairePanel.classList.contains('open'))claireToggle(false)});
+
 </script>
 </body>
 </html>

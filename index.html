@@ -904,9 +904,9 @@ function go(p,updateHistory=true){
   document.body.classList.remove('nav-open');
   document.querySelector('.burger')?.setAttribute('aria-expanded','false');
   window.scrollTo({top:0});
- if(updateHistory&&location.hash!=='#'+p)history.pushState({page:p},'', location.pathname+location.search+'#'+p);
+ if(updateHistory&&location.hash!=='#'+p)location.hash=p;
 }
-window.addEventListener('popstate',()=>{const p=location.hash.slice(1)||'home';if(document.getElementById('pg-'+p))go(p,false);});
+window.addEventListener('hashchange',()=>{const p=location.hash.slice(1)||'home';if(document.getElementById('pg-'+p))go(p,false);});
 document.addEventListener('DOMContentLoaded',()=>{const p=location.hash.slice(1)||'home';if(document.getElementById('pg-'+p))go(p,false);});
 window.addEventListener('scroll',()=>{
   document.getElementById('topbar').classList.toggle('scrolled',window.scrollY>20);

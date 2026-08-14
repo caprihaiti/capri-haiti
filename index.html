@@ -894,7 +894,7 @@ function toggleNav(){
   document.querySelector('.burger')?.setAttribute('aria-expanded',String(open));
 }
 
-function go(p){
+function go(p,updateHistory=true){
   document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));
   document.getElementById('pg-'+p).classList.add('on');
   document.querySelectorAll('.nav-links a').forEach(a=>{
@@ -904,10 +904,10 @@ function go(p){
   document.body.classList.remove('nav-open');
   document.querySelector('.burger')?.setAttribute('aria-expanded','false');
   window.scrollTo({top:0});
- if(location.hash!=='#'+p)history.pushState({page:p},'', '#'+p);
+ if(updateHistory&&location.hash!=='#'+p)history.pushState({page:p},'', '#'+p);
 }
-window.addEventListener('popstate',()=>{const p=location.hash.slice(1)||'home';if(document.getElementById('pg-'+p))go(p);});
-document.addEventListener('DOMContentLoaded',()=>{const p=location.hash.slice(1)||'home';if(document.getElementById('pg-'+p))go(p);});
+window.addEventListener('popstate',()=>{const p=location.hash.slice(1)||'home';if(document.getElementById('pg-'+p))go(p,false);});
+document.addEventListener('DOMContentLoaded',()=>{const p=location.hash.slice(1)||'home';if(document.getElementById('pg-'+p))go(p,false);});
 window.addEventListener('scroll',()=>{
   document.getElementById('topbar').classList.toggle('scrolled',window.scrollY>20);
 });

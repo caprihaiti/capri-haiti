@@ -172,6 +172,32 @@ section.dark{background:var(--navy-deep);color:#fff}
 .coop-disclaimer strong{color:var(--navy)}
 @media(max-width:640px){.coop-cat-body{padding-left:24px}.coop-cat-body ul{grid-template-columns:1fr}}
 
+/* ========== ORGANIGRAMME CAPRI ========== */
+.org-chart{margin-top:34px;display:flex;flex-direction:column;align-items:center;gap:18px}
+.org-node{width:min(100%,620px);padding:18px 22px;border-radius:14px;text-align:center;border:1px solid rgba(27,58,92,.12);background:#fff;box-shadow:var(--shadow-sm)}
+.org-node h3{font-family:var(--display);color:var(--navy);font-size:1.08rem;margin-bottom:4px}
+.org-node p{color:var(--grey);font-size:.84rem;line-height:1.5}
+.org-node.board{background:linear-gradient(135deg,var(--navy-deep),var(--navy));border-color:transparent}
+.org-node.board h3{color:var(--gold-light)}
+.org-node.board p{color:rgba(255,255,255,.72)}
+.org-node.executive{background:linear-gradient(135deg,var(--teal-dark),var(--teal));border-color:transparent}
+.org-node.executive h3,.org-node.executive p{color:#fff}
+.org-line{width:2px;height:24px;background:linear-gradient(var(--gold),var(--teal));opacity:.7}
+.org-advisory{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:min(100%,820px)}
+.org-advisory .org-node{width:100%;background:var(--gold-pale);border-color:rgba(212,168,67,.3)}
+.org-poles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;width:100%}
+.org-pole{padding:22px;border-radius:14px;background:var(--off);border-top:4px solid var(--teal);box-shadow:var(--shadow-sm)}
+.org-pole:nth-child(2),.org-pole:nth-child(3){border-top-color:var(--gold)}
+.org-pole h3{font-family:var(--display);color:var(--navy);font-size:1.02rem;margin-bottom:8px}
+.org-pole p{color:var(--grey);font-size:.85rem;line-height:1.55}
+.org-shared{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.org-shared .org-node{width:100%;padding:16px}
+.org-network{width:100%;padding:24px;border:1px dashed rgba(42,157,143,.55);border-radius:14px;background:var(--teal-pale);text-align:center}
+.org-network h3{font-family:var(--display);color:var(--navy);margin-bottom:5px}
+.org-network p{font-size:.85rem;color:var(--grey);line-height:1.55}
+.org-note{margin-top:26px;color:var(--grey);font-size:.84rem;line-height:1.6;text-align:center}
+@media(max-width:720px){.org-advisory,.org-poles,.org-shared{grid-template-columns:1fr}.org-line{height:18px}.org-node,.org-pole{padding:17px}}
+
 /* ========== CONTACT ========== */
 .contact-wrap{display:grid;grid-template-columns:1fr 1.2fr;gap:48px;align-items:start}
 @media(max-width:700px){.contact-wrap{grid-template-columns:1fr}}
@@ -349,6 +375,85 @@ footer a:hover{color:var(--teal)}
   <p style="color:var(--grey);line-height:1.65;margin-top:18px;max-width:720px">Découvrez notre identité, notre mission, nos valeurs, nos domaines d'intervention et notre approche dans la présentation institutionnelle publique de CAPRI.</p>
   <div style="margin-top:28px"><a href="presentation-capri.html" target="_blank" rel="noopener" class="hero-btn" style="background:var(--navy);border-color:var(--navy);font-size:.88rem;padding:12px 26px;box-shadow:none" aria-label="Télécharger la présentation institutionnelle publique de CAPRI">📄 Consulter la présentation publique (11 pages)</a></div>
   <p style="color:var(--grey);font-size:.78rem;line-height:1.5;margin-top:12px;max-width:720px">Document public de synthèse — les protocoles opérationnels, documents de gouvernance et éléments stratégiques internes font l'objet d'un accès contrôlé.</p>
+</div>
+</section>
+
+<section class="alt" id="organigramme">
+<div class="container">
+  <div class="sec-label">Architecture organisationnelle</div>
+  <h2 class="sec-title">L'organigramme fonctionnel de CAPRI</h2>
+  <div class="gold-bar"></div>
+  <p style="color:var(--grey);line-height:1.7;max-width:820px">Une structure légère, évolutive et orientée vers les résultats. Elle sépare la gouvernance, l'exécution, le contrôle et les fonctions techniques, tout en permettant de constituer des équipes de mission selon les besoins de chaque institution accompagnée.</p>
+
+  <div class="org-chart" aria-label="Organigramme fonctionnel de CAPRI">
+    <div class="org-node board">
+      <h3>Conseil d'administration</h3>
+      <p>Orientation stratégique · supervision · approbation des politiques · reddition de comptes</p>
+    </div>
+
+    <div class="org-advisory">
+      <div class="org-node">
+        <h3>Comité d'éthique, d'audit et d'indépendance</h3>
+        <p>Intégrité · contrôle interne · prévention des conflits d'intérêts · impartialité politique</p>
+      </div>
+      <div class="org-node">
+        <h3>Conseil scientifique et stratégique</h3>
+        <p>Qualité méthodologique · expertise externe · prospective · validation des référentiels</p>
+      </div>
+    </div>
+
+    <div class="org-line" aria-hidden="true"></div>
+
+    <div class="org-node executive">
+      <h3>Direction exécutive</h3>
+      <p>Pilotage institutionnel · coordination des programmes · représentation · mobilisation des ressources</p>
+    </div>
+
+    <div class="org-line" aria-hidden="true"></div>
+
+    <div class="org-poles">
+      <article class="org-pole">
+        <h3>Pôle 1 — Performance institutionnelle et réformes</h3>
+        <p>Diagnostics · organisation · procédures · analyse juridique · administration publique · gouvernance territoriale · appui à l'implémentation</p>
+      </article>
+      <article class="org-pole">
+        <h3>Pôle 2 — Capacités, outils et transformation numérique</h3>
+        <p>Formation · ingénierie pédagogique · outils institutionnels · données · interopérabilité · innovation administrative · transfert de compétences</p>
+      </article>
+      <article class="org-pole">
+        <h3>Pôle 3 — Gouvernance démocratique et État de droit</h3>
+        <p>Appui parlementaire · gouvernance électorale · observation indépendante · justice · sécurité publique · contrôle démocratique</p>
+      </article>
+      <article class="org-pole">
+        <h3>Pôle 4 — Coopération, recherche et rayonnement</h3>
+        <p>Partenariats ciblés · coopération internationale · missions d'étude · publications · communication institutionnelle · mobilisation des ressources</p>
+      </article>
+    </div>
+
+    <div class="org-line" aria-hidden="true"></div>
+
+    <div class="org-shared">
+      <div class="org-node">
+        <h3>Observatoire CAPRI</h3>
+        <p>Recherche comparative · veille · documentation · capitalisation</p>
+      </div>
+      <div class="org-node">
+        <h3>Suivi, évaluation et qualité</h3>
+        <p>Baseline · indicateurs · résultats · apprentissage · assurance qualité</p>
+      </div>
+      <div class="org-node">
+        <h3>Administration et conformité</h3>
+        <p>Finances · ressources humaines · achats · juridique · protection des données</p>
+      </div>
+    </div>
+
+    <div class="org-network">
+      <h3>Réseau d'experts associés et cellules de mission</h3>
+      <p>Des équipes pluridisciplinaires sont constituées selon le mandat : juristes, spécialistes de l'administration publique, formateurs, experts électoraux, spécialistes du numérique, analystes de données, spécialistes de la sécurité et experts sectoriels.</p>
+    </div>
+  </div>
+
+  <p class="org-note"><strong>Principe d'évolution :</strong> au démarrage, plusieurs fonctions peuvent être regroupées au sein d'une équipe réduite. Elles deviennent des directions autonomes uniquement lorsque le volume des programmes, les ressources disponibles et les exigences de contrôle le justifient.</p>
 </div>
 </section>
 </div>

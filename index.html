@@ -45,7 +45,7 @@ img{max-width:100%;display:block}
 @media(max-width:900px){
   body.nav-open{overflow:hidden}
   .topbar{backdrop-filter:none;-webkit-backdrop-filter:none}
-  .nav-links{position:absolute;top:72px;left:0;right:0;height:calc(100dvh - 72px);background:rgba(255,255,255,.99);flex-direction:column;align-items:stretch;justify-content:flex-start;padding:18px 22px 32px;gap:2px;overflow-y:auto;transform:translateX(100%);transition:transform .3s ease;box-shadow:0 18px 34px rgba(14,31,53,.14);z-index:150}
+  .nav-links{position:fixed;top:0;left:0;right:0;bottom:0;background:#ffffff;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:90px 22px 32px;gap:2px;overflow-y:auto;transform:translateX(100%);transition:transform .3s ease;box-shadow:0 18px 34px rgba(14,31,53,.14);z-index:150}
   .nav-links.open{transform:translateX(0)}
   .nav-links a{display:block;width:100%;font-size:1.05rem;padding:13px 16px;border-radius:10px;border-bottom:1px solid var(--light)}
   .nav-links .cta{text-align:center;margin-top:8px;border-bottom:none}
@@ -225,6 +225,9 @@ footer a:hover{color:var(--teal)}
     <a href="#" onclick="go('fields')" data-p="fields">Champs</a>
     <a href="#" onclick="go('method')" data-p="method">Approche</a>
     <a href="#" onclick="go('coop')" data-p="coop">Coopération</a>
+    <a href="#" onclick="go('plan')" data-p="plan">Plan 2026–2031</a>
+    <a href="#" onclick="go('catalog')" data-p="catalog">Catalogue</a>
+    <a href="#" onclick="go('doctrine')" data-p="doctrine">Doctrine</a>
     <a href="#" onclick="go('contact')" class="cta" data-p="contact">Contact</a>
   </nav>
   <button class="burger" onclick="toggleNav()" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav">
@@ -350,7 +353,14 @@ footer a:hover{color:var(--teal)}
     <div class="svc"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/><path d="M2 14h12M10 10l4 4-4 4"/></svg></div><div><h3>Analyse juridique et réforme</h3><p>Analyse du cadre normatif, propositions de réforme, projets de textes réglementaires, avant-projets de loi.</p></div></div>
     <div class="svc"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><div><h3>Études comparatives internationales</h3><p>Recherche d'institutions ayant résolu un problème comparable, analyse des résultats et adaptation au contexte haïtien.</p></div></div>
     <div class="svc"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><div><h3>Transformation numérique</h3><p>Simplification des procédures, interopérabilité, suivi des activités, données utiles à la décision.</p></div></div>
+    <div class="svc"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg></div><div><h3>Appui au renforcement parlementaire</h3><p>Renforcement des capacités des parlementaires et du personnel administratif, amélioration du travail législatif et du contrôle de l'action gouvernementale, modernisation des procédures et des archives, outils d'analyse et de suivi des politiques publiques, mécanismes de consultation citoyenne.</p><div class="tag">→ Formations, outils d'analyse législative, mécanismes de participation</div></div></div>
+    <div class="svc"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg></div><div><h3>Gouvernance électorale et observation des élections</h3><p>Appui institutionnel et technique aux structures électorales, formation des acteurs électoraux et sensibilisation civique, prévention des irrégularités, déploiement d'observateurs indépendants, observation préélectorale, électorale et postélectorale, publication de rapports factuels.</p><div class="tag">→ Missions d'observation, rapports et recommandations</div></div></div>
   </div>
+</div>
+</section>
+<section>
+<div class="container">
+  <div class="quote-block"><p>CAPRI contribue au renforcement des institutions parlementaires et à l'amélioration de la gouvernance électorale. Il soutient l'organisation d'élections démocratiques, inclusives et transparentes, et peut conduire des missions indépendantes d'observation — sans soutenir aucun parti, candidat ou camp politique.</p></div>
 </div>
 </section>
 <section class="alt">
@@ -387,6 +397,8 @@ footer a:hover{color:var(--teal)}
     <div class="svc"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div><div><h3>État civil, identité et archives</h3><p>Modernisation de la chaîne de l'état civil, identité juridique unique, interopérabilité, Archives Nationales, gestion documentaire.</p></div></div>
     <div class="svc"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><div><h3>Transformation numérique de l'État</h3><p>Architecture numérique, interopérabilité, portail des services publics, cybersécurité, gouvernance des données.</p></div></div>
     <div class="svc"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div><div><h3>Gouvernance et intégrité</h3><p>Contrôle interne, traçabilité, transparence, prévention de la corruption, séparation des fonctions, reddition de comptes.</p></div></div>
+    <div class="svc"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg></div><div><h3>Appui parlementaire</h3><p>Renforcement des capacités des parlementaires, amélioration du travail législatif et du contrôle de l'action gouvernementale, modernisation des procédures et archives parlementaires, mécanismes de consultation citoyenne.</p></div></div>
+    <div class="svc"><div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg></div><div><h3>Gouvernance électorale</h3><p>Appui institutionnel aux structures électorales, formation des acteurs et sensibilisation civique, missions indépendantes d'observation préélectorale, électorale et postélectorale, publication de rapports factuels.</p></div></div>
   </div>
 </div>
 </section>
@@ -469,7 +481,14 @@ footer a:hover{color:var(--teal)}
     <div class="coop"><h3>Jumelages institutionnels</h3><p>Relations durables entre institutions haïtiennes et homologues étrangères pour un transfert continu de compétences.</p></div>
     <div class="coop"><h3>Voyages d'études</h3><p>Chaque mission répond à un problème documenté et produit un plan de transfert avec des résultats attendus.</p></div>
     <div class="coop"><h3>Observatoire CAPRI</h3><p>Identification permanente des modèles institutionnels performants à travers le monde, avec fiches documentées.</p></div>
+    <div class="coop"><h3>Partenariats parlementaires</h3><p>Coopération avec le Parlement haïtien et des institutions législatives étrangères pour le transfert de bonnes pratiques en matière de travail législatif et de contrôle parlementaire.</p></div>
+    <div class="coop"><h3>Observation électorale indépendante</h3><p>Coopération avec le CEP, l'ONU, l'OEA et les partenaires diplomatiques pour l'appui aux structures électorales et le déploiement de missions d'observation impartiales.</p></div>
   </div>
+</div>
+</section>
+<section>
+<div class="container">
+  <div class="quote-block"><p>CAPRI accompagne les institutions et évalue les processus électoraux et parlementaires en toute indépendance et impartialité politique, sans soutenir aucun parti, candidat ou camp politique.</p></div>
 </div>
 </section>
 <section>
@@ -487,6 +506,121 @@ footer a:hover{color:var(--teal)}
     </div>
   </div>
   <div class="quote-block" style="margin-top:40px"><p>Observer ailleurs. Comprendre pourquoi cela fonctionne. Adapter aux réalités haïtiennes. Expérimenter en Haïti. Mesurer avant de généraliser.</p></div>
+</div>
+</section>
+</div>
+
+<!-- ===== PLAN STRATÉGIQUE ===== -->
+<div class="pg" id="pg-plan">
+<div class="page-hero"><h1>Plan stratégique 2026–2031</h1><p>Construire → Démontrer → Consolider → Étendre → Institutionnaliser</p></div>
+<section>
+<div class="container">
+  <div class="sec-label">5 phases</div>
+  <h2 class="sec-title">Trajectoire de développement</h2>
+  <div class="gold-bar"></div>
+  <div class="svc-list">
+    <div class="svc"><div class="svc-ic" style="background:var(--navy);color:var(--gold)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg></div><div><h3>Phase I — 2026–2027 : Constitution et installation</h3><p>Donner à CAPRI une existence juridique, administrative, méthodologique et opérationnelle. Statuts, organes de gouvernance, Code d'éthique, politiques internes, identité institutionnelle, site web, Réseau d'Experts Associés. Formalisation des premiers outils méthodologiques (ICCI, ICIT, grilles de diagnostic).</p></div></div>
+    <div class="svc"><div class="svc-ic" style="background:var(--navy);color:var(--gold)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div><h3>Phase II — 2027–2028 : Démonstration</h3><p>Produire les premières preuves mesurables. Premier Programme Pilote CAPRI avec une administration territoriale volontaire. L'Observatoire commence la veille internationale et l'identification des modèles performants. Premiers contacts de coopération internationale.</p></div></div>
+    <div class="svc"><div class="svc-ic" style="background:var(--navy);color:var(--gold)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div><div><h3>Phase III — 2028–2029 : Consolidation</h3><p>Vérifier la reproductibilité de la méthodologie dans 3 à 5 institutions supplémentaires. Professionnalisation interne, renforcement du système qualité, première publication majeure : Rapport sur la Capacité Institutionnelle.</p></div></div>
+    <div class="svc"><div class="svc-ic" style="background:var(--navy);color:var(--gold)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><div><h3>Phase IV — 2029–2030 : Expansion et spécialisation</h3><p>Extension vers l'administration centrale, la Fonction publique, l'état civil, la justice, le système pénitentiaire, l'immigration, les douanes, la diplomatie, les collectivités territoriales, l'interopérabilité. Premières missions internationales importantes.</p></div></div>
+    <div class="svc"><div class="svc-ic" style="background:var(--navy);color:var(--gold)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><div><h3>Phase V — 2030–2031 : Positionnement national et international</h3><p>Reconnaissance comme référence indépendante en renforcement institutionnel. Réseau international formalisé, publications régulières, Forum CAPRI sur la Performance Institutionnelle de l'État.</p></div></div>
+  </div>
+</div>
+</section>
+<section class="alt">
+<div class="container">
+  <div class="quote-block"><p>CAPRI ne cherchera pas à devenir grand avant d'avoir démontré qu'il est utile. Sa croissance devra suivre ses résultats.</p></div>
+</div>
+</section>
+</div>
+
+<!-- ===== CATALOGUE DES SERVICES ===== -->
+<div class="pg" id="pg-catalog">
+<div class="page-hero"><h1>Catalogue des services</h1><p>28 services institutionnels + Programme CAPRI 360</p></div>
+<section>
+<div class="container">
+  <div class="pillars" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+    <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></div><h3>Diagnostic</h3><p><b>Service 1</b> — Diagnostic institutionnel complet<br><b>Service 2</b> — Diagnostic ciblé</p></div>
+    <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><h3>Performance</h3><p><b>Service 3</b> — Évaluation de performance<br><b>Service 4</b> — Évaluation ICCI<br><b>Service 5</b> — Évaluation territoriale ICIT</p></div>
+    <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/></svg></div><h3>Organisation</h3><p><b>Service 6</b> — Réorganisation institutionnelle<br><b>Service 7</b> — Manuel de procédures</p></div>
+    <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 14l9-5-9-5-9 5 9 5z"/><path d="M12 14v7M3 9v7l9 5 9-5V9"/></svg></div><h3>Formation</h3><p><b>Service 8</b> — Formation sur mesure<br><b>Service 9</b> — Formation de formateurs<br><b>Service 10</b> — Accompagnement post-formation</p></div>
+    <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div><h3>Outils</h3><p><b>Service 11</b> — Conception d'outils institutionnels (tableaux de bord, matrices, registres, formulaires, guides)</p></div>
+    <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><h3>Numérique</h3><p><b>Service 12</b> — Diagnostic de maturité numérique<br><b>Service 13</b> — Conception fonctionnelle<br><b>Service 14</b> — Interopérabilité</p></div>
+    <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/><path d="M2 14h12M10 10l4 4-4 4"/></svg></div><h3>Juridique</h3><p><b>Service 15</b> — Audit juridique institutionnel<br><b>Service 16</b> — Proposition de réforme normative</p></div>
+    <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg></div><h3>Modèles</h3><p><b>Service 17</b> — Étude comparative internationale<br><b>Service 18</b> — Conception d'un modèle adapté<br><b>Service 19</b> — Expérimentation pilote</p></div>
+    <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg></div><h3>Coopération</h3><p><b>Service 20</b> — Recherche de partenaire<br><b>Service 21</b> — Voyage d'étude<br><b>Service 22</b> — Jumelage institutionnel</p></div>
+    <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3>Suivi</h3><p><b>Service 23</b> — Assistance à l'implémentation<br><b>Service 24</b> — Suivi institutionnel<br><b>Service 25</b> — Évaluation post-implémentation</p></div>
+    <div class="pillar"><div class="pillar-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div><h3>Intégrité</h3><p><b>Service 26</b> — Cartographie des risques<br><b>Service 27</b> — Évaluation des mécanismes d'intégrité<br><b>Service 28</b> — Renforcement du contrôle interne</p></div>
+  </div>
+</div>
+</section>
+<section class="alt">
+<div class="container">
+  <div class="cycle" style="background:linear-gradient(135deg,var(--teal-dark),var(--teal))">
+    <h3 style="color:#fff">Programme CAPRI 360 — Renforcement Institutionnel Intégré</h3>
+    <div class="cycle-steps">
+      <span class="cycle-step">Diagnostic</span><span class="cycle-arrow" style="color:var(--gold-light)">→</span>
+      <span class="cycle-step">Baseline</span><span class="cycle-arrow" style="color:var(--gold-light)">→</span>
+      <span class="cycle-step">Audit juridique</span><span class="cycle-arrow" style="color:var(--gold-light)">→</span>
+      <span class="cycle-step">Performance</span><span class="cycle-arrow" style="color:var(--gold-light)">→</span>
+      <span class="cycle-step">Étude comparative</span><span class="cycle-arrow" style="color:var(--gold-light)">→</span>
+      <span class="cycle-step">Plan de réforme</span><span class="cycle-arrow" style="color:var(--gold-light)">→</span>
+      <span class="cycle-step">Formation</span><span class="cycle-arrow" style="color:var(--gold-light)">→</span>
+      <span class="cycle-step">Outils</span><span class="cycle-arrow" style="color:var(--gold-light)">→</span>
+      <span class="cycle-step">Pilote</span><span class="cycle-arrow" style="color:var(--gold-light)">→</span>
+      <span class="cycle-step">Implémentation</span><span class="cycle-arrow" style="color:var(--gold-light)">→</span>
+      <span class="cycle-step">Suivi</span><span class="cycle-arrow" style="color:var(--gold-light)">→</span>
+      <span class="cycle-step">Évaluation</span><span class="cycle-arrow" style="color:var(--gold-light)">→</span>
+      <span class="cycle-step">Transfert</span>
+    </div>
+  </div>
+</div>
+</section>
+</div>
+
+<!-- ===== DOCTRINE ===== -->
+<div class="pg" id="pg-doctrine">
+<div class="page-hero" style="background:linear-gradient(165deg,#0a1628,var(--navy))"><h1>Doctrine CAPRI</h1><p>18 principes directeurs et modèle intégré d'intervention</p></div>
+<section>
+<div class="container">
+  <div class="quote-block" style="text-align:center"><p>La capacité d'un État dépend largement de la solidité, de la coordination, de la continuité et de la performance de ses institutions.</p></div>
+  <div class="sec-label" style="margin-top:32px">Les 18 principes directeurs</div>
+  <div class="val-grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+    <div class="val"><div class="val-num">1</div><h3>L'institution avant la personne</h3><p>Les dirigeants passent. Les institutions doivent demeurer capables de fonctionner.</p></div>
+    <div class="val"><div class="val-num">2</div><h3>Diagnostiquer avant de réformer</h3><p>Établir les faits avant de proposer une solution.</p></div>
+    <div class="val"><div class="val-num">3</div><h3>La preuve avant l'affirmation</h3><p>Documenter les faiblesses. Mesurer les améliorations.</p></div>
+    <div class="val"><div class="val-num">4</div><h3>Traiter les causes</h3><p>Rechercher les facteurs structurels du dysfonctionnement.</p></div>
+    <div class="val"><div class="val-num">5</div><h3>Comparer avant d'inventer</h3><p>Rechercher ce qui a été expérimenté avec succès ailleurs.</p></div>
+    <div class="val"><div class="val-num">6</div><h3>Adapter avant de transposer</h3><p>Aucun modèle étranger n'est reproduit automatiquement.</p></div>
+    <div class="val"><div class="val-num">7</div><h3>Tester avant de généraliser</h3><p>Prototype → Pilote → Mesure → Extension.</p></div>
+    <div class="val"><div class="val-num">8</div><h3>Préparer avant l'entrée en vigueur</h3><p>Textes, procédures, personnel, outils, formation — tout prêt avant le lancement.</p></div>
+    <div class="val"><div class="val-num">9</div><h3>Implémenter au-delà du rapport</h3><p>Accompagner la mise en œuvre concrète, pas seulement recommander.</p></div>
+    <div class="val"><div class="val-num">10</div><h3>Mesurer avant et après</h3><p>Chaque intervention dispose d'une baseline et de résultats documentés.</p></div>
+    <div class="val"><div class="val-num">11</div><h3>Corriger ce qui ne fonctionne pas</h3><p>Reconnaître, analyser, corriger, retester si nécessaire.</p></div>
+    <div class="val"><div class="val-num">12</div><h3>Transférer les compétences</h3><p>Autonomiser l'institution, pas créer une dépendance.</p></div>
+    <div class="val"><div class="val-num">13</div><h3>Connecter plutôt qu'isoler</h3><p>Coordination, interopérabilité, partage légal d'information.</p></div>
+    <div class="val"><div class="val-num">14</div><h3>Le numérique au service de l'institution</h3><p>Améliorer le processus avant de le numériser.</p></div>
+    <div class="val"><div class="val-num">15</div><h3>Intégrité par conception</h3><p>Séparation des fonctions, traçabilité, contrôle, transparence.</p></div>
+    <div class="val"><div class="val-num">16</div><h3>Neutralité institutionnelle</h3><p>Servir l'État indépendamment des gouvernements successifs.</p></div>
+    <div class="val"><div class="val-num">17</div><h3>Indépendance analytique</h3><p>Le partenaire finance l'étude ; il ne peut acheter sa conclusion.</p></div>
+    <div class="val"><div class="val-num">18</div><h3>Souveraineté institutionnelle</h3><p>Les décisions de puissance publique appartiennent aux autorités haïtiennes.</p></div>
+  </div>
+</div>
+</section>
+<section class="alt">
+<div class="container text-center">
+  <div class="sec-label">Le modèle intégré</div>
+  <h2 class="sec-title">12 mouvements</h2>
+  <div class="gold-bar center"></div>
+  <div class="meth-grid">
+    <div class="meth"><h4>Connaître</h4></div><div class="meth"><h4>Diagnostiquer</h4></div>
+    <div class="meth"><h4>Mesurer</h4></div><div class="meth"><h4>Expliquer</h4></div>
+    <div class="meth"><h4>Comparer</h4></div><div class="meth"><h4>Adapter</h4></div>
+    <div class="meth"><h4>Préparer</h4></div><div class="meth"><h4>Former</h4></div>
+    <div class="meth"><h4>Tester</h4></div><div class="meth"><h4>Implémenter</h4></div>
+    <div class="meth"><h4>Évaluer</h4></div><div class="meth"><h4>Transférer</h4></div>
+  </div>
+  <div class="quote-block" style="margin-top:40px;text-align:center"><p>CAPRI ne mesure pas son succès au nombre d'activités réalisées, mais à la capacité nouvelle et durable laissée dans l'institution après son intervention.</p></div>
 </div>
 </section>
 </div>

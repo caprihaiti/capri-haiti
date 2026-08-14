@@ -142,6 +142,29 @@ section.dark{background:var(--navy-deep);color:#fff}
 .coop h3{font-size:1rem;font-weight:700;color:var(--gold-light);margin-bottom:8px;font-family:var(--display)}
 .coop p{font-size:.9rem;color:rgba(255,255,255,.65);line-height:1.6}
 
+/* ========== COOPÉRATIONS ENVISAGÉES (accordéon) ========== */
+.coop-intro{max-width:820px;color:var(--grey);font-size:1rem;line-height:1.7;margin-bottom:32px}
+.coop-accordion{display:flex;flex-direction:column;gap:14px;margin-bottom:32px}
+.coop-cat{border:1px solid rgba(27,58,92,.1);border-radius:var(--radius);background:var(--off);overflow:hidden}
+.coop-cat summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:14px;padding:20px 24px;font-family:var(--display);font-weight:600;font-size:1.02rem;color:var(--navy)}
+.coop-cat summary::-webkit-details-marker{display:none}
+.coop-cat summary::after{content:'+';margin-left:auto;font-size:1.3rem;color:var(--teal);font-weight:400}
+.coop-cat[open] summary::after{content:'–'}
+.coop-cat-num{width:30px;height:30px;flex:0 0 30px;border-radius:50%;background:var(--navy);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;font-family:var(--display)}
+.coop-cat-body{padding:0 24px 26px 68px}
+.coop-cat-body ul{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:6px 20px;margin-bottom:4px;list-style:none}
+.coop-cat-body li{font-size:.9rem;color:var(--dark);line-height:1.6;padding-left:14px;position:relative}
+.coop-cat-body li::before{content:'—';position:absolute;left:0;color:var(--teal)}
+.coop-cat-body>p{font-size:.9rem;color:var(--dark);line-height:1.7;margin-bottom:14px}
+.coop-scope-label{font-size:.85rem;font-weight:600;color:var(--navy);margin:16px 0 8px}
+.coop-safeguard{margin-top:18px;background:var(--gold-pale);border-left:3px solid var(--gold);border-radius:8px;padding:16px 20px}
+.coop-safeguard p{font-size:.85rem;color:var(--navy);line-height:1.65}
+.coop-safeguard strong{color:var(--navy)}
+.coop-disclaimer{background:var(--gold-pale);border:1px solid rgba(212,168,67,.35);border-radius:var(--radius);padding:22px 26px}
+.coop-disclaimer p{font-size:.85rem;color:var(--navy);line-height:1.65}
+.coop-disclaimer strong{color:var(--navy)}
+@media(max-width:640px){.coop-cat-body{padding-left:24px}.coop-cat-body ul{grid-template-columns:1fr}}
+
 /* ========== CONTACT ========== */
 .contact-wrap{display:grid;grid-template-columns:1fr 1.2fr;gap:48px;align-items:start}
 @media(max-width:700px){.contact-wrap{grid-template-columns:1fr}}
@@ -472,10 +495,10 @@ footer a:hover{color:var(--teal)}
 
 <!-- ===== COOPÉRATION ===== -->
 <div class="pg" id="pg-coop">
-<div class="page-hero" style="background:linear-gradient(165deg,#0a1628,var(--teal-dark))"><h1>Coopération internationale</h1><p>Apprendre des meilleurs, adapter aux réalités haïtiennes</p></div>
+<div class="page-hero" style="background:linear-gradient(165deg,#0a1628,var(--teal-dark))"><h1>Coopération institutionnelle</h1><p>Construire des relations de confiance, en Haïti et à l'international</p></div>
 <section class="dark">
 <div class="container">
-  <div class="sec-label" style="color:var(--gold)">Dimension internationale</div>
+  <div class="sec-label" style="color:var(--gold)">Notre méthode de coopération</div>
   <h2 class="sec-title">Nos axes de coopération</h2>
   <div class="gold-bar"></div>
   <div class="coop-grid">
@@ -483,12 +506,143 @@ footer a:hover{color:var(--teal)}
     <div class="coop"><h3>Jumelages institutionnels</h3><p>Relations durables entre institutions haïtiennes et homologues étrangères pour un transfert continu de compétences.</p></div>
     <div class="coop"><h3>Voyages d'études</h3><p>Chaque mission répond à un problème documenté et produit un plan de transfert avec des résultats attendus.</p></div>
     <div class="coop"><h3>Observatoire CAPRI</h3><p>Identification permanente des modèles institutionnels performants à travers le monde, avec fiches documentées.</p></div>
-    <div class="coop"><h3>Partenariats parlementaires</h3><p>Coopération avec le Parlement haïtien et des institutions législatives étrangères pour le transfert de bonnes pratiques en matière de travail législatif et de contrôle parlementaire.</p></div>
-    <div class="coop"><h3>Observation électorale indépendante</h3><p>Coopération avec le CEP, l'ONU, l'OEA et les partenaires diplomatiques pour l'appui aux structures électorales et le déploiement de missions d'observation impartiales.</p></div>
+    <div class="coop"><h3>Appui parlementaire envisagé</h3><p>Développement de coopérations avec des institutions parlementaires nationales et internationales pour le transfert de bonnes pratiques en matière de travail législatif et de contrôle parlementaire.</p></div>
+    <div class="coop"><h3>Observation électorale indépendante</h3><p>Développement de coopérations avec les structures électorales et les réseaux d'observation, dans le respect de l'indépendance et de l'impartialité politique de CAPRI.</p></div>
   </div>
 </div>
 </section>
 <section>
+<div class="container">
+  <div class="sec-label">Développement institutionnel</div>
+  <h2 class="sec-title">Coopérations institutionnelles envisagées</h2>
+  <div class="gold-bar"></div>
+  <p class="coop-intro">CAPRI entend développer des relations de coopération avec les institutions publiques haïtiennes, les organismes parlementaires et électoraux, les représentations diplomatiques ainsi que les organisations régionales et internationales dont les interventions correspondent à sa mission de renforcement institutionnel.</p>
+
+  <div class="coop-accordion">
+
+    <details class="coop-cat">
+      <summary><span class="coop-cat-num">1</span> Institutions publiques haïtiennes</summary>
+      <div class="coop-cat-body">
+        <p class="coop-scope-label">Interlocuteurs institutionnels ciblés :</p>
+        <ul>
+          <li>Primature</li>
+          <li>Ministère de l'Intérieur et des Collectivités territoriales (MICT) — autorité de tutelle des collectivités territoriales</li>
+          <li>Ministère de la Planification et de la Coopération externe (MPCE)</li>
+          <li>Ministère des Affaires étrangères et des Cultes (MAE)</li>
+          <li>Ministère de la Justice et de la Sécurité publique (MJSP)</li>
+        </ul>
+        <div class="coop-safeguard">
+          <p><strong>Structures territoriales bénéficiaires potentielles</strong> des programmes mis en œuvre en coordination avec le MICT : Délégations, Vice-délégations, administrations communales (Mairies), Conseils de Sections communales (CASEC) et Assemblées de Sections communales (ASEC).</p>
+          <p style="margin-top:10px">Dans le cadre d'un accord ou d'un mécanisme de coopération établi avec le MICT, les interventions de CAPRI pourront bénéficier aux Délégations, Vice-délégations, administrations communales, Conseils de Sections communales et Assemblées de Sections communales. Ces structures constituent des bénéficiaires ou des terrains de mise en œuvre — et non des partenaires institutionnels directs de CAPRI. Les Délégations et Vice-délégations demeurent des bénéficiaires prioritaires de l'action de CAPRI.</p>
+        </div>
+      </div>
+    </details>
+
+    <details class="coop-cat">
+      <summary><span class="coop-cat-num">2</span> Institutions parlementaires et électorales</summary>
+      <div class="coop-cat-body">
+        <p class="coop-scope-label">Interlocuteurs institutionnels ciblés :</p>
+        <ul>
+          <li>Parlement haïtien et ses structures administratives</li>
+          <li>Conseil électoral et institutions participant au processus électoral</li>
+          <li>Organisations spécialisées dans l'assistance électorale</li>
+          <li>Réseaux nationaux et internationaux d'observation électorale</li>
+        </ul>
+        <p class="coop-scope-label">Les coopérations recherchées pourront porter sur :</p>
+        <ul>
+          <li>le renforcement du travail législatif</li>
+          <li>le contrôle de l'action gouvernementale</li>
+          <li>la modernisation administrative du Parlement</li>
+          <li>la gouvernance électorale</li>
+          <li>la formation des acteurs électoraux</li>
+          <li>l'éducation civique</li>
+          <li>l'organisation d'élections démocratiques, inclusives et transparentes</li>
+          <li>l'observation préélectorale, électorale et postélectorale</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="coop-cat">
+      <summary><span class="coop-cat-num">3</span> Représentations diplomatiques et coopération bilatérale</summary>
+      <div class="coop-cat-body">
+        <p class="coop-scope-label">Interlocuteurs institutionnels ciblés :</p>
+        <ul>
+          <li>Ambassade de France</li>
+          <li>Ambassade du Canada</li>
+          <li>Ambassade de Belgique</li>
+          <li>Ambassade d'Italie</li>
+          <li>Ambassade d'Espagne</li>
+          <li>Ambassade de Suisse</li>
+          <li>Autres représentations diplomatiques et agences de coopération intéressées par le renforcement institutionnel en Haïti</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="coop-cat">
+      <summary><span class="coop-cat-num">4</span> Organisations régionales et internationales</summary>
+      <div class="coop-cat-body">
+        <p class="coop-scope-label">Interlocuteurs institutionnels ciblés :</p>
+        <ul>
+          <li>Organisation des États américains (OEA)</li>
+          <li>Système des Nations Unies en Haïti</li>
+          <li>Autres organisations régionales, internationales et institutions de développement compatibles avec la mission de CAPRI</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="coop-cat">
+      <summary><span class="coop-cat-num">5</span> Système des Nations Unies — interlocuteurs cibles</summary>
+      <div class="coop-cat-body">
+        <ul>
+          <li>Bureau du Coordonnateur résident des Nations Unies</li>
+          <li>Programme des Nations Unies pour le développement (PNUD)</li>
+          <li>Bureau intégré des Nations Unies en Haïti (BINUH)</li>
+          <li>Bureau des Nations Unies pour les services d'appui aux projets (UNOPS)</li>
+          <li>Organisation internationale pour les migrations (OIM)</li>
+          <li>ONU Femmes</li>
+          <li>Fonds des Nations Unies pour la population (UNFPA)</li>
+          <li>Organisation internationale du Travail (OIT/BIT)</li>
+          <li>UNESCO</li>
+          <li>UNICEF</li>
+          <li>Organisation mondiale de la Santé et Organisation panaméricaine de la Santé (OMS/OPS)</li>
+          <li>Organisation des Nations Unies pour l'alimentation et l'agriculture (FAO)</li>
+          <li>Programme alimentaire mondial (PAM)</li>
+          <li>Bureau de la coordination des affaires humanitaires (OCHA)</li>
+          <li>Office des Nations Unies contre la drogue et le crime (ONUDC)</li>
+          <li>Autres agences, fonds et programmes pertinents selon les projets</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="coop-cat">
+      <summary><span class="coop-cat-num">6</span> Sécurité publique, renseignement et gouvernance stratégique</summary>
+      <div class="coop-cat-body">
+        <p>CAPRI envisage de contribuer au renforcement institutionnel des organismes chargés de la sécurité publique, du renseignement stratégique et de la protection du territoire. Les coopérations recherchées pourront concerner la planification stratégique, la coordination interinstitutionnelle, la modernisation administrative, la formation, la gestion de l'information, l'évaluation des politiques de sécurité et la restauration progressive de la présence de l'État sur l'ensemble du territoire national.</p>
+        <p class="coop-scope-label">Interlocuteurs institutionnels ciblés :</p>
+        <ul>
+          <li>Conseil supérieur de la Police nationale (CSPN)</li>
+          <li>Police nationale d'Haïti (PNH)</li>
+          <li>Secrétairerie d'État à la Sécurité publique</li>
+          <li>Agence nationale d'intelligence (ANI)</li>
+          <li>Ministère de l'Intérieur et des Collectivités territoriales (MICT)</li>
+          <li>Ministère de la Justice et de la Sécurité publique (MJSP)</li>
+          <li>Forces Armées d'Haïti, dans les limites de leurs attributions constitutionnelles et légales</li>
+          <li>Structures nationales et internationales intervenant dans la restauration de la sécurité et de l'autorité de l'État</li>
+        </ul>
+        <div class="coop-safeguard">
+          <p>Toute intervention de CAPRI dans ce domaine devra respecter la Constitution, la législation applicable, les droits fondamentaux, la protection des données, les mécanismes de contrôle démocratique et l'obligation de reddition de comptes. CAPRI n'exerce aucune activité opérationnelle de renseignement, de police ou de défense.</p>
+        </div>
+      </div>
+    </details>
+
+  </div>
+
+  <div class="coop-disclaimer">
+    <p><strong>Avertissement — </strong>Les institutions mentionnées dans cette rubrique constituent des partenaires de coopération ciblés ou potentiels. Leur présence ne signifie ni l'existence d'un partenariat officiel, ni leur approbation des activités de CAPRI. Toute coopération fera l'objet de démarches, d'échanges et, le cas échéant, d'un accord formel.</p>
+  </div>
+</div>
+</section>
+<section class="alt">
 <div class="container">
   <div class="quote-block"><p>CAPRI accompagne les institutions et évalue les processus électoraux et parlementaires en toute indépendance et impartialité politique, sans soutenir aucun parti, candidat ou camp politique.</p></div>
 </div>

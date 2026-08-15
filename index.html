@@ -1015,6 +1015,9 @@ footer a:hover{color:var(--teal)}
 <div class="footer-copy">© 2026 CAPRI — Centre d'Appui à la Performance et au Renforcement Institutionnel. Tous droits réservés.</div>
 </footer>
 
+<!-- Base de connaissances et moteur de réponse de Claire Heureuse — voir assets/claire/README.md -->
+<script src="assets/claire/knowledge-base.js"></script>
+<script src="assets/claire/engine.js"></script>
 <script>
 function toggleNav(){
   const nav=document.getElementById('nav');
@@ -1064,15 +1067,13 @@ function claireAdd(text,who='bot'){
   claireMessages.scrollTop=claireMessages.scrollHeight;
 }
 function claireReply(question){
-  const q=question.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-  if(/service|offre|faites|activite/.test(q))return "CAPRI propose notamment : diagnostic institutionnel, formation et professionnalisation, création d’outils institutionnels, accompagnement post-formation, analyse juridique, études comparatives et transformation numérique.";
-  if(/methode|approche|comment travail/.test(q))return "Notre méthode suit 12 mouvements : connaître, diagnostiquer, mesurer, expliquer, comparer, adapter, préparer, former, tester, implémenter, évaluer et transférer.";
-  if(/contact|email|courriel|telephone|adresse/.test(q))return "Vous pouvez écrire à contact@capri-haiti.org, appeler CAPRI au +509 37 06 1335 ou ouvrir la page Contact.";
-  if(/projet|proposition|partenariat|cooper/.test(q))return "Pour présenter un projet ou un partenariat, précisez l’institution concernée, le problème constaté, les résultats recherchés et vos coordonnées, puis écrivez à contact@capri-haiti.org, appelez CAPRI au +509 37 06 1335 ou consultez la page Contact.";
-  if(/formation|atelier|seminaire/.test(q))return "CAPRI conçoit des formations adaptées aux besoins réels des cadres et agents : administration, rédaction, éthique, gestion, planification et suivi-évaluation.";
-  if(/diagnostic|evaluation/.test(q))return "Le diagnostic institutionnel examine l’organisation, les procédures, les compétences et les besoins afin de produire une cartographie et un plan d’action mesurable.";
-  if(/bonjour|bonsoir|salut|shalom/.test(q))return "Bonjour ! Heureuse de vous accueillir. Je peux vous renseigner sur les services, la méthode ou la manière de contacter CAPRI.";
-  return "Je n’ai pas encore une réponse précise à cette question. Pour une réponse personnalisée, appelez CAPRI au +509 37 06 1335 ou consultez la page Contact.";
+  // La compréhension et le savoir de Claire vivent dans assets/claire/
+  // (knowledge-base.js + engine.js) — voir assets/claire/README.md.
+  if(window.ClaireEngine){
+    return window.ClaireEngine.answer(question).text;
+  }
+  // Filet de sécurité si les fichiers assets/claire/*.js n'ont pas pu charger.
+  return "Je ne parviens pas à consulter ma base de connaissances pour le moment. Écrivez à contact@capri-haiti.org ou appelez CAPRI au +509 37 06 1335.";
 }
 function claireAsk(question){
   const clean=question.trim();

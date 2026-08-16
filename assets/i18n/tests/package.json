@@ -1,0 +1,11 @@
+{
+  "name": "capri-i18n-tests",
+  "private": true,
+  "description": "Test tooling only — not part of the published static site.",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0"
+  }
+}

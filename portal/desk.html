@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAPRI Desk</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/portal.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <h1 id="greeting">Bonjour</h1>
+      <p id="todayDate"></p>
+    </div>
+
+    <div class="grid-3" id="statTiles">
+      <div class="stat-tile">
+        <div class="stat-label">Statut aujourd'hui</div>
+        <div class="stat-value" id="punchStatusValue">—</div>
+        <div class="stat-sub" id="punchStatusSub">Chargement…</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Tâches en cours</div>
+        <div class="stat-value" id="tasksActiveValue">—</div>
+        <div class="stat-sub">Qui vous sont assignées</div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">Échéances proches</div>
+        <div class="stat-value" id="tasksDueValue">—</div>
+        <div class="stat-sub">D'ici 7 jours</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h2>Pointage rapide</h2>
+        <p style="color:var(--grey);font-size:.86rem;margin-bottom:14px">Enregistrer votre présence sans quitter le Desk.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn" id="quickPunchIn">Punch In</button>
+          <button class="btn secondary" id="quickPunchOut">Punch Out</button>
+          <button class="btn secondary" id="quickLunchStart">Début pause</button>
+          <button class="btn secondary" id="quickLunchEnd">Fin pause</button>
+        </div>
+        <p style="margin-top:14px"><a href="pointage.html" style="color:var(--teal-dark);font-size:.84rem;font-weight:600">Voir l'historique complet →</a></p>
+      </div>
+
+      <div class="card">
+        <h2>Mes tâches récentes</h2>
+        <div id="recentTasks"><div class="empty-state">Chargement…</div></div>
+        <p style="margin-top:14px"><a href="tasks.html" style="color:var(--teal-dark);font-size:.84rem;font-weight:600">Voir toutes mes tâches →</a></p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var profileRef = null;
+
+CapriAuth.requireSession().then(async function (session) {
+  profileRef = session.profile;
+  CapriShell.renderSidebar(session.profile, "desk");
+
+  document.getElementById("greeting").textContent = "Bonjour, " + session.profile.full_name.split(" ")[0];
+  document.getElementById("todayDate").textContent = new Date().toLocaleDateString("fr-FR", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
+  await refreshPunchStatus();
+  await refreshTasks();
+
+  document.getElementById("quickPunchIn").addEventListener("click", function () { punch("punch_in"); });
+  document.getElementById("quickPunchOut").addEventListener("click", function () { punch("punch_out"); });
+  document.getElementById("quickLunchStart").addEventListener("click", function () { punch("lunch_start"); });
+  document.getElementById("quickLunchEnd").addEventListener("click", function () { punch("lunch_end"); });
+});
+
+var KIND_LABELS = { punch_in: "Arrivée", punch_out: "Départ", lunch_start: "Début pause", lunch_end: "Fin pause" };
+
+async function punch(kind) {
+  var { error } = await capriSupabase.from("time_entries").insert({ user_id: profileRef.id, kind: kind });
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  CapriShell.toast(KIND_LABELS[kind] + " enregistré(e).");
+  refreshPunchStatus();
+}
+
+async function refreshPunchStatus() {
+  var startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
+  var { data, error } = await capriSupabase
+    .from("time_entries")
+    .select("kind, at")
+    .eq("user_id", profileRef.id)
+    .gte("at", startOfDay.toISOString())
+    .order("at", { ascending: true });
+  if (error) { document.getElementById("punchStatusSub").textContent = "Erreur de chargement"; return; }
+
+  var last = data.length ? data[data.length - 1] : null;
+  document.getElementById("punchStatusValue").textContent = last ? KIND_LABELS[last.kind] : "Pas encore pointé";
+  document.getElementById("punchStatusSub").textContent = last
+    ? new Date(last.at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+    : "Utilisez Punch In pour commencer";
+}
+
+async function refreshTasks() {
+  var { data, error } = await capriSupabase
+    .from("tasks")
+    .select("id, title, status, priority, due_date")
+    .eq("assignee_id", profileRef.id)
+    .neq("status", "termine")
+    .order("due_date", { ascending: true, nullsFirst: false })
+    .limit(5);
+
+  if (error) {
+    document.getElementById("recentTasks").innerHTML = '<div class="empty-state">Erreur de chargement.</div>';
+    return;
+  }
+
+  document.getElementById("tasksActiveValue").textContent = data.length;
+  var in7days = new Date(); in7days.setDate(in7days.getDate() + 7);
+  var dueSoon = data.filter(function (t) { return t.due_date && new Date(t.due_date) <= in7days; });
+  document.getElementById("tasksDueValue").textContent = dueSoon.length;
+
+  var container = document.getElementById("recentTasks");
+  if (!data.length) {
+    container.innerHTML = '<div class="empty-state">Aucune tâche active pour le moment.</div>';
+    return;
+  }
+  container.innerHTML = data.map(function (t) {
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--off)">' +
+      '<span style="font-size:.87rem">' + escapeHtml(t.title) + "</span>" +
+      '<span class="pill ' + t.status + '">' + t.status.replace("_", " ") + "</span>" +
+      "</div>";
+  }).join("");
+}
+
+function escapeHtml(s) {
+  var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML;
+}
+</script>
+</body>
+</html>

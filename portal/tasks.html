@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tasks & Missions — CAPRI</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/portal.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <h1>CAPRI Tasks / Missions</h1>
+      <p>Créez une tâche, assignez-la, suivez sa progression.</p>
+    </div>
+
+    <div class="card">
+      <h2>Nouvelle tâche</h2>
+      <form id="newTaskForm">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="tTitle">Titre</label>
+            <input type="text" id="tTitle" required>
+          </div>
+          <div class="form-field">
+            <label for="tAssignee">Assignée à</label>
+            <select id="tAssignee" required></select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="tDesc">Description</label>
+          <textarea id="tDesc" rows="2"></textarea>
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="tDue">Échéance</label>
+            <input type="date" id="tDue">
+          </div>
+          <div class="form-field">
+            <label for="tPriority">Priorité</label>
+            <select id="tPriority">
+              <option value="basse">Basse</option>
+              <option value="normale" selected>Normale</option>
+              <option value="haute">Haute</option>
+              <option value="critique">Critique</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn">Créer la tâche</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0">Mes tâches</h2>
+        <select id="statusFilter" style="width:auto;padding:7px 10px;border:1px solid var(--light);border-radius:8px;font-size:.82rem">
+          <option value="">Tous les statuts</option>
+          <option value="a_faire">À faire</option>
+          <option value="en_cours">En cours</option>
+          <option value="en_revision">En révision</option>
+          <option value="termine">Terminé</option>
+          <option value="bloque">Bloqué</option>
+        </select>
+      </div>
+      <div id="tasksTable"><div class="empty-state">Chargement…</div></div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var profileRef = null;
+var STATUS_LABELS = { a_faire: "À faire", en_cours: "En cours", en_revision: "En révision", termine: "Terminé", bloque: "Bloqué" };
+var allProfiles = [];
+
+CapriAuth.requireSession().then(async function (session) {
+  profileRef = session.profile;
+  CapriShell.renderSidebar(session.profile, "tasks");
+
+  await loadAssigneeOptions();
+  await loadTasks();
+
+  document.getElementById("newTaskForm").addEventListener("submit", createTask);
+  document.getElementById("statusFilter").addEventListener("change", loadTasks);
+});
+
+async function loadAssigneeOptions() {
+  var { data, error } = await capriSupabase.from("profiles").select("id, full_name").eq("active", true).order("full_name");
+  if (error) return;
+  allProfiles = data;
+  var select = document.getElementById("tAssignee");
+  select.innerHTML = data.map(function (p) {
+    return '<option value="' + p.id + '"' + (p.id === profileRef.id ? " selected" : "") + ">" + escapeHtml(p.full_name) + "</option>";
+  }).join("");
+}
+
+async function createTask(e) {
+  e.preventDefault();
+  var payload = {
+    title: document.getElementById("tTitle").value.trim(),
+    description: document.getElementById("tDesc").value.trim() || null,
+    assignee_id: document.getElementById("tAssignee").value,
+    created_by: profileRef.id,
+    due_date: document.getElementById("tDue").value || null,
+    priority: document.getElementById("tPriority").value,
+  };
+  var { error } = await capriSupabase.from("tasks").insert(payload);
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  CapriShell.toast("Tâche créée.");
+  document.getElementById("newTaskForm").reset();
+  loadTasks();
+}
+
+async function loadTasks() {
+  var statusVal = document.getElementById("statusFilter").value;
+  var query = capriSupabase
+    .from("tasks")
+    .select("id, title, status, priority, progress, due_date, assignee_id")
+    .or("assignee_id.eq." + profileRef.id + ",created_by.eq." + profileRef.id)
+    .order("due_date", { ascending: true, nullsFirst: false });
+  if (statusVal) query = query.eq("status", statusVal);
+
+  var { data, error } = await query;
+  var container = document.getElementById("tasksTable");
+  if (error) { container.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  if (!data.length) { container.innerHTML = '<div class="empty-state">Aucune tâche pour ce filtre.</div>'; return; }
+
+  container.innerHTML = '<table class="data-table"><thead><tr><th>Titre</th><th>Assignée à</th><th>Échéance</th><th>Priorité</th><th>Progression</th><th>Statut</th></tr></thead><tbody>' +
+    data.map(function (t) {
+      var assignee = allProfiles.find(function (p) { return p.id === t.assignee_id; });
+      return "<tr>" +
+        "<td>" + escapeHtml(t.title) + "</td>" +
+        "<td>" + (assignee ? escapeHtml(assignee.full_name) : "—") + "</td>" +
+        "<td>" + (t.due_date || "—") + "</td>" +
+        '<td><span class="pill ' + t.priority + '">' + t.priority + "</span></td>" +
+        "<td>" + t.progress + "%</td>" +
+        '<td><select class="statusSelect" data-id="' + t.id + '" style="border:1px solid var(--light);border-radius:6px;padding:4px 6px;font-size:.78rem">' +
+        Object.keys(STATUS_LABELS).map(function (s) {
+          return '<option value="' + s + '"' + (s === t.status ? " selected" : "") + ">" + STATUS_LABELS[s] + "</option>";
+        }).join("") + "</select></td>" +
+        "</tr>";
+    }).join("") + "</tbody></table>";
+
+  container.querySelectorAll(".statusSelect").forEach(function (sel) {
+    sel.addEventListener("change", async function () {
+      var { error } = await capriSupabase.from("tasks").update({ status: sel.value, updated_at: new Date().toISOString() }).eq("id", sel.getAttribute("data-id"));
+      if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+      CapriShell.toast("Statut mis à jour.");
+    });
+  });
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+</script>
+</body>
+</html>

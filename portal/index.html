@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAPRI ID — Connexion</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/portal.css">
+<style>
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(160deg,var(--navy-deep),var(--navy));padding:20px}
+  .login-card{background:#fff;border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.3);padding:40px;max-width:400px;width:100%}
+  .login-brand{text-align:center;margin-bottom:24px}
+  .login-brand .name{font-family:var(--display);font-size:1.6rem;color:var(--navy);font-weight:700}
+  .login-brand .sub{color:var(--grey);font-size:.82rem;margin-top:2px}
+  .login-tabs{display:flex;gap:4px;background:var(--off);border-radius:50px;padding:4px;margin-bottom:22px}
+  .login-tabs button{flex:1;background:none;border:none;padding:9px;border-radius:50px;font-weight:600;font-size:.84rem;color:var(--grey);cursor:pointer}
+  .login-tabs button.active{background:var(--navy);color:#fff}
+  .login-msg{font-size:.82rem;padding:10px 12px;border-radius:8px;margin-bottom:14px}
+  .login-msg.error{background:var(--danger-pale);color:var(--danger)}
+  .login-msg.info{background:var(--teal-pale);color:var(--teal-dark)}
+  .login-footer{text-align:center;margin-top:18px;font-size:.76rem;color:var(--grey)}
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="login-brand">
+    <div class="name">CAPRI ID</div>
+    <div class="sub">Une identité pour tout l'écosystème CAPRI</div>
+  </div>
+
+  <div class="login-tabs">
+    <button type="button" id="tabSignin" class="active">Connexion</button>
+    <button type="button" id="tabSignup">Créer un compte</button>
+  </div>
+
+  <div id="loginMsg"></div>
+
+  <form id="signinForm">
+    <div class="form-field">
+      <label for="siEmail">Adresse courriel</label>
+      <input type="email" id="siEmail" required autocomplete="email">
+    </div>
+    <div class="form-field">
+      <label for="siPass">Mot de passe</label>
+      <input type="password" id="siPass" required autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn" style="width:100%;justify-content:center">Se connecter</button>
+  </form>
+
+  <form id="signupForm" hidden>
+    <div class="form-field">
+      <label for="suName">Nom complet</label>
+      <input type="text" id="suName" required autocomplete="name">
+    </div>
+    <div class="form-field">
+      <label for="suEmail">Adresse courriel</label>
+      <input type="email" id="suEmail" required autocomplete="email">
+    </div>
+    <div class="form-field">
+      <label for="suPass">Mot de passe (8 caractères min.)</label>
+      <input type="password" id="suPass" required minlength="8" autocomplete="new-password">
+    </div>
+    <button type="submit" class="btn" style="width:100%;justify-content:center">Créer mon compte</button>
+  </form>
+
+  <div class="login-footer">Un compte nouvellement créé reste en attente jusqu'à ce qu'un administrateur lui attribue un rôle.</div>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script>
+var tabSignin = document.getElementById("tabSignin");
+var tabSignup = document.getElementById("tabSignup");
+var signinForm = document.getElementById("signinForm");
+var signupForm = document.getElementById("signupForm");
+var msgBox = document.getElementById("loginMsg");
+
+function showTab(which) {
+  var isSignin = which === "signin";
+  tabSignin.classList.toggle("active", isSignin);
+  tabSignup.classList.toggle("active", !isSignin);
+  signinForm.hidden = !isSignin;
+  signupForm.hidden = isSignin;
+  msgBox.innerHTML = "";
+}
+tabSignin.addEventListener("click", function () { showTab("signin"); });
+tabSignup.addEventListener("click", function () { showTab("signup"); });
+
+function showMsg(text, kind) {
+  msgBox.innerHTML = '<div class="login-msg ' + kind + '">' + text + "</div>";
+}
+
+async function redirectIfLoggedIn() {
+  var { data } = await window.capriSupabase.auth.getSession();
+  if (data && data.session) window.location.href = "desk.html";
+}
+redirectIfLoggedIn();
+
+signinForm.addEventListener("submit", async function (e) {
+  e.preventDefault();
+  var email = document.getElementById("siEmail").value.trim();
+  var password = document.getElementById("siPass").value;
+  var { error } = await window.capriSupabase.auth.signInWithPassword({ email: email, password: password });
+  if (error) { showMsg("Connexion impossible : " + error.message, "error"); return; }
+  window.location.href = "desk.html";
+});
+
+signupForm.addEventListener("submit", async function (e) {
+  e.preventDefault();
+  var fullName = document.getElementById("suName").value.trim();
+  var email = document.getElementById("suEmail").value.trim();
+  var password = document.getElementById("suPass").value;
+  var { error } = await window.capriSupabase.auth.signUp({
+    email: email, password: password,
+    options: { data: { full_name: fullName } }
+  });
+  if (error) { showMsg("Création impossible : " + error.message, "error"); return; }
+  showMsg("Compte créé. Un administrateur doit maintenant vous attribuer un rôle avant que vous puissiez accéder au portail.", "info");
+  signupForm.reset();
+});
+</script>
+</body>
+</html>

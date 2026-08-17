@@ -40,6 +40,7 @@ données de plusieurs modules sans que rien n'ait besoin d'être reconstruit.
 | **Punch/Lunch In-Out** | `pointage.html` | Pointage complet + historique 30 jours + heures calculées |
 | **Tasks & Missions** | `tasks.html` | Créer, assigner, suivre une tâche (statut, priorité, progression) |
 | **CAPRI Meet** | `meet.html` | Visioconférence intégrée (Jitsi Meet) — salle Conseil, salle Équipe, ou réunion nommée |
+| **CAPRI Messenger** | `messenger.html` | Messagerie interne privée — conversations directes ou de groupe, en temps réel (Supabase Realtime) |
 
 **Installer le portail comme app sur le téléphone (PWA)** : ouvrir
 `https://capri-haiti.org/portal/` dans Chrome (Android) ou Safari (iPhone) →
@@ -57,9 +58,8 @@ résolution de CA pourra générer automatiquement des tâches via
 Projects** + **CAPRI Performance** — diagnostic → recommandations → plan
 d'action → implémentation → évaluation → suivi, avec baseline/cible/écart
 par indicateur), `partners` / `partner_interactions` (**CAPRI Partners**),
-`channels` / `messages` (**CAPRI Messenger**, à activer avec Supabase
-Realtime), `audit_log` (**CAPRI Secure Vault**, alimente aussi
-**CAPRI Institutional Pulse**).
+`audit_log` (**CAPRI Secure Vault**, alimente aussi **CAPRI Institutional
+Pulse**).
 
 **CAPRI Institutional Pulse** : une fois Board, Tasks, Projects et
 Performance construits, ce sera des **vues SQL** qui croisent ces tables
@@ -76,6 +76,11 @@ répondre selon les droits d'accès de chacun.
 - Row Level Security (RLS) activée sur `profiles`, `time_entries`, `tasks`,
   `task_attachments` dès la Phase 1 — chacun voit son propre travail ;
   `direction` et `conseil_administration` voient plus largement.
+- RLS activée sur `channels`, `channel_members`, `messages` (CAPRI
+  Messenger) : chacun ne voit et n'écrit que dans les conversations dont il
+  est membre — vérifié via une fonction `is_channel_member()` plutôt qu'une
+  politique auto-référente sur `channel_members`, plus sûre et plus simple à
+  auditer.
 - Les autres tables sont créées sans RLS actif tant qu'aucune interface ne
   les utilise réellement — elles seront verrouillées module par module, au
   moment de construire chaque interface, pas avant (une politique d'accès

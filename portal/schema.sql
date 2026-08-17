@@ -6,10 +6,10 @@
 -- tard comme de simples vues qui croisent ces tables, sans que rien ne
 -- doive être reconstruit.
 --
--- PHASE 1 (construite maintenant) : profiles, time_entries, tasks.
--- PHASE 2+ (tables créées maintenant, interfaces à venir) : documents,
---   meetings, resolutions, projects, kpis, partners, channels, messages,
---   audit_log.
+-- PHASE 1 (construite) : profiles, time_entries, tasks.
+-- PHASE 2 (construite) : channels, channel_members, messages (CAPRI Messenger).
+-- PHASE 3+ (tables créées maintenant, interfaces à venir) : documents,
+--   meetings, resolutions, projects, kpis, partners, audit_log.
 --
 -- Installation : Supabase → SQL Editor → coller ce fichier entier → Run.
 -- Peut être exécuté plusieurs fois sans risque (IF NOT EXISTS partout).
@@ -224,17 +224,21 @@ create table if not exists partner_interactions (
 -- -----------------------------------------------------------------------------
 create table if not exists channels (
   id uuid primary key default gen_random_uuid(),
-  name text not null,
+  name text, -- vide pour les conversations directes (le nom affiché est calculé côté client à partir du membre en face)
   is_direct boolean not null default false,
   created_by uuid not null references profiles(id),
   created_at timestamptz not null default now()
 );
+-- Migration : les installations ayant déjà exécuté une version antérieure
+-- du schéma avaient `name` obligatoire — l'assouplir sans perte de données.
+alter table channels alter column name drop not null;
 
 create table if not exists channel_members (
   channel_id uuid not null references channels(id) on delete cascade,
   user_id uuid not null references profiles(id) on delete cascade,
   primary key (channel_id, user_id)
 );
+create index if not exists idx_channel_members_user on channel_members(user_id);
 
 create table if not exists messages (
   id uuid primary key default gen_random_uuid(),
@@ -243,6 +247,27 @@ create table if not exists messages (
   body text not null,
   created_at timestamptz not null default now()
 );
+create index if not exists idx_messages_channel_at on messages(channel_id, created_at);
+
+-- Fonction utilitaire (security definer, contourne volontairement RLS pour
+-- cette seule vérification) : évite les politiques RLS auto-référentes sur
+-- channel_members, qui sont sujettes à erreur. Utilisée par toutes les
+-- politiques de CAPRI Messenger ci-dessous.
+create or replace function is_channel_member(cid uuid, uid uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (select 1 from channel_members cm where cm.channel_id = cid and cm.user_id = uid);
+$$;
+
+-- Publication temps réel : nécessaire pour que les nouveaux messages
+-- s'affichent instantanément sans recharger la page (Supabase Realtime).
+do $$ begin
+  alter publication supabase_realtime add table messages;
+exception when duplicate_object then null; end $$;
 
 -- -----------------------------------------------------------------------------
 -- 9. Audit log — CAPRI Secure Vault + alimente CAPRI Institutional Pulse
@@ -304,8 +329,36 @@ create policy "task_attachments_select_relevant" on task_attachments for select
 create policy "task_attachments_insert_own" on task_attachments for insert
   with check (uploaded_by = auth.uid());
 
--- Phase 2+ : activer RLS sur les autres tables au fur et à mesure qu'une
+-- CAPRI Messenger : chacun ne voit que les canaux dont il est membre, et ne
+-- peut écrire que dans ceux-là — jamais de canal ou message visible depuis
+-- l'extérieur, même via l'API.
+alter table channels enable row level security;
+alter table channel_members enable row level security;
+alter table messages enable row level security;
+
+drop policy if exists "channels_select_member" on channels;
+create policy "channels_select_member" on channels for select
+  using (is_channel_member(id, auth.uid()));
+drop policy if exists "channels_insert_own" on channels;
+create policy "channels_insert_own" on channels for insert
+  with check (created_by = auth.uid());
+
+drop policy if exists "channel_members_select_if_member" on channel_members;
+create policy "channel_members_select_if_member" on channel_members for select
+  using (is_channel_member(channel_id, auth.uid()));
+drop policy if exists "channel_members_insert_self_or_member" on channel_members;
+create policy "channel_members_insert_self_or_member" on channel_members for insert
+  with check (user_id = auth.uid() or is_channel_member(channel_id, auth.uid()));
+
+drop policy if exists "messages_select_member" on messages;
+create policy "messages_select_member" on messages for select
+  using (is_channel_member(channel_id, auth.uid()));
+drop policy if exists "messages_insert_member" on messages;
+create policy "messages_insert_member" on messages for insert
+  with check (sender_id = auth.uid() and is_channel_member(channel_id, auth.uid()));
+
+-- Phase 3+ : activer RLS sur les tables restantes au fur et à mesure qu'une
 -- interface les utilise réellement (documents, meetings, resolutions,
--- projects, kpis, partners, channels, messages, audit_log). Les créer
--- maintenant sans RLS actif évite de bloquer leur usage avant d'avoir une
--- politique d'accès définie module par module.
+-- projects, kpis, partners, audit_log). Les créer maintenant sans RLS actif
+-- évite de bloquer leur usage avant d'avoir une politique d'accès définie
+-- module par module.

@@ -14,9 +14,9 @@ window.CapriShell = (function () {
       { key: "pointage", href: "pointage.html", label: "Punch / Lunch", icon: "🕒" },
       { key: "tasks", href: "tasks.html", label: "Tasks & Missions", icon: "✅" },
       { key: "meet", href: "meet.html", label: "CAPRI Meet", icon: "🎥" },
+      { key: "messenger", href: "messenger.html", label: "CAPRI Messenger", icon: "💬" },
     ]},
     { group: "À venir", items: [
-      { key: "messenger", href: null, label: "CAPRI Messenger", icon: "💬" },
       { key: "docs", href: null, label: "CAPRI Docs", icon: "📄" },
       { key: "sign", href: null, label: "CAPRI Sign", icon: "✍️" },
       { key: "board", href: null, label: "CAPRI Board", icon: "🏛️" },

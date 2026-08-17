@@ -116,13 +116,19 @@ create table if not exists task_attachments (
 create table if not exists documents (
   id uuid primary key default gen_random_uuid(),
   title text not null,
-  doc_type text, -- rapport | projet_de_loi | tdr | convention | etude | pv | politique_interne
+  doc_type text, -- rapport | projet_de_loi | tdr | convention | etude | pv | politique_interne | gouvernance | financier
   status document_status not null default 'projet',
+  visibility text not null default 'conseil' check (visibility in ('conseil', 'equipe')), -- 'conseil' = conseil_administration/direction seulement ; 'equipe' = tout le personnel actif
   owner_id uuid not null references profiles(id),
   current_version integer not null default 1,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+-- Migration : ajoute la colonne aux installations antérieures sans perte de données.
+alter table documents add column if not exists visibility text not null default 'conseil';
+do $$ begin
+  alter table documents add constraint documents_visibility_check check (visibility in ('conseil', 'equipe'));
+exception when duplicate_object then null; end $$;
 
 create table if not exists document_versions (
   id uuid primary key default gen_random_uuid(),
@@ -133,6 +139,11 @@ create table if not exists document_versions (
   changed_at timestamptz not null default now(),
   note text
 );
+
+-- Stockage des fichiers (Supabase Storage) — bucket PRIVÉ, jamais public.
+insert into storage.buckets (id, name, public)
+select 'capri-docs', 'capri-docs', false
+where not exists (select 1 from storage.buckets where id = 'capri-docs');
 
 create table if not exists approvals (
   id uuid primary key default gen_random_uuid(),
@@ -357,8 +368,60 @@ drop policy if exists "messages_insert_member" on messages;
 create policy "messages_insert_member" on messages for insert
   with check (sender_id = auth.uid() and is_channel_member(channel_id, auth.uid()));
 
+-- CAPRI Docs : espace de documents internes, réservé par défaut au Conseil
+-- d'administration et à la Direction (documents de gouvernance, financiers,
+-- etc.) — un document peut être ouvert à 'equipe' (tout le personnel actif)
+-- au cas par cas via la colonne visibility.
+create or replace function can_see_document(doc_visibility text, uid uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from profiles p
+    where p.id = uid
+      and (
+        p.role in ('conseil_administration', 'direction')
+        or (doc_visibility = 'equipe' and p.active)
+      )
+  );
+$$;
+
+alter table documents enable row level security;
+alter table document_versions enable row level security;
+
+drop policy if exists "documents_select_visible" on documents;
+create policy "documents_select_visible" on documents for select
+  using (can_see_document(visibility, auth.uid()));
+drop policy if exists "documents_insert_board" on documents;
+create policy "documents_insert_board" on documents for insert
+  with check (owner_id = auth.uid() and exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('conseil_administration', 'direction')));
+drop policy if exists "documents_update_board" on documents;
+create policy "documents_update_board" on documents for update
+  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('conseil_administration', 'direction')));
+
+drop policy if exists "document_versions_select_visible" on document_versions;
+create policy "document_versions_select_visible" on document_versions for select
+  using (exists (select 1 from documents d where d.id = document_id and can_see_document(d.visibility, auth.uid())));
+drop policy if exists "document_versions_insert_board" on document_versions;
+create policy "document_versions_insert_board" on document_versions for insert
+  with check (changed_by = auth.uid() and exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('conseil_administration', 'direction')));
+
+-- Stockage (Supabase Storage) : mêmes règles d'accès que la table
+-- documents, appliquées directement sur le bucket capri-docs — un fichier
+-- n'est ni lisible ni déposable sans passer par ces politiques, même avec
+-- l'URL directe du fichier.
+drop policy if exists "capri_docs_storage_select" on storage.objects;
+create policy "capri_docs_storage_select" on storage.objects for select
+  using (bucket_id = 'capri-docs' and exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('conseil_administration', 'direction')));
+drop policy if exists "capri_docs_storage_insert" on storage.objects;
+create policy "capri_docs_storage_insert" on storage.objects for insert
+  with check (bucket_id = 'capri-docs' and exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('conseil_administration', 'direction')));
+
 -- Phase 3+ : activer RLS sur les tables restantes au fur et à mesure qu'une
--- interface les utilise réellement (documents, meetings, resolutions,
--- projects, kpis, partners, audit_log). Les créer maintenant sans RLS actif
--- évite de bloquer leur usage avant d'avoir une politique d'accès définie
--- module par module.
+-- interface les utilise réellement (meetings, resolutions, projects, kpis,
+-- partners, audit_log). Les créer maintenant sans RLS actif évite de
+-- bloquer leur usage avant d'avoir une politique d'accès définie module par
+-- module.

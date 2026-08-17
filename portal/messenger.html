@@ -213,24 +213,21 @@ async function createConversation() {
     " | session user id: " + (session && session.session ? session.session.user.id : "AUCUNE SESSION") +
     " | token expire à: " + (session && session.session ? new Date(session.session.expires_at * 1000).toLocaleString("fr-FR") : "—");
 
-  var { data: ch, error: chErr } = await capriSupabase.from("channels").insert({ name: name, is_direct: isDirect, created_by: profileRef.id }).select().single();
-  if (chErr) { showCreateConvError(chErr, diag); return; }
-
-  // Deux insertions séparées et séquentielles (pas un seul insert multi-lignes) :
-  // la politique RLS d'invitation vérifie is_channel_member() sur le lecteur
-  // courant, qui doit donc déjà être membre en base au moment où les invités
-  // sont insérés — ce que garantit un « await » entre les deux, sans dépendre
-  // d'une visibilité intra-instruction entre lignes d'un même insert groupé.
-  var { error: selfErr } = await capriSupabase.from("channel_members").insert({ channel_id: ch.id, user_id: profileRef.id });
-  if (selfErr) { showCreateConvError(selfErr, diag); return; }
-
-  var inviteRows = picked.map(function (uid) { return { channel_id: ch.id, user_id: uid }; });
-  var { error: memErr } = await capriSupabase.from("channel_members").insert(inviteRows);
-  if (memErr) { showCreateConvError(memErr, diag); return; }
+  // Passe par la fonction RPC create_channel (security definer) plutôt que
+  // par un INSERT direct sur channels : un refus RLS persistant et
+  // inexpliqué (auth.uid() pourtant vérifié correct par plusieurs méthodes
+  // indépendantes) bloquait l'INSERT direct. La fonction crée le canal et y
+  // ajoute tous les membres en une seule opération atomique côté serveur.
+  var { data: channelId, error: rpcErr } = await capriSupabase.rpc("create_channel", {
+    p_name: name,
+    p_is_direct: isDirect,
+    p_member_ids: picked,
+  });
+  if (rpcErr) { showCreateConvError(rpcErr, diag); return; }
 
   closeNewConvPanel();
   await loadConversations();
-  openChannel(ch.id);
+  openChannel(channelId);
 }
 
 async function openChannel(id) {

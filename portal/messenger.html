@@ -81,6 +81,7 @@
             <input type="text" id="groupNameInput" placeholder="ex. Comité Pôle 2">
           </div>
           <button type="button" class="btn" id="createConvBtn">Créer la conversation</button>
+          <div id="createConvError" style="display:none;margin-top:14px;padding:12px 14px;border-radius:8px;background:var(--danger-pale);border:1px solid var(--danger);color:var(--danger);font-size:.78rem;line-height:1.6;white-space:pre-wrap;user-select:text"></div>
         </div>
       </div>
     </div>
@@ -190,6 +191,10 @@ function closeThreadMobile() {
 }
 
 async function createConversation() {
+  var errBox = document.getElementById("createConvError");
+  errBox.style.display = "none";
+  errBox.textContent = "";
+
   var picked = Array.from(document.querySelectorAll(".personCheck:checked")).map(function (cb) { return cb.value; });
   if (!picked.length) { CapriShell.toast("Choisissez au moins une personne.", true); return; }
   var isDirect = picked.length === 1;
@@ -203,8 +208,13 @@ async function createConversation() {
     if (existing) { closeNewConvPanel(); openChannel(existing.id); return; }
   }
 
+  var { data: session } = await capriSupabase.auth.getSession();
+  var diag = "Diagnostic — profileRef.id: " + profileRef.id +
+    " | session user id: " + (session && session.session ? session.session.user.id : "AUCUNE SESSION") +
+    " | token expire à: " + (session && session.session ? new Date(session.session.expires_at * 1000).toLocaleString("fr-FR") : "—");
+
   var { data: ch, error: chErr } = await capriSupabase.from("channels").insert({ name: name, is_direct: isDirect, created_by: profileRef.id }).select().single();
-  if (chErr) { CapriShell.toast("Erreur : " + chErr.message, true); return; }
+  if (chErr) { showCreateConvError(chErr, diag); return; }
 
   // Deux insertions séparées et séquentielles (pas un seul insert multi-lignes) :
   // la politique RLS d'invitation vérifie is_channel_member() sur le lecteur
@@ -212,11 +222,11 @@ async function createConversation() {
   // sont insérés — ce que garantit un « await » entre les deux, sans dépendre
   // d'une visibilité intra-instruction entre lignes d'un même insert groupé.
   var { error: selfErr } = await capriSupabase.from("channel_members").insert({ channel_id: ch.id, user_id: profileRef.id });
-  if (selfErr) { CapriShell.toast("Erreur : " + selfErr.message, true); return; }
+  if (selfErr) { showCreateConvError(selfErr, diag); return; }
 
   var inviteRows = picked.map(function (uid) { return { channel_id: ch.id, user_id: uid }; });
   var { error: memErr } = await capriSupabase.from("channel_members").insert(inviteRows);
-  if (memErr) { CapriShell.toast("Erreur : " + memErr.message, true); return; }
+  if (memErr) { showCreateConvError(memErr, diag); return; }
 
   closeNewConvPanel();
   await loadConversations();
@@ -280,6 +290,20 @@ async function sendMessage(e) {
 }
 
 function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+
+function showCreateConvError(err, diag) {
+  var lines = [
+    "Erreur : " + (err.message || "?"),
+    err.code ? "Code : " + err.code : null,
+    err.details ? "Détails : " + err.details : null,
+    err.hint ? "Indice : " + err.hint : null,
+    diag,
+  ].filter(Boolean);
+  var box = document.getElementById("createConvError");
+  box.textContent = lines.join("\n");
+  box.style.display = "block";
+  CapriShell.toast("Erreur — détails affichés ci-dessous (capturez l'écran).", true);
+}
 </script>
 </body>
 </html>

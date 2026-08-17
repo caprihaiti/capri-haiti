@@ -39,6 +39,13 @@ données de plusieurs modules sans que rien n'ait besoin d'être reconstruit.
 | **CAPRI Desk** | `desk.html` | Tableau de bord personnel : statut du jour, tâches actives, pointage rapide |
 | **Punch/Lunch In-Out** | `pointage.html` | Pointage complet + historique 30 jours + heures calculées |
 | **Tasks & Missions** | `tasks.html` | Créer, assigner, suivre une tâche (statut, priorité, progression) |
+| **CAPRI Meet** | `meet.html` | Visioconférence intégrée (Jitsi Meet) — salle Conseil, salle Équipe, ou réunion nommée |
+
+**Installer le portail comme app sur le téléphone (PWA)** : ouvrir
+`https://capri-haiti.org/portal/` dans Chrome (Android) ou Safari (iPhone) →
+menu **⋮ → Installer l'application** (Android) ou **Partager → Sur l'écran
+d'accueil** (iOS). L'icône CAPRI apparaît alors sur l'écran d'accueil comme
+une vraie app, sans passer par un app store.
 
 ## Ce qui est prévu (schéma déjà en place, interfaces à venir)
 
@@ -53,12 +60,6 @@ par indicateur), `partners` / `partner_interactions` (**CAPRI Partners**),
 `channels` / `messages` (**CAPRI Messenger**, à activer avec Supabase
 Realtime), `audit_log` (**CAPRI Secure Vault**, alimente aussi
 **CAPRI Institutional Pulse**).
-
-**CAPRI Meet** : plutôt que reconstruire une visioconférence (signalisation
-WebRTC, serveurs TURN/STUN…), intégrer **Jitsi Meet** (gratuit,
-open-source, `meet.jit.si`) via son widget embarquable, avec l'image de
-marque CAPRI — un travail d'intégration de quelques heures, pas de
-plusieurs semaines.
 
 **CAPRI Institutional Pulse** : une fois Board, Tasks, Projects et
 Performance construits, ce sera des **vues SQL** qui croisent ces tables
@@ -82,6 +83,12 @@ répondre selon les droits d'accès de chacun.
 - Aucune donnée de démonstration : tant que `config.js` n'est pas rempli,
   les pages affichent un avertissement en console et rien ne fonctionne —
   pas de faux contenu qui pourrait passer pour réel.
+- **CAPRI Meet** utilise l'infrastructure publique `meet.jit.si` : une salle
+  est protégée uniquement par le fait de connaître son nom (pas de compte
+  requis côté Jitsi). Pour une réunion sensible (ex. séance du Conseil),
+  verrouiller la salle avec un mot de passe une fois entré — icône bouclier
+  « Sécurité » dans la barre d'outils — et transmettre ce mot de passe par
+  un canal séparé du lien de réunion.
 
 ## Prochaines étapes suggérées
 

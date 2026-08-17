@@ -7,5 +7,5 @@
  * sécurité vient des politiques RLS définies dans schema.sql, pas du
  * secret de ces valeurs.
  */
-window.CAPRI_SUPABASE_URL = "REMPLACER_PAR_VOTRE_PROJECT_URL";
+window.CAPRI_SUPABASE_URL = "https://pfsrthzqlndnmfuqbrqc.supabase.co";
 window.CAPRI_SUPABASE_ANON_KEY = "REMPLACER_PAR_VOTRE_ANON_KEY";

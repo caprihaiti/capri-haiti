@@ -313,11 +313,13 @@ create policy "profiles_update_own_basic_fields" on profiles for update
   using (auth.uid() = id);
 
 drop policy if exists "time_entries_own_or_direction" on time_entries;
+drop policy if exists "time_entries_select_own_or_direction" on time_entries;
 create policy "time_entries_select_own_or_direction" on time_entries for select
   using (
     auth.uid() = user_id
     or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
   );
+drop policy if exists "time_entries_insert_own" on time_entries;
 create policy "time_entries_insert_own" on time_entries for insert
   with check (auth.uid() = user_id);
 
@@ -327,16 +329,20 @@ create policy "tasks_select_relevant" on tasks for select
     auth.uid() = assignee_id or auth.uid() = created_by
     or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
   );
+drop policy if exists "tasks_insert_authenticated" on tasks;
 create policy "tasks_insert_authenticated" on tasks for insert
   with check (auth.uid() = created_by);
+drop policy if exists "tasks_update_relevant" on tasks;
 create policy "tasks_update_relevant" on tasks for update
   using (
     auth.uid() = assignee_id or auth.uid() = created_by
     or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
   );
 
+drop policy if exists "task_attachments_select_relevant" on task_attachments;
 create policy "task_attachments_select_relevant" on task_attachments for select
   using (exists (select 1 from tasks t where t.id = task_id and (t.assignee_id = auth.uid() or t.created_by = auth.uid())));
+drop policy if exists "task_attachments_insert_own" on task_attachments;
 create policy "task_attachments_insert_own" on task_attachments for insert
   with check (uploaded_by = auth.uid());
 

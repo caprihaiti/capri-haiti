@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CAPRI Desk</title>
 <meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1B3A5C">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CAPRI">
 <link rel="stylesheet" href="assets/portal.css">
 </head>
 <body>
@@ -61,6 +67,8 @@
 <script src="assets/supabase-client.js"></script>
 <script src="assets/auth.js"></script>
 <script src="assets/shell.js"></script>
+<script src="assets/geo.js"></script>
+<script src="assets/pwa.js"></script>
 <script>
 var profileRef = null;
 
@@ -83,8 +91,14 @@ CapriAuth.requireSession().then(async function (session) {
 var KIND_LABELS = { punch_in: "Arrivée", punch_out: "Départ", lunch_start: "Début pause", lunch_end: "Fin pause" };
 
 async function punch(kind) {
-  var { error } = await capriSupabase.from("time_entries").insert({ user_id: profileRef.id, kind: kind });
-  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  var pos;
+  try {
+    CapriShell.toast("Localisation en cours…");
+    pos = await CapriGeo.getPosition();
+  } catch (e) { CapriShell.toast(e.message, true); return; }
+
+  var { error } = await capriSupabase.from("time_entries").insert({ user_id: profileRef.id, kind: kind, lat: pos.lat, lng: pos.lng });
+  if (error) { CapriShell.toast(error.message, true); return; }
   CapriShell.toast(KIND_LABELS[kind] + " enregistré(e).");
   refreshPunchStatus();
 }

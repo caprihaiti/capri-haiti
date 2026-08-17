@@ -1,0 +1,17 @@
+{
+  "name": "CAPRI Digital Ecosystem",
+  "short_name": "CAPRI",
+  "description": "Portail interne du personnel CAPRI — CAPRI ID, pointage, tâches, réunions.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0E1F35",
+  "theme_color": "#1B3A5C",
+  "lang": "fr",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

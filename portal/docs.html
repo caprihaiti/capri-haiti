@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAPRI Docs</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1B3A5C">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CAPRI">
+<link rel="stylesheet" href="assets/portal.css">
+<style>
+  .doc-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--off)}
+  .doc-row:last-child{border-bottom:none}
+  .doc-title{font-weight:600;font-size:.9rem;color:var(--dark)}
+  .doc-meta{font-size:.78rem;color:var(--grey);margin-top:2px}
+  .doc-actions{display:flex;gap:8px;flex-shrink:0}
+  .pill.conseil{background:var(--gold-pale);color:#8A6D1F}
+  .pill.equipe{background:var(--teal-pale);color:var(--teal-dark)}
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <h1>CAPRI Docs</h1>
+      <p>Documents internes — visibilité restreinte par défaut au Conseil d'administration et à la Direction.</p>
+    </div>
+
+    <div id="restrictedNotice" hidden class="card">
+      <h2>Accès restreint</h2>
+      <p style="color:var(--grey);font-size:.88rem">Cet espace est réservé aux membres du Conseil d'administration et de la Direction. Votre rôle actuel n'y donne pas accès.</p>
+    </div>
+
+    <div id="docsContent" hidden>
+      <div class="card">
+        <h2>Déposer un document</h2>
+        <form id="uploadForm">
+          <div class="grid-2">
+            <div class="form-field">
+              <label for="dTitle">Titre</label>
+              <input type="text" id="dTitle" required>
+            </div>
+            <div class="form-field">
+              <label for="dType">Type</label>
+              <select id="dType">
+                <option value="gouvernance">Gouvernance</option>
+                <option value="financier">Financier</option>
+                <option value="tdr">TdR</option>
+                <option value="pv">Procès-verbal</option>
+                <option value="etude">Étude</option>
+                <option value="politique_interne">Politique interne</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-field">
+              <label for="dVisibility">Visibilité</label>
+              <select id="dVisibility">
+                <option value="conseil" selected>Conseil / Direction seulement</option>
+                <option value="equipe">Toute l'équipe CAPRI</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="dFile">Fichier</label>
+              <input type="file" id="dFile" required>
+            </div>
+          </div>
+          <button type="submit" class="btn" id="uploadBtn">Déposer le document</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Documents</h2>
+        <div id="docsList"><div class="empty-state">Chargement…</div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/pwa.js"></script>
+<script>
+var profileRef = null;
+var TYPE_LABELS = { gouvernance: "Gouvernance", financier: "Financier", tdr: "TdR", pv: "Procès-verbal", etude: "Étude", politique_interne: "Politique interne", autre: "Autre" };
+
+CapriAuth.requireSession().then(async function (session) {
+  profileRef = session.profile;
+  CapriShell.renderSidebar(session.profile, "docs");
+
+  var boardOnly = profileRef.role === "conseil_administration" || profileRef.role === "direction";
+  if (!boardOnly) {
+    document.getElementById("restrictedNotice").hidden = false;
+    return;
+  }
+  document.getElementById("docsContent").hidden = false;
+
+  document.getElementById("uploadForm").addEventListener("submit", uploadDocument);
+  await loadDocuments();
+});
+
+async function uploadDocument(e) {
+  e.preventDefault();
+  var btn = document.getElementById("uploadBtn");
+  var fileInput = document.getElementById("dFile");
+  var file = fileInput.files[0];
+  if (!file) { CapriShell.toast("Choisissez un fichier.", true); return; }
+
+  var title = document.getElementById("dTitle").value.trim();
+  var docType = document.getElementById("dType").value;
+  var visibility = document.getElementById("dVisibility").value;
+
+  btn.disabled = true;
+  btn.textContent = "Dépôt en cours…";
+  try {
+    var { data: doc, error: docErr } = await capriSupabase.from("documents")
+      .insert({ title: title, doc_type: docType, visibility: visibility, owner_id: profileRef.id, current_version: 1 })
+      .select().single();
+    if (docErr) throw docErr;
+
+    var safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+    var path = doc.id + "/v1-" + safeName;
+    var { error: upErr } = await capriSupabase.storage.from("capri-docs").upload(path, file);
+    if (upErr) throw upErr;
+
+    var { error: verErr } = await capriSupabase.from("document_versions")
+      .insert({ document_id: doc.id, version_number: 1, file_url: path, changed_by: profileRef.id });
+    if (verErr) throw verErr;
+
+    CapriShell.toast("Document déposé.");
+    document.getElementById("uploadForm").reset();
+    await loadDocuments();
+  } catch (err) {
+    CapriShell.toast("Erreur : " + (err.message || "dépôt impossible."), true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Déposer le document";
+  }
+}
+
+async function loadDocuments() {
+  var container = document.getElementById("docsList");
+  var { data, error } = await capriSupabase
+    .from("documents")
+    .select("id, title, doc_type, visibility, current_version, updated_at, owner_id")
+    .order("updated_at", { ascending: false });
+  if (error) { container.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  if (!data.length) { container.innerHTML = '<div class="empty-state">Aucun document déposé pour le moment.</div>'; return; }
+
+  container.innerHTML = data.map(function (d) {
+    return '<div class="doc-row" data-id="' + d.id + '">' +
+      '<div>' +
+        '<div class="doc-title">' + escapeHtml(d.title) + '</div>' +
+        '<div class="doc-meta">' + (TYPE_LABELS[d.doc_type] || d.doc_type || "—") +
+          ' · v' + d.current_version +
+          ' · <span class="pill ' + d.visibility + '">' + (d.visibility === "conseil" ? "Conseil/Direction" : "Équipe") + '</span>' +
+          ' · ' + new Date(d.updated_at).toLocaleDateString("fr-FR") +
+        '</div>' +
+      '</div>' +
+      '<div class="doc-actions"><button type="button" class="btn secondary downloadBtn" data-id="' + d.id + '">Télécharger</button></div>' +
+    '</div>';
+  }).join("");
+
+  container.querySelectorAll(".downloadBtn").forEach(function (btn) {
+    btn.addEventListener("click", function () { downloadLatest(btn.getAttribute("data-id")); });
+  });
+}
+
+async function downloadLatest(documentId) {
+  var { data: versions, error } = await capriSupabase
+    .from("document_versions")
+    .select("file_url, version_number")
+    .eq("document_id", documentId)
+    .order("version_number", { ascending: false })
+    .limit(1);
+  if (error || !versions.length) { CapriShell.toast("Impossible de retrouver le fichier.", true); return; }
+
+  var { data: signed, error: signErr } = await capriSupabase.storage.from("capri-docs").createSignedUrl(versions[0].file_url, 60);
+  if (signErr || !signed) { CapriShell.toast("Erreur : " + (signErr ? signErr.message : "lien indisponible."), true); return; }
+  window.open(signed.signedUrl, "_blank");
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+</script>
+</body>
+</html>

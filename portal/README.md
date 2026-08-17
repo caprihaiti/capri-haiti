@@ -41,6 +41,7 @@ données de plusieurs modules sans que rien n'ait besoin d'être reconstruit.
 | **Tasks & Missions** | `tasks.html` | Créer, assigner, suivre une tâche (statut, priorité, progression) |
 | **CAPRI Meet** | `meet.html` | Visioconférence intégrée (Jitsi Meet) — salle Conseil, salle Équipe, ou réunion nommée |
 | **CAPRI Messenger** | `messenger.html` | Messagerie interne privée — conversations directes ou de groupe, en temps réel (Supabase Realtime) |
+| **CAPRI Docs** | `docs.html` | Dépôt de documents internes (Supabase Storage, bucket privé) — visibilité par défaut réservée au Conseil d'administration et à la Direction, ouvrable à toute l'équipe document par document |
 
 **Installer le portail comme app sur le téléphone (PWA)** : ouvrir
 `https://capri-haiti.org/portal/` dans Chrome (Android) ou Safari (iPhone) →
@@ -81,6 +82,13 @@ répondre selon les droits d'accès de chacun.
   est membre — vérifié via une fonction `is_channel_member()` plutôt qu'une
   politique auto-référente sur `channel_members`, plus sûre et plus simple à
   auditer.
+- RLS activée sur `documents`, `document_versions`, et sur le bucket de
+  stockage `capri-docs` lui-même (`storage.objects`) : par défaut réservés
+  à `direction`/`conseil_administration`, avec une bascule `visibility`
+  par document pour l'ouvrir à toute l'équipe au cas par cas. Le bucket est
+  **privé** — les fichiers ne sont accessibles que via une URL signée à
+  courte durée de vie générée après vérification du rôle, jamais par une
+  URL publique directe.
 - Les autres tables sont créées sans RLS actif tant qu'aucune interface ne
   les utilise réellement — elles seront verrouillées module par module, au
   moment de construire chaque interface, pas avant (une politique d'accès

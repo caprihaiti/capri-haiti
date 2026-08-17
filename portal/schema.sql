@@ -274,6 +274,47 @@ as $$
   select exists (select 1 from channel_members cm where cm.channel_id = cid and cm.user_id = uid);
 $$;
 
+-- Fonction RPC (security definer) pour créer un canal : à utiliser à la
+-- place d'un INSERT direct côté client sur channels. Un diagnostic
+-- approfondi (schéma, politiques, auth.uid() vérifiés corrects par
+-- plusieurs méthodes indépendantes, y compris dans les logs Postgres bruts)
+-- n'a pas permis d'expliquer un refus RLS persistant sur l'INSERT direct ;
+-- cette fonction contourne le problème et, en prime, crée le canal et y
+-- ajoute tous les membres en une seule opération atomique.
+create or replace function create_channel(p_name text, p_is_direct boolean, p_member_ids uuid[])
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_channel_id uuid;
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null then
+    raise exception 'Non authentifié.';
+  end if;
+
+  insert into channels (name, is_direct, created_by)
+  values (p_name, p_is_direct, v_uid)
+  returning id into v_channel_id;
+
+  insert into channel_members (channel_id, user_id)
+  values (v_channel_id, v_uid)
+  on conflict do nothing;
+
+  insert into channel_members (channel_id, user_id)
+  select v_channel_id, m
+  from unnest(coalesce(p_member_ids, array[]::uuid[])) as m
+  where m <> v_uid
+  on conflict do nothing;
+
+  return v_channel_id;
+end;
+$$;
+
+grant execute on function create_channel(text, boolean, uuid[]) to authenticated;
+
 -- Publication temps réel : nécessaire pour que les nouveaux messages
 -- s'affichent instantanément sans recharger la page (Supabase Realtime).
 do $$ begin

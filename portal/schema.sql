@@ -70,16 +70,94 @@ create trigger on_auth_user_created
   for each row execute function handle_new_user();
 
 -- -----------------------------------------------------------------------------
--- 2. Punch In/Out, Lunch In/Out
+-- 2. Punch In/Out, Lunch In/Out — avec géolocalisation obligatoire
 -- -----------------------------------------------------------------------------
+-- Lieux où le pointage est autorisé (un seul au départ : le siège CAPRI).
+-- Coordonnées PLACEHOLDER (centre de Port-au-Prince) — À AJUSTER : Table
+-- Editor → office_locations → colonnes lat/lng (obtenues sur Google Maps :
+-- clic droit sur le point exact → premières valeurs affichées) → rayon en
+-- mètres selon la taille du bâtiment/terrain.
+create table if not exists office_locations (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  lat double precision not null,
+  lng double precision not null,
+  radius_m integer not null default 150,
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+insert into office_locations (name, lat, lng, radius_m, active)
+select 'Siège CAPRI (coordonnées à ajuster)', 18.5392, -72.3364, 150, true
+where not exists (select 1 from office_locations);
+
 create table if not exists time_entries (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references profiles(id) on delete cascade,
-  kind text not null check (kind in ('punch_in', 'punch_out', 'lunch_start', 'lunch_end')),
+  kind text not null check (kind in ('punch_in', 'punch_out', 'lunch_start', 'lunch_end', 'sortie_temp', 'retour')),
   at timestamptz not null default now(),
+  lat double precision,
+  lng double precision,
+  distance_m numeric,
   note text
 );
 create index if not exists idx_time_entries_user_at on time_entries(user_id, at desc);
+
+-- Migration : si time_entries existait déjà (première exécution du schéma
+-- avant l'ajout de la géolocalisation), ajouter les colonnes et élargir la
+-- contrainte kind sans perdre les pointages déjà enregistrés.
+alter table time_entries add column if not exists lat double precision;
+alter table time_entries add column if not exists lng double precision;
+alter table time_entries add column if not exists distance_m numeric;
+alter table time_entries drop constraint if exists time_entries_kind_check;
+alter table time_entries add constraint time_entries_kind_check
+  check (kind in ('punch_in', 'punch_out', 'lunch_start', 'lunch_end', 'sortie_temp', 'retour'));
+
+-- Un pointage n'est accepté que si l'appareil transmet une position GPS
+-- située dans le rayon d'un lieu actif — validé côté serveur (pas seulement
+-- côté client) pour qu'une position ne puisse pas être falsifiée depuis le
+-- navigateur. Échec "fermé" par défaut : si aucun lieu n'est configuré actif,
+-- aucun pointage n'est accepté plutôt que d'accepter n'importe où.
+create or replace function validate_punch_geofence()
+returns trigger as $$
+declare
+  nearest record;
+begin
+  if new.lat is null or new.lng is null then
+    raise exception 'Position GPS requise pour pointer. Autorisez la localisation dans votre navigateur.';
+  end if;
+
+  select
+    ol.name,
+    ol.radius_m,
+    6371000 * acos(least(1, greatest(-1,
+      cos(radians(new.lat)) * cos(radians(ol.lat)) * cos(radians(ol.lng) - radians(new.lng))
+      + sin(radians(new.lat)) * sin(radians(ol.lat))
+    ))) as distance_m
+  into nearest
+  from office_locations ol
+  where ol.active = true
+  order by 3 asc
+  limit 1;
+
+  if not found then
+    raise exception 'Aucun lieu de pointage n''est configuré. Contactez un administrateur.';
+  end if;
+
+  new.distance_m := round(nearest.distance_m::numeric, 1);
+
+  if nearest.distance_m > nearest.radius_m then
+    raise exception 'Pointage refusé : vous êtes à environ % m de « % », au-delà du rayon autorisé (% m). Vous devez être sur place pour pointer.',
+      round(nearest.distance_m)::int, nearest.name, nearest.radius_m;
+  end if;
+
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists trg_validate_punch_geofence on time_entries;
+create trigger trg_validate_punch_geofence
+  before insert on time_entries
+  for each row execute function validate_punch_geofence();
 
 -- -----------------------------------------------------------------------------
 -- 3. CAPRI Tasks / Missions
@@ -267,6 +345,16 @@ alter table profiles enable row level security;
 alter table time_entries enable row level security;
 alter table tasks enable row level security;
 alter table task_attachments enable row level security;
+alter table office_locations enable row level security;
+
+drop policy if exists "office_locations_select_authenticated" on office_locations;
+create policy "office_locations_select_authenticated" on office_locations for select
+  using (auth.uid() is not null);
+
+drop policy if exists "office_locations_write_admins" on office_locations;
+create policy "office_locations_write_admins" on office_locations for all
+  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration')))
+  with check (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration')));
 
 drop policy if exists "profiles_select_all_active" on profiles;
 create policy "profiles_select_all_active" on profiles for select

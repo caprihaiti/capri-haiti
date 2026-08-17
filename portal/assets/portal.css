@@ -1,0 +1,87 @@
+/* CAPRI Digital Ecosystem — style partagé du portail interne */
+:root{
+  --navy:#1B3A5C;--navy-deep:#0E1F35;--navy-mid:#163152;
+  --teal:#2A9D8F;--teal-dark:#1E7A6E;--teal-pale:rgba(42,157,143,.08);
+  --gold:#D4A843;--gold-light:#E5C56E;--gold-pale:rgba(212,168,67,.12);
+  --off:#F5F6F8;--light:#E9EAED;--grey:#6B7280;--dark:#1A1D23;
+  --danger:#C24545;--danger-pale:rgba(194,69,69,.1);
+  --ok:#2A9D8F;
+  --radius:14px;--shadow:0 4px 20px rgba(14,31,53,.08);
+  --display:'Georgia',serif;--body:-apple-system,system-ui,'Segoe UI',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--body);background:var(--off);color:var(--dark);min-height:100vh}
+a{color:inherit}
+button{font-family:inherit}
+
+/* ---- Écran de connexion / attente ---- */
+.capri-gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,var(--navy-deep),var(--navy))}
+.capri-gate-card{background:#fff;border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.3);padding:40px;max-width:420px;width:100%;text-align:center}
+.capri-gate-card h1{font-family:var(--display);font-size:1.3rem;color:var(--navy);margin-bottom:12px}
+.capri-gate-card p{color:var(--grey);font-size:.92rem;line-height:1.6;margin-bottom:14px}
+.capri-gate-card button{background:var(--navy);color:#fff;border:none;padding:11px 22px;border-radius:50px;font-weight:600;cursor:pointer;margin-top:8px}
+
+/* ---- Coquille de l'application (sidebar + contenu) ---- */
+.app-shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.app-sidebar{background:var(--navy-deep);color:#fff;padding:24px 16px;display:flex;flex-direction:column;gap:4px}
+.app-brand{font-family:var(--display);color:var(--gold-light);font-size:1.2rem;font-weight:700;margin-bottom:4px;padding:0 8px}
+.app-brand small{display:block;color:rgba(255,255,255,.5);font-family:var(--body);font-size:.68rem;font-weight:400;margin-top:2px}
+.app-nav{display:flex;flex-direction:column;gap:2px;margin-top:20px}
+.app-nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.88rem;font-weight:500;transition:.15s}
+.app-nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+.app-nav a.active{background:var(--teal);color:#fff}
+.app-nav a.disabled{opacity:.35;cursor:default;pointer-events:none}
+.app-nav-label{font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.35);padding:16px 12px 4px}
+.app-user{margin-top:auto;padding:14px 12px;border-top:1px solid rgba(255,255,255,.1);font-size:.8rem}
+.app-user-name{color:#fff;font-weight:600}
+.app-user-role{color:var(--gold-light);font-size:.72rem;margin:2px 0 10px}
+.app-user button{background:none;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.75);padding:6px 12px;border-radius:50px;font-size:.75rem;cursor:pointer;width:100%}
+.app-user button:hover{border-color:#fff;color:#fff}
+
+.app-main{padding:32px 40px;max-width:1100px}
+.app-header{margin-bottom:28px}
+.app-header h1{font-family:var(--display);color:var(--navy);font-size:1.6rem;margin-bottom:4px}
+.app-header p{color:var(--grey);font-size:.92rem}
+
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 24px;margin-bottom:20px}
+.card h2{font-family:var(--display);color:var(--navy);font-size:1.05rem;margin-bottom:14px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}.app-shell{grid-template-columns:1fr}.app-sidebar{display:none}.app-main{padding:20px}}
+
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;border:none;padding:11px 22px;border-radius:50px;font-weight:600;font-size:.86rem;cursor:pointer;transition:.2s}
+.btn:hover{background:var(--navy-mid)}
+.btn.secondary{background:none;border:1px solid var(--light);color:var(--navy)}
+.btn.secondary:hover{background:var(--off)}
+.btn.danger{background:var(--danger)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.stat-tile{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px}
+.stat-tile .stat-label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--grey);font-weight:600}
+.stat-tile .stat-value{font-family:var(--display);font-size:1.9rem;color:var(--navy);margin-top:6px}
+.stat-tile .stat-sub{font-size:.8rem;color:var(--grey);margin-top:4px}
+
+.pill{display:inline-block;padding:4px 12px;border-radius:50px;font-size:.72rem;font-weight:600}
+.pill.a_faire{background:var(--light);color:var(--grey)}
+.pill.en_cours{background:var(--gold-pale);color:#92680f}
+.pill.en_revision{background:var(--teal-pale);color:var(--teal-dark)}
+.pill.termine{background:rgba(42,157,143,.15);color:var(--teal-dark)}
+.pill.bloque{background:var(--danger-pale);color:var(--danger)}
+.pill.basse{background:var(--light);color:var(--grey)}
+.pill.normale{background:var(--teal-pale);color:var(--teal-dark)}
+.pill.haute{background:var(--gold-pale);color:#92680f}
+.pill.critique{background:var(--danger-pale);color:var(--danger)}
+
+table.data-table{width:100%;border-collapse:collapse}
+table.data-table th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--grey);padding:8px 10px;border-bottom:2px solid var(--off)}
+table.data-table td{padding:10px;border-bottom:1px solid var(--off);font-size:.87rem}
+table.data-table tr:last-child td{border-bottom:none}
+
+.form-field{margin-bottom:14px}
+.form-field label{display:block;font-size:.8rem;font-weight:600;color:var(--navy);margin-bottom:5px}
+.form-field input,.form-field select,.form-field textarea{width:100%;padding:10px 12px;border:1px solid var(--light);border-radius:8px;font-family:inherit;font-size:.88rem;color:var(--dark)}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal)}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--grey)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:12px 20px;border-radius:10px;box-shadow:var(--shadow);font-size:.85rem;z-index:500;max-width:320px}
+.toast.error{background:var(--danger)}

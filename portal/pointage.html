@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Punch / Lunch — CAPRI</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/portal.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <h1>Punch In/Out, Lunch In/Out</h1>
+      <p>Votre présence, enregistrée et consultable à tout moment.</p>
+    </div>
+
+    <div class="card">
+      <h2>Pointer maintenant</h2>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+        <button class="btn" id="btnPunchIn">🟢 Punch In</button>
+        <button class="btn secondary" id="btnPunchOut">🔴 Punch Out</button>
+        <button class="btn secondary" id="btnLunchStart">🍽️ Début pause déjeuner</button>
+        <button class="btn secondary" id="btnLunchEnd">↩️ Fin pause déjeuner</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Aujourd'hui</h2>
+      <div id="todayTable"><div class="empty-state">Chargement…</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Historique (30 derniers jours)</h2>
+      <div id="historyTable"><div class="empty-state">Chargement…</div></div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var profileRef = null;
+var KIND_LABELS = { punch_in: "Arrivée", punch_out: "Départ", lunch_start: "Début pause", lunch_end: "Fin pause" };
+var KIND_ICONS = { punch_in: "🟢", punch_out: "🔴", lunch_start: "🍽️", lunch_end: "↩️" };
+
+CapriAuth.requireSession().then(function (session) {
+  profileRef = session.profile;
+  CapriShell.renderSidebar(session.profile, "pointage");
+
+  document.getElementById("btnPunchIn").addEventListener("click", function () { punch("punch_in"); });
+  document.getElementById("btnPunchOut").addEventListener("click", function () { punch("punch_out"); });
+  document.getElementById("btnLunchStart").addEventListener("click", function () { punch("lunch_start"); });
+  document.getElementById("btnLunchEnd").addEventListener("click", function () { punch("lunch_end"); });
+
+  loadAll();
+});
+
+async function punch(kind) {
+  var { error } = await capriSupabase.from("time_entries").insert({ user_id: profileRef.id, kind: kind });
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  CapriShell.toast(KIND_LABELS[kind] + " enregistré(e) à " + new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) + ".");
+  loadAll();
+}
+
+async function loadAll() {
+  var since = new Date(); since.setDate(since.getDate() - 30); since.setHours(0, 0, 0, 0);
+  var { data, error } = await capriSupabase
+    .from("time_entries")
+    .select("id, kind, at")
+    .eq("user_id", profileRef.id)
+    .gte("at", since.toISOString())
+    .order("at", { ascending: false });
+
+  if (error) {
+    document.getElementById("todayTable").innerHTML = '<div class="empty-state">Erreur de chargement.</div>';
+    document.getElementById("historyTable").innerHTML = '<div class="empty-state">Erreur de chargement.</div>';
+    return;
+  }
+
+  var todayKey = dayKey(new Date());
+  var byDay = {};
+  data.forEach(function (row) {
+    var k = dayKey(new Date(row.at));
+    (byDay[k] = byDay[k] || []).push(row);
+  });
+
+  renderToday(byDay[todayKey] || []);
+  renderHistory(byDay, todayKey);
+}
+
+function dayKey(d) { return d.toISOString().slice(0, 10); }
+
+function renderToday(entries) {
+  var el = document.getElementById("todayTable");
+  if (!entries.length) { el.innerHTML = '<div class="empty-state">Aucun pointage aujourd\'hui pour le moment.</div>'; return; }
+  var sorted = entries.slice().sort(function (a, b) { return new Date(a.at) - new Date(b.at); });
+  el.innerHTML = '<table class="data-table"><thead><tr><th>Type</th><th>Heure</th></tr></thead><tbody>' +
+    sorted.map(function (e) {
+      return "<tr><td>" + KIND_ICONS[e.kind] + " " + KIND_LABELS[e.kind] + "</td><td>" +
+        new Date(e.at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) + "</td></tr>";
+    }).join("") + "</tbody></table>";
+}
+
+function computeWorkedHours(entries) {
+  var sorted = entries.slice().sort(function (a, b) { return new Date(a.at) - new Date(b.at); });
+  var punchIn = sorted.find(function (e) { return e.kind === "punch_in"; });
+  var punchOutEntries = sorted.filter(function (e) { return e.kind === "punch_out"; });
+  var punchOut = punchOutEntries.length ? punchOutEntries[punchOutEntries.length - 1] : null;
+  if (!punchIn || !punchOut) return null;
+
+  var totalMs = new Date(punchOut.at) - new Date(punchIn.at);
+  var lunchStart = sorted.find(function (e) { return e.kind === "lunch_start"; });
+  var lunchEnd = sorted.find(function (e) { return e.kind === "lunch_end"; });
+  if (lunchStart && lunchEnd) totalMs -= (new Date(lunchEnd.at) - new Date(lunchStart.at));
+
+  return Math.max(0, totalMs / 3600000);
+}
+
+function renderHistory(byDay, excludeKey) {
+  var el = document.getElementById("historyTable");
+  var days = Object.keys(byDay).filter(function (k) { return k !== excludeKey; }).sort().reverse();
+  if (!days.length) { el.innerHTML = '<div class="empty-state">Pas encore d\'historique antérieur.</div>'; return; }
+
+  el.innerHTML = '<table class="data-table"><thead><tr><th>Date</th><th>Pointages</th><th>Heures travaillées</th></tr></thead><tbody>' +
+    days.map(function (k) {
+      var entries = byDay[k];
+      var hours = computeWorkedHours(entries);
+      var date = new Date(k + "T00:00:00");
+      return "<tr><td>" + date.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" }) + "</td>" +
+        "<td>" + entries.length + "</td>" +
+        "<td>" + (hours !== null ? hours.toFixed(1) + " h" : "—") + "</td></tr>";
+    }).join("") + "</tbody></table>";
+}
+</script>
+</body>
+</html>

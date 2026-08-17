@@ -223,7 +223,7 @@ section.dark{background:var(--navy-deep);color:#fff}
 .org-node.executive h3,.org-node.executive p{color:#fff}
 .org-line{width:2px;height:24px;background:linear-gradient(var(--gold),var(--teal));opacity:.7}
 .org-advisory{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:min(100%,820px)}
-.org-advisory .org-node{width:100%;background:var(--gold-pale);border-color:rgba(212,168,67,.3)}
+.org-advisory .org-node{width:100%}
 .org-poles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;width:100%}
 .org-pole{padding:22px;border-radius:14px;background:var(--off);border-top:4px solid var(--teal);box-shadow:var(--shadow-sm)}
 .org-pole:nth-child(2),.org-pole:nth-child(3){border-top-color:var(--gold)}
@@ -231,11 +231,25 @@ section.dark{background:var(--navy-deep);color:#fff}
 .org-pole p{color:var(--grey);font-size:.85rem;line-height:1.55}
 .org-shared{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .org-shared .org-node{width:100%;padding:16px}
-.org-network{width:100%;padding:24px;border:1px dashed rgba(42,157,143,.55);border-radius:14px;background:var(--teal-pale);text-align:center}
-.org-network h3{font-family:var(--display);color:var(--navy);margin-bottom:5px}
-.org-network p{font-size:.85rem;color:var(--grey);line-height:1.55}
+.org-network-grid{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.org-network-grid .org-node{width:100%;padding:18px;text-align:center}
 .org-note{margin-top:26px;color:var(--grey);font-size:.84rem;line-height:1.6;text-align:center}
-@media(max-width:720px){.org-advisory,.org-poles,.org-shared{grid-template-columns:1fr}.org-line{height:18px}.org-node,.org-pole{padding:17px}}
+
+/* ---- Distinction visuelle des types de relation dans l'organigramme ---- */
+.rel-controle{border:1px dashed var(--gold);background:var(--gold-pale)}
+.rel-consultatif{border:1px dashed var(--teal);background:var(--teal-pale)}
+.rel-transversal{border:1px dotted rgba(107,114,128,.55);background:var(--off)}
+.org-tdr-btn{display:inline-block;margin-top:10px;background:none;border:1px solid var(--navy);color:var(--navy);font:600 .74rem var(--body);padding:5px 12px;border-radius:50px;cursor:pointer;transition:.2s}
+.org-tdr-btn:hover{background:var(--navy);color:#fff}
+.org-legend{display:flex;flex-wrap:wrap;gap:10px 22px;justify-content:center;margin:6px 0 26px;font-size:.78rem;color:var(--grey)}
+.org-legend-item{display:flex;align-items:center;gap:7px}
+.org-legend .swatch{width:14px;height:14px;border-radius:4px;flex-shrink:0;display:inline-block}
+.org-legend .swatch.hierarchie{background:var(--navy)}
+.org-legend .swatch.controle{background:var(--gold-pale);border:1px dashed var(--gold)}
+.org-legend .swatch.consultatif{background:var(--teal-pale);border:1px dashed var(--teal)}
+.org-legend .swatch.transversal{background:var(--off);border:1px dotted rgba(107,114,128,.7)}
+
+@media(max-width:720px){.org-advisory,.org-poles,.org-shared,.org-network-grid{grid-template-columns:1fr}.org-line{height:18px}.org-node,.org-pole{padding:17px}}
 
 /* ========== CONTACT ========== */
 .contact-wrap{display:grid;grid-template-columns:1fr 1.2fr;gap:48px;align-items:start}
@@ -430,6 +444,13 @@ footer a:hover{color:var(--teal)}
   <div class="gold-bar"></div>
   <p style="color:var(--grey);line-height:1.7;max-width:820px" data-i18n="about.018">Une structure légère, évolutive et orientée vers les résultats. Elle sépare la gouvernance, l'exécution, le contrôle et les fonctions techniques, tout en permettant de constituer des équipes de mission selon les besoins de chaque institution accompagnée.</p>
 
+  <div class="org-legend" role="note" aria-label="Légende de l'organigramme" data-i18n-aria-label="about.048">
+    <span class="org-legend-item"><i class="swatch hierarchie" aria-hidden="true"></i><span data-i18n="about.049">Autorité hiérarchique</span></span>
+    <span class="org-legend-item"><i class="swatch controle" aria-hidden="true"></i><span data-i18n="about.051">Contrôle indépendant</span></span>
+    <span class="org-legend-item"><i class="swatch consultatif" aria-hidden="true"></i><span data-i18n="about.053">Relation consultative</span></span>
+    <span class="org-legend-item"><i class="swatch transversal" aria-hidden="true"></i><span data-i18n="about.055">Relation fonctionnelle / transversale</span></span>
+  </div>
+
   <div class="org-chart" aria-label="Organigramme fonctionnel de CAPRI" data-i18n-aria-label="about.045">
     <div class="org-node board">
       <h3 data-i18n="about.019">Conseil d'administration</h3>
@@ -464,13 +485,15 @@ footer a:hover{color:var(--teal)}
     </div>
 
     <div class="org-advisory">
-      <div class="org-node">
+      <div class="org-node rel-controle">
         <h3 data-i18n="about.021">Comité d'éthique, d'audit et d'indépendance</h3>
         <p data-i18n="about.022">Intégrité · contrôle interne · prévention des conflits d'intérêts · impartialité politique</p>
+        <button type="button" class="org-tdr-btn" data-tdr="comite_ethique" data-i18n="tdr.voir_btn">Voir les TdR</button>
       </div>
-      <div class="org-node">
+      <div class="org-node rel-consultatif">
         <h3 data-i18n="about.023">Conseil scientifique et stratégique</h3>
         <p data-i18n="about.024">Qualité méthodologique · expertise externe · prospective · validation des référentiels</p>
+        <button type="button" class="org-tdr-btn" data-tdr="conseil_scientifique" data-i18n="tdr.voir_btn">Voir les TdR</button>
       </div>
     </div>
 
@@ -479,6 +502,7 @@ footer a:hover{color:var(--teal)}
     <div class="org-node executive">
       <h3 data-i18n="about.025">Direction exécutive</h3>
       <p data-i18n="about.026">Pilotage institutionnel · coordination des programmes · représentation · mobilisation des ressources</p>
+      <button type="button" class="org-tdr-btn" style="border-color:#fff;color:#fff" data-tdr="direction_executive" data-i18n="tdr.voir_btn">Voir les TdR</button>
     </div>
 
     <div class="org-line" aria-hidden="true"></div>
@@ -487,41 +511,58 @@ footer a:hover{color:var(--teal)}
       <article class="org-pole">
         <h3 data-i18n="about.027">Pôle 1 — Performance institutionnelle et réformes</h3>
         <p data-i18n="about.028">Diagnostics · organisation · procédures · analyse juridique · administration publique · gouvernance territoriale · appui à l'implémentation</p>
+        <button type="button" class="org-tdr-btn" data-tdr="pole1" data-i18n="tdr.voir_btn">Voir les TdR</button>
       </article>
       <article class="org-pole">
         <h3 data-i18n="about.029">Pôle 2 — Capacités, outils et transformation numérique</h3>
         <p data-i18n="about.030">Formation · ingénierie pédagogique · outils institutionnels · données · interopérabilité · innovation administrative · transfert de compétences</p>
+        <button type="button" class="org-tdr-btn" data-tdr="pole2" data-i18n="tdr.voir_btn">Voir les TdR</button>
       </article>
       <article class="org-pole">
         <h3 data-i18n="about.031">Pôle 3 — Gouvernance démocratique et État de droit</h3>
         <p data-i18n="about.032">Appui parlementaire · gouvernance électorale · observation indépendante · justice · sécurité publique · contrôle démocratique</p>
+        <button type="button" class="org-tdr-btn" data-tdr="pole3" data-i18n="tdr.voir_btn">Voir les TdR</button>
       </article>
       <article class="org-pole">
         <h3 data-i18n="about.033">Pôle 4 — Coopération, recherche et rayonnement</h3>
         <p data-i18n="about.034">Partenariats ciblés · coopération internationale · missions d'étude · publications · communication institutionnelle · mobilisation des ressources</p>
+        <button type="button" class="org-tdr-btn" data-tdr="pole4" data-i18n="tdr.voir_btn">Voir les TdR</button>
       </article>
     </div>
 
     <div class="org-line" aria-hidden="true"></div>
 
     <div class="org-shared">
-      <div class="org-node">
+      <div class="org-node rel-transversal">
         <h3 data-i18n="about.035">Observatoire CAPRI</h3>
         <p data-i18n="about.036">Recherche comparative · veille · documentation · capitalisation</p>
+        <button type="button" class="org-tdr-btn" data-tdr="observatoire" data-i18n="tdr.voir_btn">Voir les TdR</button>
       </div>
-      <div class="org-node">
+      <div class="org-node rel-transversal">
         <h3 data-i18n="about.037">Suivi, évaluation et qualité</h3>
         <p data-i18n="about.038">Baseline · indicateurs · résultats · apprentissage · assurance qualité</p>
+        <button type="button" class="org-tdr-btn" data-tdr="suivi_evaluation" data-i18n="tdr.voir_btn">Voir les TdR</button>
       </div>
-      <div class="org-node">
+      <div class="org-node rel-transversal">
         <h3 data-i18n="about.039">Administration et conformité</h3>
         <p data-i18n="about.040">Finances · ressources humaines · achats · juridique · protection des données</p>
+        <button type="button" class="org-tdr-btn" data-tdr="administration_conformite" data-i18n="tdr.voir_btn">Voir les TdR</button>
       </div>
     </div>
 
-    <div class="org-network">
-      <h3 data-i18n="about.041">Réseau d'experts associés et cellules de mission</h3>
-      <p data-i18n="about.042">Des équipes pluridisciplinaires sont constituées selon le mandat : juristes, spécialistes de l'administration publique, formateurs, experts électoraux, spécialistes du numérique, analystes de données, spécialistes de la sécurité et experts sectoriels.</p>
+    <div class="org-line" aria-hidden="true"></div>
+
+    <div class="org-network-grid">
+      <div class="org-node rel-transversal">
+        <h3 data-i18n="about.041">Réseau d'experts associés</h3>
+        <p data-i18n="about.042">Juristes, spécialistes de l'administration publique, formateurs, experts électoraux, spécialistes du numérique, analystes de données, spécialistes de la sécurité et experts sectoriels, mobilisables selon le mandat.</p>
+        <button type="button" class="org-tdr-btn" data-tdr="reseau_experts" data-i18n="tdr.voir_btn">Voir les TdR</button>
+      </div>
+      <div class="org-node rel-transversal">
+        <h3 data-i18n="about.046">Cellules de mission</h3>
+        <p data-i18n="about.047">Structures temporaires constituées pour conduire une intervention précise, avec mandat, chef de mission, calendrier et livrables définis — dissoutes une fois la mission achevée.</p>
+        <button type="button" class="org-tdr-btn" data-tdr="cellules_mission" data-i18n="tdr.voir_btn">Voir les TdR</button>
+      </div>
     </div>
   </div>
 

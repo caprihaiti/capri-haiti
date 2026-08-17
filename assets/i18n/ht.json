@@ -40,8 +40,8 @@
     "038": "Baseline · endikatè · rezilta · aprantisaj · asirans kalite",
     "039": "Administrasyon ak konfòmite",
     "040": "Finans · resous imèn · acha · jiridik · pwoteksyon done",
-    "041": "Rezo ekspè asosye ak selil misyon",
-    "042": "Ekip pliridisiplinè konstitiye selon manda a: jiris, espesyalis administrasyon piblik, fòmatè, ekspè elektoral, espesyalis nimerik, analis done, espesyalis sekirite ak ekspè sektoryèl.",
+    "041": "Rezo Ekspè Asosye",
+    "042": "Jiris, espesyalis administrasyon piblik, fòmatè, ekspè eleksyon, espesyalis nimerik, analis done, espesyalis sekirite ak ekspè sektoryèl, mobilizab selon mandate a.",
     "043": "Prensip evolisyon:",
     "044": "Telechaje prezantasyon enstitisyonèl piblik CAPRI a",
     "045": "Òganigram fonksyonèl CAPRI",
@@ -51,7 +51,19 @@
     "b04": "Vis-prezidan",
     "b05": "Sekretè jeneral",
     "b06": "Trezorye",
-    "b07": "Konseyè chaje Gouvènans, Etik ak Kontwòl Entèn"
+    "b07": "Konseyè chaje Gouvènans, Etik ak Kontwòl Entèn",
+    "046": "Selil Misyon",
+    "047": "Estrikti tanporè ki kreye pou mennen yon entèvansyon presi, ak yon mandat, yon chèf misyon, yon kalandriye ak livrab byen defini — yo demanbre yo yon fwa misyon an fini.",
+    "048": "Legend",
+    "049": "Otorite yerachik",
+    "050": "Konsèy Administrasyon → Direksyon Egzekitif → estrikti operasyonèl yo",
+    "051": "Kontwòl endepandan",
+    "052": "Konsèy Administrasyon ↔ Komite Etik, Odit ak Endepandans",
+    "053": "Relasyon konsiltatif",
+    "054": "Konsèy Syantifik ak Estratejik → Konsèy Administrasyon / Direksyon Egzekitif",
+    "055": "Relasyon fonksyonèl / transvèsal",
+    "056": "Obsèvatwa, Swivi-Evalyasyon, Administrasyon, Rezo Ekspè ↔ kat Pòl yo",
+    "057": "Wè wòl & konpozisyon"
   },
   "catalog": {
     "001": "Katalòg sèvis yo",
@@ -706,7 +718,429 @@
         "akonpli tout misyon espesifik Konsèy la konfye l pa rezolisyon"
       ]
     },
-    "voir_btn": "Gade TdR yo"
+    "voir_btn": "Gade TdR yo",
+    "section_positionnement": "Pozisyònman",
+    "section_attributions": "Atribisyon",
+    "section_composition": "Konpozisyon",
+    "section_designation": "Fason nominasyon",
+    "section_fonctionnement": "Fonksyònman",
+    "section_relations": "Relasyon ak lòt òganis yo",
+    "section_limites_organe": "Distenksyon ak limit mandat",
+    "section_livrables": "Livrab ak endikatè",
+    "comite_ethique": {
+      "type": "organe",
+      "positionnement": "Òganis kolejyal kontwòl ki rataché dirèkteman ak Konsèy administrasyon an. Li egzèse fonksyon li yo endepandamman de Direksyon egzekitif la ak estrikti operasyonèl CAPRI yo.",
+      "mission": "Garanti entegrite enstitisyonèl CAPRI, prevni konfli enterè, siveye kalite kontwòl entèn nan, kontribye nan transparans, e prezève endepandans òganizasyon an.",
+      "attributions": [
+        "veye respè Kòd Etik la ak règ kondwit yo",
+        "egzamine deklarasyon ak sitiyasyon konfli enterè",
+        "fòmile rekòmandasyon sou endepandans enstitisyonèl",
+        "egzamine dispozitif kontwòl entèn nan",
+        "swiv odit entèn oswa ekstèn yo",
+        "analize pi gwo risk gouvènans yo",
+        "resevwa e egzamine siyalman ki relve nan manda l",
+        "swiv egzekisyon mezi korektif yo",
+        "alète Konsèy administrasyon an lè yon sitiyasyon reprezante yon gwo risk pou CAPRI",
+        "rekòmande amelyorasyon pou politik gouvènans, etik ak kontwòl"
+      ],
+      "composition": [
+        "3 a 5 manm",
+        "yon Prezidan Komite a",
+        "yon manm ak konpetans nan odit, finans oswa kontwòl",
+        "yon manm ak konpetans nan dwa, gouvènans, konfòmite oswa etik",
+        "posiblite pou gen youn oswa plizyè manm ekstèn endepandan"
+      ],
+      "mode_designation": "Konsèy administrasyon an nonmen manm yo selon pwosedi entèn CAPRI yo.",
+      "fonctionnement": "Komite a reyini peryodikman e chak fwa yon sitiyasyon enpòtan egzije sa. Modalite quorum, vòt, dire manda ak ranplasman fikse nan règleman entèn nan.",
+      "relations": "Komite a ka mande enfòmasyon nan estrikti CAPRI yo nan kad manda l. Li pa dirije operasyon yo e li pa ranplase Direksyon egzekitif la.",
+      "extra": [
+        {
+          "title": "Pwen enstitisyonèl obligatwa",
+          "text": "Konseyè Konsèy administrasyon an ki chaje ak gouvènans, etik ak kontwòl entèn ka sèvi kòm entèfas oswa referan Konsèy la, men fonksyon sa a pa menm bagay ak Komite Etik, Odit ak Endepandans lan, ki rete yon òganis kolejyal apa."
+        }
+      ],
+      "redevabilite": "Komite a rann kont dirèkteman bay Konsèy administrasyon an.",
+      "livrables": [
+        "rapò peryodik etik ak kontwòl",
+        "rejis konfli enterè",
+        "rekòmandasyon odit",
+        "katografi pi gwo risk gouvènans yo",
+        "swivi mezi korektif yo"
+      ]
+    },
+    "conseil_scientifique": {
+      "type": "organe",
+      "positionnement": "Òganis konsiltatif nivo wo bò kote Konsèy administrasyon an e, selon saisin yo, bò kote Direksyon egzekitif la.",
+      "mission": "Bay CAPRI ekspètiz, pwospektiv, refleksyon estratejik ak eklèsisman syantifik ki nesesè pou kalite analiz, metòd ak entèvansyon li yo.",
+      "attributions": [
+        "fòmile avi estratejik",
+        "kontribye nan doktrin entèvansyon CAPRI",
+        "analize gwo evolisyon enstitisyonèl yo",
+        "reyalize oswa sipèvize refleksyon pwospektiv",
+        "egzamine sèten metodoloji, etid ak pwojè",
+        "kontribye nan konparezon modèl enstitisyonèl yo",
+        "rekòmande inovasyon",
+        "konseye CAPRI sou dosye enstitisyonèl konplèks",
+        "ka pwopoze sijè rechèch oswa eksperimantasyon"
+      ],
+      "composition": [
+        "5 a 11 pèsonalite ak ekspè, selon bezwen yo",
+        "dwa ak enstitisyon",
+        "administrasyon piblik",
+        "gouvènans",
+        "sekirite entèn",
+        "politik piblik",
+        "transfòmasyon nimerik",
+        "eleksyon",
+        "koperasyon entènasyonal",
+        "lòt domèn ki lye ak chan entèvansyon CAPRI yo"
+      ],
+      "mode_designation": "Konsèy administrasyon an chwazi manm yo.",
+      "fonctionnement": "Konsèy syantifik ak estratejik la gen yon Prezidan ak yon Sekretè. Li ka konstitiye gwoup travay tematik oswa envite ekspè ekstèn detanzantan.",
+      "relations": "Konsèy syantifik la konseye men li pa dirije operasyon yo. Konsèy administrasyon an, Direksyon egzekitif la oswa yon estrikti abilite ka mande avi li.",
+      "redevabilite": "Avi li yo transmèt bay òganis ki te mande entèvansyon an (Konsèy administrasyon ak/oswa Direksyon egzekitif selon objè saisin lan).",
+      "livrables": [
+        "avi",
+        "nòt estratejik",
+        "etid pwospektiv",
+        "rekòmandasyon metodolojik",
+        "rapò ekspètiz"
+      ]
+    },
+    "direction_executive": {
+      "type": "organe",
+      "positionnement": "Òganis direksyon operasyonèl plase anba otorite estratejik Konsèy administrasyon an.",
+      "mission": "Asire jesyon chak jou CAPRI e tradui oryantasyon estratejik Konsèy la an aksyon, pwogram, pwojè ak rezilta mezirab.",
+      "attributions": [
+        "aplike estrateji CAPRI a",
+        "prepare plan operasyonèl yo",
+        "kowòdone kat Pòl yo",
+        "sipèvize pwojè ak misyon yo",
+        "kowòdone Obsèvatwa, Suivi-evalyasyon ak Administrasyon",
+        "prepare pwopozisyon bidjè yo",
+        "òganize mobilizasyon resous yo",
+        "asire relasyon operasyonèl ak patnè yo",
+        "sipèvize ekip yo",
+        "pwodwi rapò jesyon yo",
+        "prepare dosye ki soumèt bay Konsèy administrasyon an",
+        "veye pou rezolisyon Konsèy la aplike"
+      ],
+      "composition": [
+        "yon Direktè egzekitif, opinimòm",
+        "responsab estrikti ki anba otorite l",
+        "fonksyon kowòdinasyon ki nesesè selon kwasans CAPRI"
+      ],
+      "mode_designation": "Konsèy administrasyon an nonmen Direktè egzekitif la selon pwosedi li defini.",
+      "fonctionnement": "Direksyon egzekitif la fonksyone sou baz yon plan anyèl, objektif, bidjè ak endikatè.",
+      "relations": "Li travay an kowòdinasyon ak estrikti operasyonèl yo e li konsilte òganis espesyalize yo lè sa nesesè. Li pa ranplase Konsèy administrasyon an.",
+      "redevabilite": "Li rann kont bay Konsèy administrasyon an.",
+      "livrables": [
+        "plan operasyonèl anyèl",
+        "bidjè",
+        "rapò peryodik",
+        "tablo bò",
+        "rapò anyèl",
+        "nivo egzekisyon desizyon Konsèy la",
+        "pwogrè pwojè yo"
+      ]
+    },
+    "pole1": {
+      "type": "organe",
+      "positionnement": "Estrikti operasyonèl espesyalize ki anba Direksyon egzekitif la, ki kouvri dyagnostik enstitisyonèl, òganizasyon, pwosedi, analiz jiridik, administrasyon piblik, gouvènans teritoryal ak apui pou aplikasyon.",
+      "mission": "Aplike entèvansyon CAPRI yo nan domèn pèfòmans enstitisyonèl ak refòm.",
+      "attributions": [
+        "devlope pwojè ki nan domèn li",
+        "prepare dyagnostik, analiz ak pwopozisyon",
+        "mennen misyon ki konfye l yo",
+        "mobilize ekspètiz ki nesesè yo",
+        "prepare livrab teknik yo",
+        "swiv egzekisyon plan aksyon yo",
+        "rann kont sou pwogrè misyon yo",
+        "kontribye nan evalyasyon rezilta yo"
+      ],
+      "composition": [
+        "Responsab Pòl la",
+        "chaje pwogram ak pwojè",
+        "ekspè oswa espesyalis selon bezwen",
+        "selil misyon tanporè"
+      ],
+      "redevabilite": "Bay Direksyon egzekitif la.",
+      "livrables": [
+        "dyagnostik",
+        "plan aksyon",
+        "rapò",
+        "rekòmandasyon",
+        "to egzekisyon pwojè yo",
+        "respè dèlè",
+        "kalite livrab yo"
+      ]
+    },
+    "pole2": {
+      "type": "organe",
+      "positionnement": "Estrikti operasyonèl espesyalize ki anba Direksyon egzekitif la, ki kouvri fòmasyon, enjenyri pedagojik, zouti enstitisyonèl, done, entèwoperabilite, inovasyon administratif ak transfè konpetans.",
+      "mission": "Konsevwa e aplike entèvansyon CAPRI yo nan domèn ranfòsman kapasite, zouti enstitisyonèl ak transfòmasyon nimerik.",
+      "attributions": [
+        "analiz",
+        "konsèy",
+        "konsepsyon solisyon",
+        "apui pou aplikasyon",
+        "kowòdinasyon misyon yo",
+        "pwodiksyon livrab",
+        "swivi rezilta yo"
+      ],
+      "composition": [
+        "Responsab Pòl la",
+        "espesyalis",
+        "chaje misyon",
+        "ekspè asosye selon bezwen"
+      ],
+      "redevabilite": "Bay Direksyon egzekitif la.",
+      "livrables": [
+        "rapò",
+        "dyagnostik",
+        "zouti",
+        "rekòmandasyon",
+        "plan aksyon",
+        "rezilta mezirab"
+      ]
+    },
+    "pole3": {
+      "type": "organe",
+      "positionnement": "Estrikti operasyonèl espesyalize ki anba Direksyon egzekitif la, ki kouvri apui palmantè, gouvènans elektoral, obsèvasyon endepandan, jistis, sekirite piblik ak kontwòl demokratik.",
+      "mission": "Devlope entèvansyon CAPRI yo nan domèn gouvènans demokratik ak konsolidasyon Eta de dwa a.",
+      "attributions": [
+        "dyagnostik",
+        "konsepsyon refòm oswa amelyorasyon",
+        "akonpayman enstitisyon yo",
+        "kowòdinasyon teknik",
+        "swivi entèvansyon yo",
+        "dokimantasyon rezilta yo",
+        "kontribisyon nan evalyasyon yo"
+      ],
+      "composition": [
+        "Responsab Pòl la",
+        "ekip teknik",
+        "ekspè mobilizab",
+        "selil misyon"
+      ],
+      "redevabilite": "Bay Direksyon egzekitif la.",
+      "livrables": [
+        "rezilta atenn",
+        "kalite entèvansyon yo",
+        "respè dèlè",
+        "satisfaksyon enstitisyonèl",
+        "enpak dokimante"
+      ]
+    },
+    "pole4": {
+      "type": "organe",
+      "positionnement": "Estrikti operasyonèl espesyalize ki anba Direksyon egzekitif la, ki kouvri patenarya vize, koperasyon entènasyonal, misyon etid, piblikasyon, kominikasyon enstitisyonèl ak mobilizasyon resous.",
+      "mission": "Asire aplikasyon pwogram CAPRI yo nan domèn koperasyon, rechèch ak rayonnman enstitisyonèl.",
+      "attributions": [
+        "preparasyon pwojè yo",
+        "òganizasyon entèvansyon yo",
+        "kowòdinasyon ekspè yo",
+        "pwodiksyon livrab yo",
+        "swivi operasyonèl",
+        "dokimantasyon ak rapòte"
+      ],
+      "composition": [
+        "Responsab Pòl la",
+        "ekip pèmanan oswa pwojè",
+        "ekspè asosye"
+      ],
+      "redevabilite": "Bay Direksyon egzekitif la.",
+      "livrables": [
+        "rapò",
+        "zouti",
+        "plan",
+        "rekòmandasyon",
+        "rezilta",
+        "endikatè"
+      ]
+    },
+    "observatoire": {
+      "type": "organe",
+      "positionnement": "Estrikti obsèvasyon, rechèch, veye ak analiz ki rataché ak Direksyon egzekitif la.",
+      "mission": "Pwodwi konesans, done, endikatè ak analiz ki nesesè pou konprann enstitisyon yo e pou oryante entèvansyon CAPRI yo.",
+      "attributions": [
+        "kolekte done",
+        "devlope endikatè",
+        "asire yon veye enstitisyonèl",
+        "reyalize analiz konparativ",
+        "pwodwi etid",
+        "devlope tablo bò",
+        "reyalize katografi",
+        "dokimante tandans yo",
+        "konstitiye baz dokimantè",
+        "pibliye nòt oswa rapò",
+        "kontribye nan pwospektiv"
+      ],
+      "composition": [
+        "Kowòdonatè oswa Responsab Obsèvatwa a",
+        "analis",
+        "chaje etid",
+        "chèchè",
+        "konpetans data ak estatistik selon bezwen",
+        "kontribisyon posib Rezo Ekspè Asosye a"
+      ],
+      "fonctionnement": "Travay pèmanan, konplete ak pwogram rechèch vize. Obsèvatwa a travay ak kat Pòl yo, inite Suivi, evalyasyon ak kalite a, Konsèy syantifik la ak Rezo Ekspè a.",
+      "extra": [
+        {
+          "title": "Limit manda",
+          "text": "Obsèvatwa a obsève, analize e eklere. Li pa yon sèvis odit administratif."
+        }
+      ],
+      "redevabilite": "Direksyon egzekitif.",
+      "livrables": [
+        "etid",
+        "endikatè",
+        "nòt veye",
+        "tablo bò",
+        "rapò",
+        "baz done"
+      ]
+    },
+    "suivi_evaluation": {
+      "type": "organe",
+      "positionnement": "Estrikti transvèsal ki rataché ak Direksyon egzekitif la.",
+      "mission": "Mezire rezilta, kalite ak efikasite entèvansyon CAPRI yo e favorize amelyorasyon kontinyèl.",
+      "attributions": [
+        "defini endikatè yo",
+        "etabli baseline yo",
+        "swiv objektif ak sib yo",
+        "mezire rezilta yo",
+        "reyalize oswa kowòdone evalyasyon yo",
+        "analize ekar yo",
+        "kontwole kalite metodolojik la",
+        "òganize retou eksperyans",
+        "pwodwi rekòmandasyon amelyorasyon",
+        "dokimante leson misyon yo"
+      ],
+      "composition": [
+        "Responsab Suivi, evalyasyon ak kalite",
+        "espesyalis suivi-evalyasyon",
+        "analis kalite",
+        "konpetans data selon bezwen"
+      ],
+      "relations": "Li travay ak tout Pòl yo, Obsèvatwa a ak Direksyon egzekitif la.",
+      "extra": [
+        {
+          "title": "Limit manda",
+          "text": "Inite sa a mezire pèfòmans, rezilta ak kalite entèvansyon yo. Li pa ranplase ni Komite Etik, Odit ak Endepandans lan, ni fonksyon konfòmite a, ni Obsèvatwa a."
+        }
+      ],
+      "redevabilite": "Direksyon egzekitif.",
+      "livrables": [
+        "matris rezilta",
+        "rapò evalyasyon",
+        "tablo bò",
+        "fich kalite",
+        "rekòmandasyon",
+        "to atenn objektif yo"
+      ]
+    },
+    "administration_conformite": {
+      "type": "organe",
+      "positionnement": "Estrikti sipò transvèsal ki rataché ak Direksyon egzekitif la.",
+      "mission": "Asire fonksyònman administratif CAPRI a e veye aplikasyon pwosedi ak obligasyon entèn yo.",
+      "attributions": [
+        "administrasyon jeneral",
+        "resous imèn",
+        "jesyon administratif ak finansye",
+        "kontra",
+        "acha",
+        "dosye pèsonèl",
+        "achiv",
+        "dokimantasyon enstitisyonèl",
+        "pwosedi entèn",
+        "konfòmite règlemantè",
+        "swivi administratif angajman yo",
+        "jesyon dokimantè",
+        "sipò lojistik"
+      ],
+      "composition": [
+        "Responsab Administrasyon ak konfòmite",
+        "fonksyon administrasyon/resous imèn",
+        "fonksyon finansye ak kontab",
+        "fonksyon kontra ak acha",
+        "jesyon dokimantè",
+        "fonksyon konfòmite — selon kwasans CAPRI"
+      ],
+      "relations": "Li travay ak Direksyon egzekitif la, Pòl yo ak estrikti kontwòl yo.",
+      "extra": [
+        {
+          "title": "Limit manda",
+          "text": "Administrasyon ak konfòmite aplike, dokimante e verifye pwosedi kotidyen yo. Se Komite Etik, Odit ak Endepandans lan ki egzèse kontwòl endepandan an."
+        }
+      ],
+      "redevabilite": "Direksyon egzekitif.",
+      "livrables": [
+        "dosye administratif",
+        "rejis",
+        "rapò konfòmite",
+        "swivi kontra",
+        "rapòte resous imèn",
+        "dèlè tretman",
+        "konfòmite dokimantè"
+      ]
+    },
+    "reseau_experts": {
+      "type": "organe",
+      "positionnement": "Rezo transvèsal Direksyon egzekitif la ak Pòl yo ka mobilize selon bezwen.",
+      "mission": "Bay CAPRI aksè a yon ekspètiz espesyalize, fleksib e nivo wo, san sa pa alouti estrikti pèmanan li a.",
+      "composition": [
+        "dwa",
+        "gouvènans",
+        "administrasyon piblik",
+        "sekirite entèn",
+        "imigrasyon ak fwontyè",
+        "dwàn",
+        "eta sivil",
+        "achiv",
+        "sistèm penitansye",
+        "transfòmasyon nimerik",
+        "eleksyon",
+        "koperasyon entènasyonal",
+        "evalyasyon",
+        "lòt domèn ki koresponn ak manda CAPRI a"
+      ],
+      "fonctionnement": "Ekspè asosye yo ka mobilize pou misyon, etid, fòmasyon, analiz, pwojè, evalyasyon oswa konsèy espesyalize.",
+      "extra": [
+        {
+          "title": "Estati",
+          "text": "Ekspè asosye yo pa vin anplwaye, administratè oswa desidè CAPRI otomatikman."
+        }
+      ],
+      "redevabilite": "Selon manda ki konfye yo.",
+      "livrables": [
+        "rapò",
+        "avi",
+        "etid",
+        "zouti",
+        "fòmasyon",
+        "kontribisyon teknik"
+      ]
+    },
+    "cellules_mission": {
+      "type": "organe",
+      "positionnement": "Estrikti tanporè kreye pou mennen yon misyon espesifik CAPRI.",
+      "mission": "Rasanble rapid konpetans ki nesesè pou egzekite yon entèvansyon detèmine nan yon dèlè bay.",
+      "composition": [
+        "yon Chèf misyon",
+        "espesyalis ki nesesè yo",
+        "posiblite gen ekspè asosye",
+        "yon referan enstitisyonèl CAPRI"
+      ],
+      "fonctionnement": "Chak selil gen yon manda ki presize: objè, objektif, konpozisyon, responsab, kalandriye, resous, livrab, ratachman, rapòte ak kondisyon fèmti. Livrab yo defini presizeman nan manda sa a.",
+      "extra": [
+        {
+          "title": "Dire",
+          "text": "Yon selil misyon pa yon estrikti pèmanan. Li fini lè misyon l fini, sof si gen yon desizyon eksplisit pou pwolonje l."
+        }
+      ],
+      "redevabilite": "Bay estrikti ki te konfye l manda a."
+    }
   },
   "values": {
     "001": "Valè nou yo",

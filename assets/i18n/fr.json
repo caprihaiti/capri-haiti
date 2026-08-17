@@ -40,8 +40,8 @@
     "038": "Baseline · indicateurs · résultats · apprentissage · assurance qualité",
     "039": "Administration et conformité",
     "040": "Finances · ressources humaines · achats · juridique · protection des données",
-    "041": "Réseau d'experts associés et cellules de mission",
-    "042": "Des équipes pluridisciplinaires sont constituées selon le mandat : juristes, spécialistes de l'administration publique, formateurs, experts électoraux, spécialistes du numérique, analystes de données, spécialistes de la sécurité et experts sectoriels.",
+    "041": "Réseau d'experts associés",
+    "042": "Juristes, spécialistes de l'administration publique, formateurs, experts électoraux, spécialistes du numérique, analystes de données, spécialistes de la sécurité et experts sectoriels, mobilisables selon le mandat.",
     "043": "Principe d'évolution :",
     "044": "Télécharger la présentation institutionnelle publique de CAPRI",
     "045": "Organigramme fonctionnel de CAPRI",
@@ -51,7 +51,19 @@
     "b04": "Vice-président",
     "b05": "Secrétaire général",
     "b06": "Trésorier",
-    "b07": "Conseillère chargée de la gouvernance, de l'éthique et du contrôle interne"
+    "b07": "Conseillère chargée de la gouvernance, de l'éthique et du contrôle interne",
+    "046": "Cellules de mission",
+    "047": "Structures temporaires constituées pour conduire une intervention précise, avec mandat, chef de mission, calendrier et livrables définis — dissoutes une fois la mission achevée.",
+    "048": "Légende",
+    "049": "Autorité hiérarchique",
+    "050": "Conseil d'administration → Direction exécutive → structures opérationnelles",
+    "051": "Contrôle indépendant",
+    "052": "Conseil d'administration ↔ Comité d'éthique, d'audit et d'indépendance",
+    "053": "Relation consultative",
+    "054": "Conseil scientifique et stratégique → Conseil d'administration / Direction exécutive",
+    "055": "Relation fonctionnelle / transversale",
+    "056": "Observatoire, Suivi-évaluation, Administration, Réseau d'experts ↔ les quatre Pôles",
+    "057": "Voir rôle & composition"
   },
   "catalog": {
     "001": "Catalogue des services",
@@ -706,7 +718,429 @@
         "accomplit toute mission spécifique qui lui est confiée par résolution du Conseil"
       ]
     },
-    "voir_btn": "Voir les TdR"
+    "voir_btn": "Voir les TdR",
+    "section_positionnement": "Positionnement",
+    "section_attributions": "Attributions",
+    "section_composition": "Composition",
+    "section_designation": "Mode de désignation",
+    "section_fonctionnement": "Fonctionnement",
+    "section_relations": "Relations avec les autres organes",
+    "section_limites_organe": "Distinctions et limites de mandat",
+    "section_livrables": "Livrables et indicateurs",
+    "comite_ethique": {
+      "type": "organe",
+      "positionnement": "Organe collégial de contrôle rattaché directement au Conseil d'administration. Il exerce ses fonctions indépendamment de la Direction exécutive et des structures opérationnelles de CAPRI.",
+      "mission": "Garantir l'intégrité institutionnelle de CAPRI, prévenir les conflits d'intérêts, surveiller la qualité du contrôle interne, contribuer à la transparence et préserver l'indépendance de l'organisation.",
+      "attributions": [
+        "veille au respect du Code d'éthique et des règles de conduite",
+        "examine les déclarations et situations de conflits d'intérêts",
+        "formule des recommandations en matière d'indépendance institutionnelle",
+        "examine le dispositif de contrôle interne",
+        "suit les audits internes ou externes",
+        "analyse les principaux risques de gouvernance",
+        "reçoit et examine les signalements relevant de son mandat",
+        "suit l'exécution des mesures correctives",
+        "alerte le Conseil d'administration lorsqu'une situation présente un risque sérieux pour CAPRI",
+        "recommande des améliorations aux politiques de gouvernance, d'éthique et de contrôle"
+      ],
+      "composition": [
+        "3 à 5 membres",
+        "un Président du Comité",
+        "un membre ayant une compétence en audit, finance ou contrôle",
+        "un membre ayant une compétence en droit, gouvernance, conformité ou éthique",
+        "éventuellement un ou plusieurs membres externes indépendants"
+      ],
+      "mode_designation": "Les membres sont nommés par le Conseil d'administration selon les procédures internes de CAPRI.",
+      "fonctionnement": "Le Comité se réunit périodiquement et chaque fois qu'une situation importante l'exige. Les modalités de quorum, de vote, de durée du mandat et de remplacement sont fixées par le règlement intérieur.",
+      "relations": "Le Comité peut demander des informations aux structures de CAPRI dans le cadre de son mandat. Il ne dirige pas les opérations et ne se substitue pas à la Direction exécutive.",
+      "extra": [
+        {
+          "title": "Point institutionnel impératif",
+          "text": "La Conseillère du Conseil d'administration chargée de la gouvernance, de l'éthique et du contrôle interne peut constituer une interface ou référente du Conseil, mais cette fonction ne se confond pas avec le Comité d'éthique, d'audit et d'indépendance, qui demeure un organe collégial distinct."
+        }
+      ],
+      "redevabilite": "Le Comité rend compte directement au Conseil d'administration.",
+      "livrables": [
+        "rapport périodique d'éthique et de contrôle",
+        "registre des conflits d'intérêts",
+        "recommandations d'audit",
+        "cartographie des principaux risques de gouvernance",
+        "suivi des mesures correctives"
+      ]
+    },
+    "conseil_scientifique": {
+      "type": "organe",
+      "positionnement": "Organe consultatif de haut niveau auprès du Conseil d'administration et, selon les saisines, de la Direction exécutive.",
+      "mission": "Apporter à CAPRI l'expertise, la prospective, la réflexion stratégique et l'éclairage scientifique nécessaires à la qualité de ses analyses, de ses méthodes et de ses interventions.",
+      "attributions": [
+        "formule des avis stratégiques",
+        "contribue à la doctrine d'intervention de CAPRI",
+        "analyse les grandes évolutions institutionnelles",
+        "réalise ou supervise des réflexions prospectives",
+        "examine certaines méthodologies, études et projets",
+        "contribue à la comparaison des modèles institutionnels",
+        "recommande des innovations",
+        "conseille CAPRI sur les dossiers institutionnels complexes",
+        "peut proposer des sujets de recherche ou d'expérimentation"
+      ],
+      "composition": [
+        "5 à 11 personnalités et experts, selon les besoins",
+        "droit et institutions",
+        "administration publique",
+        "gouvernance",
+        "sécurité intérieure",
+        "politiques publiques",
+        "transformation numérique",
+        "élections",
+        "coopération internationale",
+        "autres domaines liés aux champs d'intervention de CAPRI"
+      ],
+      "mode_designation": "Les membres sont désignés par le Conseil d'administration.",
+      "fonctionnement": "Le Conseil scientifique et stratégique dispose d'un Président et d'un Secrétaire. Il peut constituer des groupes de travail thématiques ou inviter ponctuellement des experts extérieurs.",
+      "relations": "Le Conseil scientifique conseille mais ne dirige pas les opérations. Ses avis peuvent être sollicités par le Conseil d'administration, la Direction exécutive ou une structure habilitée.",
+      "redevabilite": "Ses avis sont transmis à l'organe ayant demandé son intervention (Conseil d'administration et/ou Direction exécutive selon l'objet de la saisine).",
+      "livrables": [
+        "avis",
+        "notes stratégiques",
+        "études prospectives",
+        "recommandations méthodologiques",
+        "rapports d'expertise"
+      ]
+    },
+    "direction_executive": {
+      "type": "organe",
+      "positionnement": "Organe de direction opérationnelle placé sous l'autorité stratégique du Conseil d'administration.",
+      "mission": "Assurer la gestion quotidienne de CAPRI et traduire les orientations stratégiques du Conseil en actions, programmes, projets et résultats mesurables.",
+      "attributions": [
+        "met en œuvre la stratégie de CAPRI",
+        "prépare les plans opérationnels",
+        "coordonne les quatre Pôles",
+        "supervise les projets et missions",
+        "coordonne l'Observatoire, le Suivi-évaluation et l'Administration",
+        "prépare les propositions budgétaires",
+        "organise la mobilisation des ressources",
+        "assure les relations opérationnelles avec les partenaires",
+        "supervise les équipes",
+        "produit les rapports de gestion",
+        "prépare les dossiers soumis au Conseil d'administration",
+        "veille à l'application des résolutions du Conseil"
+      ],
+      "composition": [
+        "un Directeur exécutif, au minimum",
+        "les responsables des structures placées sous son autorité",
+        "les fonctions de coordination nécessaires selon la croissance de CAPRI"
+      ],
+      "mode_designation": "Le Directeur exécutif est nommé selon les procédures définies par le Conseil d'administration.",
+      "fonctionnement": "La Direction exécutive fonctionne sur la base d'un plan annuel, d'objectifs, de budgets et d'indicateurs.",
+      "relations": "Elle travaille en coordination avec les structures opérationnelles et consulte les organes spécialisés lorsque nécessaire. Elle ne se substitue pas au Conseil d'administration.",
+      "redevabilite": "Elle rend compte au Conseil d'administration.",
+      "livrables": [
+        "plan opérationnel annuel",
+        "budget",
+        "rapports périodiques",
+        "tableau de bord",
+        "rapport annuel",
+        "niveau d'exécution des décisions du Conseil",
+        "progression des projets"
+      ]
+    },
+    "pole1": {
+      "type": "organe",
+      "positionnement": "Structure opérationnelle spécialisée relevant de la Direction exécutive, couvrant les diagnostics institutionnels, l'organisation, les procédures, l'analyse juridique, l'administration publique, la gouvernance territoriale et l'appui à l'implémentation.",
+      "mission": "Mettre en œuvre les interventions de CAPRI en matière de performance institutionnelle et de réformes.",
+      "attributions": [
+        "développe les projets relevant de son domaine",
+        "prépare diagnostics, analyses et propositions",
+        "conduit les missions qui lui sont confiées",
+        "mobilise les expertises nécessaires",
+        "prépare les livrables techniques",
+        "suit l'exécution des plans d'action",
+        "rend compte de l'avancement des missions",
+        "contribue à l'évaluation des résultats"
+      ],
+      "composition": [
+        "Responsable du Pôle",
+        "chargés de programmes et de projets",
+        "experts ou spécialistes selon les besoins",
+        "cellules de mission temporaires"
+      ],
+      "redevabilite": "À la Direction exécutive.",
+      "livrables": [
+        "diagnostics",
+        "plans d'action",
+        "rapports",
+        "recommandations",
+        "taux d'exécution des projets",
+        "respect des délais",
+        "qualité des livrables"
+      ]
+    },
+    "pole2": {
+      "type": "organe",
+      "positionnement": "Structure opérationnelle spécialisée relevant de la Direction exécutive, couvrant la formation, l'ingénierie pédagogique, les outils institutionnels, les données, l'interopérabilité, l'innovation administrative et le transfert de compétences.",
+      "mission": "Concevoir et mettre en œuvre les interventions de CAPRI en matière de renforcement des capacités, d'outils institutionnels et de transformation numérique.",
+      "attributions": [
+        "analyse",
+        "conseil",
+        "conception de solutions",
+        "appui à la mise en œuvre",
+        "coordination des missions",
+        "production de livrables",
+        "suivi des résultats"
+      ],
+      "composition": [
+        "Responsable du Pôle",
+        "spécialistes",
+        "chargés de mission",
+        "experts associés selon les besoins"
+      ],
+      "redevabilite": "À la Direction exécutive.",
+      "livrables": [
+        "rapports",
+        "diagnostics",
+        "outils",
+        "recommandations",
+        "plans d'action",
+        "résultats mesurables"
+      ]
+    },
+    "pole3": {
+      "type": "organe",
+      "positionnement": "Structure opérationnelle spécialisée relevant de la Direction exécutive, couvrant l'appui parlementaire, la gouvernance électorale, l'observation indépendante, la justice, la sécurité publique et le contrôle démocratique.",
+      "mission": "Développer les interventions de CAPRI en matière de gouvernance démocratique et de consolidation de l'État de droit.",
+      "attributions": [
+        "diagnostic",
+        "conception de réformes ou d'améliorations",
+        "accompagnement des institutions",
+        "coordination technique",
+        "suivi des interventions",
+        "documentation des résultats",
+        "contribution aux évaluations"
+      ],
+      "composition": [
+        "Responsable du Pôle",
+        "équipe technique",
+        "experts mobilisables",
+        "cellules de mission"
+      ],
+      "redevabilite": "À la Direction exécutive.",
+      "livrables": [
+        "résultats atteints",
+        "qualité des interventions",
+        "respect des délais",
+        "satisfaction institutionnelle",
+        "impact documenté"
+      ]
+    },
+    "pole4": {
+      "type": "organe",
+      "positionnement": "Structure opérationnelle spécialisée relevant de la Direction exécutive, couvrant les partenariats ciblés, la coopération internationale, les missions d'étude, les publications, la communication institutionnelle et la mobilisation des ressources.",
+      "mission": "Assurer la mise en œuvre des programmes de CAPRI en matière de coopération, de recherche et de rayonnement institutionnel.",
+      "attributions": [
+        "préparation des projets",
+        "organisation des interventions",
+        "coordination des experts",
+        "production des livrables",
+        "suivi opérationnel",
+        "documentation et reporting"
+      ],
+      "composition": [
+        "Responsable du Pôle",
+        "équipe permanente ou de projet",
+        "experts associés"
+      ],
+      "redevabilite": "À la Direction exécutive.",
+      "livrables": [
+        "rapports",
+        "outils",
+        "plans",
+        "recommandations",
+        "résultats",
+        "indicateurs"
+      ]
+    },
+    "observatoire": {
+      "type": "organe",
+      "positionnement": "Structure d'observation, de recherche, de veille et d'analyse rattachée à la Direction exécutive.",
+      "mission": "Produire les connaissances, données, indicateurs et analyses nécessaires à la compréhension des institutions et à l'orientation des interventions de CAPRI.",
+      "attributions": [
+        "collecte des données",
+        "développe des indicateurs",
+        "assure une veille institutionnelle",
+        "réalise des analyses comparatives",
+        "produit des études",
+        "développe des tableaux de bord",
+        "réalise des cartographies",
+        "documente les tendances",
+        "constitue des bases documentaires",
+        "publie des notes ou rapports",
+        "contribue à la prospective"
+      ],
+      "composition": [
+        "Coordonnateur ou Responsable de l'Observatoire",
+        "analystes",
+        "chargés d'études",
+        "chercheurs",
+        "compétences data et statistiques selon les besoins",
+        "contributions possibles du Réseau d'experts associés"
+      ],
+      "fonctionnement": "Travail permanent, complété par des programmes de recherche ciblés. L'Observatoire travaille avec les quatre Pôles, l'unité de Suivi, évaluation et qualité, le Conseil scientifique et le Réseau d'experts.",
+      "extra": [
+        {
+          "title": "Limite de mandat",
+          "text": "L'Observatoire observe, analyse et éclaire. Il ne constitue pas un service d'audit administratif."
+        }
+      ],
+      "redevabilite": "Direction exécutive.",
+      "livrables": [
+        "études",
+        "indicateurs",
+        "notes de veille",
+        "tableaux de bord",
+        "rapports",
+        "bases de données"
+      ]
+    },
+    "suivi_evaluation": {
+      "type": "organe",
+      "positionnement": "Structure transversale rattachée à la Direction exécutive.",
+      "mission": "Mesurer les résultats, la qualité et l'efficacité des interventions de CAPRI et favoriser l'amélioration continue.",
+      "attributions": [
+        "définit les indicateurs",
+        "établit les baselines",
+        "suit les objectifs et cibles",
+        "mesure les résultats",
+        "réalise ou coordonne les évaluations",
+        "analyse les écarts",
+        "contrôle la qualité méthodologique",
+        "organise le retour d'expérience",
+        "produit des recommandations d'amélioration",
+        "documente les enseignements issus des missions"
+      ],
+      "composition": [
+        "Responsable Suivi, évaluation et qualité",
+        "spécialistes suivi-évaluation",
+        "analystes qualité",
+        "compétences data selon les besoins"
+      ],
+      "relations": "Travaille avec tous les Pôles, l'Observatoire et la Direction exécutive.",
+      "extra": [
+        {
+          "title": "Limite de mandat",
+          "text": "Cette unité mesure la performance, les résultats et la qualité des interventions. Elle ne remplace ni le Comité d'éthique, d'audit et d'indépendance, ni la fonction conformité, ni l'Observatoire."
+        }
+      ],
+      "redevabilite": "Direction exécutive.",
+      "livrables": [
+        "matrices de résultats",
+        "rapports d'évaluation",
+        "tableaux de bord",
+        "fiches qualité",
+        "recommandations",
+        "taux d'atteinte des objectifs"
+      ]
+    },
+    "administration_conformite": {
+      "type": "organe",
+      "positionnement": "Structure de support transversal rattachée à la Direction exécutive.",
+      "mission": "Assurer le fonctionnement administratif de CAPRI et veiller à l'application des procédures et obligations internes.",
+      "attributions": [
+        "administration générale",
+        "ressources humaines",
+        "gestion administrative et financière",
+        "contrats",
+        "achats",
+        "dossiers du personnel",
+        "archives",
+        "documentation institutionnelle",
+        "procédures internes",
+        "conformité réglementaire",
+        "suivi administratif des engagements",
+        "gestion documentaire",
+        "support logistique"
+      ],
+      "composition": [
+        "Responsable Administration et conformité",
+        "fonction administration/ressources humaines",
+        "fonction financière et comptable",
+        "fonction contrats et achats",
+        "gestion documentaire",
+        "fonction conformité — selon la croissance de CAPRI"
+      ],
+      "relations": "Travaille avec la Direction exécutive, les Pôles et les structures de contrôle.",
+      "extra": [
+        {
+          "title": "Limite de mandat",
+          "text": "Administration et conformité applique, documente et vérifie les procédures courantes. Le Comité d'éthique, d'audit et d'indépendance exerce, lui, le contrôle indépendant."
+        }
+      ],
+      "redevabilite": "Direction exécutive.",
+      "livrables": [
+        "dossiers administratifs",
+        "registres",
+        "rapports de conformité",
+        "suivi contractuel",
+        "reporting RH",
+        "délais de traitement",
+        "conformité documentaire"
+      ]
+    },
+    "reseau_experts": {
+      "type": "organe",
+      "positionnement": "Réseau transversal mobilisable par la Direction exécutive et les Pôles selon les besoins.",
+      "mission": "Donner à CAPRI accès à une expertise spécialisée, flexible et de haut niveau, sans alourdir sa structure permanente.",
+      "composition": [
+        "droit",
+        "gouvernance",
+        "administration publique",
+        "sécurité intérieure",
+        "immigration et frontières",
+        "douane",
+        "état civil",
+        "archives",
+        "système pénitentiaire",
+        "transformation numérique",
+        "élections",
+        "coopération internationale",
+        "évaluation",
+        "autres domaines correspondant au mandat de CAPRI"
+      ],
+      "fonctionnement": "Les experts associés peuvent être mobilisés pour des missions, études, formations, analyses, projets, évaluations ou conseils spécialisés.",
+      "extra": [
+        {
+          "title": "Statut",
+          "text": "Les experts associés ne deviennent pas automatiquement salariés, administrateurs ou décideurs de CAPRI."
+        }
+      ],
+      "redevabilite": "Selon le mandat qui leur est confié.",
+      "livrables": [
+        "rapports",
+        "avis",
+        "études",
+        "outils",
+        "formations",
+        "contributions techniques"
+      ]
+    },
+    "cellules_mission": {
+      "type": "organe",
+      "positionnement": "Structures temporaires créées pour conduire une mission spécifique de CAPRI.",
+      "mission": "Réunir rapidement les compétences nécessaires pour exécuter une intervention déterminée dans un délai donné.",
+      "composition": [
+        "un Chef de mission",
+        "les spécialistes nécessaires",
+        "éventuellement des experts associés",
+        "un référent institutionnel CAPRI"
+      ],
+      "fonctionnement": "Chaque cellule dispose d'un mandat précisant : objet, objectifs, composition, responsable, calendrier, ressources, livrables, rattachement, reporting et conditions de clôture. Les livrables sont expressément définis dans ce mandat.",
+      "extra": [
+        {
+          "title": "Durée",
+          "text": "Une cellule de mission ne constitue pas une structure permanente. Elle prend fin lorsque sa mission est achevée, sauf décision expresse de prolongation."
+        }
+      ],
+      "redevabilite": "À la structure qui lui a confié son mandat."
+    }
   },
   "values": {
     "001": "Nos valeurs",

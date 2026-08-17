@@ -190,6 +190,8 @@ section.dark{background:var(--navy-deep);color:#fff}
 .org-node.board{background:linear-gradient(135deg,var(--navy-deep),var(--navy));border-color:transparent}
 .org-node.board h3{color:var(--gold-light)}
 .org-node.board p{color:rgba(255,255,255,.72)}
+.org-board-seats{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.15)}
+.org-board-seats li{background:rgba(255,255,255,.1);border:1px solid rgba(212,168,67,.35);color:#fff;font-size:.76rem;font-weight:500;padding:6px 13px;border-radius:50px}
 .org-node.executive{background:linear-gradient(135deg,var(--teal-dark),var(--teal));border-color:transparent}
 .org-node.executive h3,.org-node.executive p{color:#fff}
 .org-line{width:2px;height:24px;background:linear-gradient(var(--gold),var(--teal));opacity:.7}
@@ -405,6 +407,13 @@ footer a:hover{color:var(--teal)}
     <div class="org-node board">
       <h3 data-i18n="about.019">Conseil d'administration</h3>
       <p data-i18n="about.020">Orientation stratégique · supervision · approbation des politiques · reddition de comptes</p>
+      <ul class="org-board-seats">
+        <li data-i18n="about.b03">Président</li>
+        <li data-i18n="about.b04">Vice-président</li>
+        <li data-i18n="about.b05">Secrétaire général</li>
+        <li data-i18n="about.b06">Trésorier</li>
+        <li data-i18n="about.b07">Conseiller chargé de la gouvernance, de l'éthique et du contrôle interne</li>
+      </ul>
     </div>
 
     <div class="org-advisory">

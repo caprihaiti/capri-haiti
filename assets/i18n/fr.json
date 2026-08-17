@@ -46,7 +46,12 @@
   "044": "Télécharger la présentation institutionnelle publique de CAPRI",
   "045": "Organigramme fonctionnel de CAPRI",
   "b01": " au démarrage, plusieurs fonctions peuvent être regroupées au sein d'une équipe réduite. Elles deviennent des directions autonomes uniquement lorsque le volume des programmes, les ressources disponibles et les exigences de contrôle le justifient.",
-  "b02": "Document disponible en français."
+  "b02": "Document disponible en français.",
+  "b03": "Président",
+  "b04": "Vice-président",
+  "b05": "Secrétaire général",
+  "b06": "Trésorier",
+  "b07": "Conseiller chargé de la gouvernance, de l'éthique et du contrôle interne"
  },
  "catalog": {
   "001": "Catalogue des services",

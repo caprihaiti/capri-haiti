@@ -46,7 +46,12 @@
   "044": "Download CAPRI's public institutional presentation",
   "045": "CAPRI's functional organization chart",
   "b01": " at the outset, several functions may be grouped within a small team. They become autonomous departments only once program volume, available resources and oversight requirements justify it.",
-  "b02": "Document available in French."
+  "b02": "Document available in French.",
+  "b03": "Chair",
+  "b04": "Vice-Chair",
+  "b05": "Secretary General",
+  "b06": "Treasurer",
+  "b07": "Governance, Ethics and Internal Control Officer"
  },
  "catalog": {
   "001": "Service catalog",

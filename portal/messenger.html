@@ -65,6 +65,7 @@
           <span id="threadTitle">—</span>
         </div>
         <div class="msg-scroll" id="msgScroll"></div>
+        <div id="broadcastReadOnlyNote" style="display:none;padding:12px 18px;border-top:1px solid var(--off);color:var(--grey);font-size:.8rem">📢 Seuls le Conseil d'administration et la Direction peuvent publier dans CAPRI Mail.</div>
         <form class="msg-compose" id="composeForm">
           <textarea id="composeInput" rows="1" placeholder="Écrire un message… (Entrée pour envoyer, Maj+Entrée pour une nouvelle ligne)"></textarea>
           <button type="submit" class="btn" style="align-self:flex-end">Envoyer</button>
@@ -135,15 +136,17 @@ async function loadConversations() {
   var ids = memberships.map(function (m) { return m.channel_id; });
   if (!ids.length) { channels = []; renderConvList(); return; }
 
-  var { data: chData } = await capriSupabase.from("channels").select("id, name, is_direct, created_at").in("id", ids).order("created_at", { ascending: false });
+  var { data: chData } = await capriSupabase.from("channels").select("id, name, is_direct, is_broadcast, created_at").in("id", ids).order("created_at", { ascending: false });
   var { data: memberRows } = await capriSupabase.from("channel_members").select("channel_id, user_id").in("channel_id", ids);
 
   channels = (chData || []).map(function (c) {
     return {
-      id: c.id, name: c.name, is_direct: c.is_direct,
+      id: c.id, name: c.name, is_direct: c.is_direct, is_broadcast: c.is_broadcast,
       members: memberRows.filter(function (m) { return m.channel_id === c.id; }).map(function (m) { return m.user_id; })
     };
   });
+  // CAPRI Mail (canal de diffusion) toujours épinglé en haut de la liste.
+  channels.sort(function (a, b) { return (b.is_broadcast ? 1 : 0) - (a.is_broadcast ? 1 : 0); });
   renderConvList();
 }
 
@@ -157,8 +160,9 @@ function renderConvList() {
   var el = document.getElementById("convList");
   if (!channels.length) { el.innerHTML = '<div class="empty-state">Aucune conversation. Cliquez « + Nouveau » pour en démarrer une.</div>'; return; }
   el.innerHTML = channels.map(function (c) {
+    var suffix = c.is_broadcast ? " 📢" : (c.is_direct ? "" : " 👥");
     return '<button type="button" class="msg-list-item' + (c.id === activeChannelId ? " active" : "") + '" data-id="' + c.id + '">' +
-      '<div class="name">' + escapeHtml(channelDisplayName(c)) + (c.is_direct ? "" : " 👥") + "</div>" +
+      '<div class="name">' + escapeHtml(channelDisplayName(c)) + suffix + "</div>" +
       '<div class="preview">Ouvrir la conversation</div>' +
       "</button>";
   }).join("");
@@ -239,6 +243,10 @@ async function openChannel(id) {
 
   var c = channels.find(function (x) { return x.id === id; });
   document.getElementById("threadTitle").textContent = c ? channelDisplayName(c) : "Conversation";
+
+  var canPost = !c || !c.is_broadcast || ["conseil_administration", "direction"].indexOf(profileRef.role) !== -1;
+  document.getElementById("composeForm").style.display = canPost ? "flex" : "none";
+  document.getElementById("broadcastReadOnlyNote").style.display = canPost ? "none" : "block";
 
   await loadMessages(id);
   subscribeRealtime(id);

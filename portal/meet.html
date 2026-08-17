@@ -43,10 +43,14 @@
       </div>
       <button type="button" class="btn" id="joinBtn">Rejoindre la réunion</button>
       <p class="meet-note">Pour une réunion sensible (ex. séance du Conseil), verrouillez la salle avec un mot de passe une fois entré — icône bouclier « Sécurité » dans la barre d'outils, en bas de l'écran de réunion. Partagez ensuite ce mot de passe séparément (pas par le même canal que le lien).</p>
+      <p class="meet-note">Sur iPhone/iPad (Safari), si la réunion intégrée ci-dessous ne se connecte pas : utilisez le bouton <strong>« Ouvrir dans un nouvel onglet »</strong> qui apparaît après avoir cliqué « Rejoindre » — Safari bloque parfois la caméra/micro pour une visioconférence affichée à l'intérieur de la page.</p>
     </div>
 
     <div id="jitsiContainer" hidden></div>
-    <p id="leaveWrap" hidden style="margin-top:12px"><button type="button" class="btn secondary" id="leaveBtn">← Retour à CAPRI Meet</button></p>
+    <p id="leaveWrap" hidden style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+      <button type="button" class="btn secondary" id="leaveBtn">← Retour à CAPRI Meet</button>
+      <a class="btn secondary" id="directLinkBtn" href="#" target="_blank" rel="noopener">Ouvrir dans un nouvel onglet ↗</a>
+    </p>
   </main>
 </div>
 
@@ -97,6 +101,7 @@ function joinMeeting() {
   var container = document.getElementById("jitsiContainer");
   container.hidden = false;
   document.getElementById("leaveWrap").hidden = false;
+  document.getElementById("directLinkBtn").href = "https://meet.jit.si/" + roomName;
 
   jitsiApi = new JitsiMeetExternalAPI("meet.jit.si", {
     roomName: roomName,
@@ -105,6 +110,12 @@ function joinMeeting() {
     configOverwrite: { prejoinPageEnabled: true },
     interfaceConfigOverwrite: { SHOW_JITSI_WATERMARK: false }
   });
+
+  // Sur Safari/iOS, une iframe tierce n'obtient pas toujours automatiquement
+  // la permission caméra/micro déléguée par la page — l'expliciter ici évite
+  // certains cas de connexion bloquée silencieusement.
+  var iframe = jitsiApi.getIFrame();
+  if (iframe) iframe.setAttribute("allow", "camera; microphone; fullscreen; display-capture; autoplay; clipboard-write");
 
   jitsiApi.addEventListener("readyToClose", leaveMeeting);
 }

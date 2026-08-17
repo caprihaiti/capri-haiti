@@ -558,6 +558,155 @@
   "043": "Evaluation",
   "045": "Transfer"
  },
+ "tdr": {
+  "a_pourvoir": "Vacant",
+  "commun_texte": "CAPRI's Board of Directors is the collegial body responsible for strategic direction, governance, institutional oversight and safeguarding the organization's interests. Its members carry out their duties solely in the interest of CAPRI, in accordance with its mission, its bylaws, its internal rules, its internal policies and the decisions duly adopted by the Board. Every director is bound in particular by the following principles: collegiality, integrity, confidentiality, diligence, accountability, prevention of conflicts of interest, traceability of decisions and proper use of CAPRI's resources. The Board's functions must remain distinct from day-to-day operational management: the Board directs, authorizes, oversees and controls; the executive team administers and implements.",
+  "conseillere": {
+   "extra": [
+    {
+     "text": "In exercising her oversight duties, the Officer must be able to raise her observations directly with the Board, even when they concern the President, the Vice-President, another director, or an executive officer. She may not be instructed to conceal, alter or suppress a substantial finding within her mandate.",
+     "title": "Functional independence"
+    },
+    {
+     "text": "She exercises an oversight and advisory function, not an autonomous disciplinary one. When an irregularity is found, she documents the facts, formulates her recommendations, and refers the matter to the competent body in accordance with CAPRI's procedures.",
+     "title": "Important limit"
+    }
+   ],
+   "limites": [],
+   "limites_intro": "",
+   "mission": "Contribute to CAPRI's institutional integrity by overseeing the quality of its governance, the application of its ethical rules, and the effectiveness of its internal control framework.",
+   "redevabilite": "",
+   "responsabilites": [
+    "advises the Board on matters of institutional governance",
+    "oversees the application of adopted bylaws, rules and policies",
+    "contributes to drafting and updating the Code of Ethics and Conduct",
+    "participates in defining mechanisms for disclosing and handling conflicts of interest",
+    "ensures internal control procedures are proportionate to CAPRI's activities",
+    "identifies governance weaknesses and recommends corrective measures",
+    "contributes to the assessment of key institutional risks",
+    "ensures compliance with internal transparency and accountability mechanisms",
+    "may propose specific audits or controls when serious risks are identified",
+    "follows up on recommendations arising from institutional audits, controls or evaluations",
+    "advises the Board when a situation may harm CAPRI's integrity, reputation or independence",
+    "contributes to the periodic evaluation of the Board's own governance practices"
+   ]
+  },
+  "fermer": "Close",
+  "pdf_note": "Official PDF version coming soon.",
+  "president": {
+   "extra": [],
+   "limites": [
+    "commit CAPRI alone to a major strategic decision",
+    "alter a decision of the Board",
+    "commit expenditures beyond the limits delegated to them",
+    "conclude, alone, an institutional commitment requiring Board authorization",
+    "intervene in day-to-day operational management beyond the powers formally assigned to them"
+   ],
+   "limites_intro": "The President does not substitute for the Board. Except with express delegation or as provided by internal rules, the President may not:",
+   "mission": "Provide institutional leadership for the Board of Directors, ensure it functions properly, and see that its decisions effectively advance CAPRI's mission and strategic direction.",
+   "redevabilite": "The President is accountable to the Board of Directors collectively.",
+   "responsabilites": [
+    "chairs the Board's ordinary and extraordinary meetings",
+    "establishes or validates, together with the Secretary General, the draft agendas",
+    "calls meetings in accordance with the bylaws and internal rules",
+    "ensures the quality, regularity and effectiveness of deliberations",
+    "facilitates the search for consensus and organizes decisions put to a vote",
+    "oversees the execution and follow-up of adopted resolutions",
+    "ensures institutional coordination between the Board and CAPRI's executive management",
+    "ensures compliance with the mission, bylaws and strategic direction",
+    "submits major questions requiring an institutional decision to the Board",
+    "represents the Board of Directors before partners and authorities when such representation falls within their duties",
+    "may sign, on the Board's behalf, acts and documents for which signing authority is expressly assigned to them",
+    "ensures that no director individually exercises powers that belong to the Board as a collegial body",
+    "periodically organizes the evaluation of the Board's functioning"
+   ]
+  },
+  "secretaire_general": {
+   "extra": [
+    {
+     "text": "No important Board decision should rest solely on informal communications. The Secretary General ensures that institutional decisions are documented, dated, filed and retrievable.",
+     "title": "Principle of traceability"
+    }
+   ],
+   "limites": [],
+   "limites_intro": "",
+   "mission": "Ensure the administrative regularity of the Board's work, the preservation of its institutional memory, and the traceability of its decisions.",
+   "redevabilite": "They report to the Board, when necessary, on the status of resolutions awaiting execution and on administrative obligations related to governance.",
+   "responsabilites": [
+    "prepares meeting notices in coordination with the President",
+    "prepares and organizes meeting materials",
+    "contributes to drafting agendas",
+    "verifies the availability of documents needed for deliberations",
+    "keeps the register of Board meetings",
+    "records attendance and verifies the elements needed to establish quorum",
+    "drafts or oversees the drafting of minutes",
+    "accurately records resolutions, votes and decisions",
+    "distributes minutes to members according to the established procedure",
+    "keeps the official register of Board resolutions",
+    "ensures the preservation and filing of governance documents",
+    "maintains up-to-date official versions of the Board's bylaws, rules, policies and internal decisions",
+    "handles the administrative follow-up of deadlines set by the Board",
+    "prepares certifications, excerpts of minutes or attestations within their competence",
+    "safeguards the confidentiality and integrity of the Board's archives"
+   ]
+  },
+  "section_commun": "Provisions common to Board members",
+  "section_limites": "Limits of authority and independence",
+  "section_mission": "General mission",
+  "section_redevabilite": "Accountability",
+  "section_resp": "Main responsibilities",
+  "telecharger_btn": "📄 Download the ToR",
+  "tresorier": {
+   "extra": [
+    {
+     "text": "The Treasurer is not automatically CAPRI's cashier or accountant. Their role on the Board is primarily one of financial oversight and control. They should not, alone, be able to authorize an expenditure, make the payment, and then be responsible for controlling it.",
+     "title": "Separation of duties"
+    }
+   ],
+   "limites": [],
+   "limites_intro": "",
+   "mission": "Provide, at Board level, oversight of financial management, budgetary sustainability, and the control mechanisms that protect CAPRI's resources.",
+   "redevabilite": "The Treasurer reports on their work to the Board of Directors and promptly flags any substantial financial irregularity brought to their attention.",
+   "responsabilites": [
+    "reviews draft budgets submitted to the Board",
+    "analyzes periodic financial reports",
+    "monitors trends in revenue, expenditure, commitments and available funds",
+    "draws the Board's attention to significant financial risks",
+    "ensures adequate financial control procedures are in place",
+    "reviews the compliance of major expenditures with budgets and authorizations",
+    "contributes to defining CAPRI's financial policies",
+    "follows financial audits when required",
+    "reviews auditors' recommendations and their implementation",
+    "contributes to oversight of procurement, payment, reimbursement and financial-commitment mechanisms",
+    "ensures that authorization, execution, recording and control duties are adequately separated",
+    "presents the Board with a periodic assessment of CAPRI's financial situation",
+    "makes recommendations on protecting the organization's assets and financial viability"
+   ]
+  },
+  "vice_president": {
+   "extra": [
+    {
+     "text": "When acting as substitute for the President, the Vice-President holds the powers attached to that substitution within the limits set by the bylaws and Board decisions. The Vice-President role therefore does not constitute a second, parallel presidency.",
+     "title": "Principle of substitution"
+    }
+   ],
+   "limites": [],
+   "limites_intro": "",
+   "mission": "Assist the President in carrying out their duties and ensure continuity of the Board's presidency in the event of absence, incapacity, vacancy or delegation.",
+   "redevabilite": "The Vice-President is accountable to the Board and, for missions specifically delegated to them, reports on the status of the matters concerned.",
+   "responsabilites": [
+    "assists the President in preparing and conducting the Board's work",
+    "follows up, at the President's request, on certain strategic matters",
+    "contributes to monitoring the Board's resolutions and directions",
+    "may coordinate committees or working groups created by the Board",
+    "fosters coordination among the various members",
+    "exercises the President's functions in case of absence or incapacity, in accordance with CAPRI's internal rules",
+    "acts, in the event of a vacancy, as interim President under the conditions and for the duration set out in the bylaws",
+    "carries out any specific mission entrusted to them by Board resolution"
+   ]
+  },
+  "voir_btn": "View the ToR"
+ },
  "values": {
   "001": "Our values",
   "002": "The principles that guide our action",

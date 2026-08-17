@@ -51,7 +51,7 @@
   "b04": "Vis-prezidan",
   "b05": "Sekretè jeneral",
   "b06": "Trezorye",
-  "b07": "Konseye chaje Gouvènans, Etik ak Kontwòl Entèn"
+  "b07": "Konseyè chaje Gouvènans, Etik ak Kontwòl Entèn"
  },
  "catalog": {
   "001": "Katalòg sèvis yo",
@@ -557,6 +557,155 @@
   "041": "Suivi",
   "043": "Evalyasyon",
   "045": "Transfè"
+ },
+ "tdr": {
+  "a_pourvoir": "Pòs vid",
+  "commun_texte": "Konsèy Administrasyon CAPRI a se ògàn kolejyal ki chaje ak oryantasyon estratejik, gouvènans, sipèvizyon enstitisyonèl ak pwoteksyon enterè òganizasyon an. Manm li yo egzèse fonksyon yo sèlman nan enterè CAPRI, konfòmeman ak misyon li, estati li, règleman entèn li, politik entèn li ak desizyon Konsèy la pran regilyèman. Chak administratè oblije respekte prensip sa yo: kolejyalite, entegrite, konfidansyalite, dilijans, responsablite, prevansyon konfli enterè, tracabilite desizyon yo ak bon itilizasyon resous CAPRI yo. Fonksyon Konsèy la dwe rete separe de jesyon operasyonèl chak jou a: Konsèy la oryante, otorize, sipèvize e kontwole; ekip egzekitif la administre e aplike.",
+  "conseillere": {
+   "extra": [
+    {
+     "text": "Nan egzèsis responsablite kontwòl li yo, Konseyè a dwe kapab prezante obsèvasyon li dirèkteman bay Konsèy la, menm lè yo konsène Prezidan an, Vis-prezidan an, yon lòt administratè oswa yon responsab egzekitif. Li pa ka resevwa enstriksyon pou kache, modifye oswa siprime yon konstatasyon enpòtan ki relve manda li.",
+     "title": "Endepandans fonksyonèl"
+    },
+    {
+     "text": "Li egzèse yon fonksyon sipèvizyon ak konsèy, se pa yon fonksyon disiplinè otonòm. Lè yo konstate yon irregilarite, li dokimante fè yo, li fòmile rekòmandasyon li epi li sezi ògàn konpetan an konfòmeman ak pwosedi CAPRI yo.",
+     "title": "Limit enpòtan"
+    }
+   ],
+   "limites": [],
+   "limites_intro": "",
+   "mission": "Kontribye nan entegrite enstitisyonèl CAPRI lè l sipèvize kalite gouvènans li, aplikasyon règ etik li yo ak efikasite disposi kontwòl entèn li.",
+   "redevabilite": "",
+   "responsabilites": [
+    "konseye Konsèy la sou kesyon gouvènans enstitisyonèl",
+    "sipèvize aplikasyon estati, règleman ak politik yo adopte yo",
+    "kontribye nan elabore ak aktyalize Kòd Etik ak Kondwit la",
+    "patisipe nan definisyon mekanis deklarasyon ak tretman konfli enterè yo",
+    "veye pou gen pwosedi kontwòl entèn ki pwopòsyonèl ak aktivite CAPRI yo",
+    "idantifye feblès gouvènans yo epi rekòmande mezi korektif",
+    "kontribye nan evalyasyon prensipal risk enstitisyonèl yo",
+    "veye respè mekanis entèn transparans ak redevabilite yo",
+    "ka pwopoze odit oswa kontwòl espesifik lè yo idantifye gwo risk",
+    "swiv rekòmandasyon ki soti nan odit, kontwòl oswa evalyasyon enstitisyonèl yo",
+    "konseye Konsèy la lè yon sitiyasyon ka pòte prejidis a entegrite, repitasyon oswa endepandans CAPRI",
+    "kontribye nan evalyasyon peryodik pratik gouvènans Konsèy la limenm"
+   ]
+  },
+  "fermer": "Fèmen",
+  "pdf_note": "Vèsyon PDF ofisyèl ap vini.",
+  "president": {
+   "extra": [],
+   "limites": [
+    "angaje CAPRI pou kont li nan yon desizyon estratejik majè",
+    "modifye yon desizyon Konsèy la",
+    "angaje depans ki depase limit yo delege ba li yo",
+    "konkli pou kont li yon angajman enstitisyonèl ki mande otorizasyon Konsèy la",
+    "entèvni nan jesyon operasyonèl chak jou a pi lwen pase pouvwa ki fòmèlman atribye ba li yo"
+   ],
+   "limites_intro": "Prezidan an pa ranplase Konsèy la. Li pa ka, sof si gen delegasyon eksplisit oswa yon sitiyasyon prevwa nan tèks entèn yo :",
+   "mission": "Asire direksyon enstitisyonèl Konsèy Administrasyon an, garanti bon fonksyònman li e veye pou desizyon li yo kontribye reyèlman nan reyalizasyon misyon ak oryantasyon estratejik CAPRI yo.",
+   "redevabilite": "Prezidan an rann kont bay Konsèy Administrasyon an kolektivman.",
+   "responsabilites": [
+    "prezide reyinyon òdinè ak ekstraòdinè Konsèy la",
+    "etabli oswa valide, ansanm ak Sekretè jeneral la, pwojè lòd di jou yo",
+    "konvoke reyinyon yo konfòmeman ak estati ak règleman yo",
+    "veye sou kalite, regilarite ak efikasite deliberasyon yo",
+    "fasilite rechèch konsansis epi òganize desizyon ki soumèt pou vòt",
+    "veye sou egzekisyon ak swivi rezolisyon ki adopte yo",
+    "asire kowòdinasyon enstitisyonèl ant Konsèy la ak direksyon egzekitif CAPRI a",
+    "veye respè misyon an, estati yo ak oryantasyon estratejik yo",
+    "soumèt bay Konsèy la gwo kesyon ki mande yon desizyon enstitisyonèl",
+    "reprezante Konsèy Administrasyon an bò kote patnè ak otorite yo lè reprezantasyon sa a fè pati atribisyon li",
+    "ka siyen, nan non Konsèy la, ak dokiman yo ki siyati yo eksplisitman atribye ba li",
+    "veye pou okenn administratè pa egzèse endividyèlman pouvwa ki apatyen a Konsèy la kòm ògàn kolejyal",
+    "òganize peryodikman evalyasyon fonksyònman Konsèy la"
+   ]
+  },
+  "secretaire_general": {
+   "extra": [
+    {
+     "text": "Okenn gwo desizyon Konsèy la pa ta dwe depann sèlman sou kominikasyon enfòmèl. Sekretè jeneral la veye pou desizyon enstitisyonèl yo dokimante, date, klase e ka jwenn fasil.",
+     "title": "Prensip tracabilite"
+    }
+   ],
+   "limites": [],
+   "limites_intro": "",
+   "mission": "Garanti regilarite administratif travay Konsèy la, konsèvasyon memwa enstitisyonèl li ak tracabilite desizyon li yo.",
+   "redevabilite": "Li prezante bay Konsèy la, lè sa nesesè, eta rezolisyon ki poko egzekite yo ak obligasyon administratif ki lye ak gouvènans lan.",
+   "responsabilites": [
+    "prepare konvokasyon yo an kowòdinasyon ak Prezidan an",
+    "prepare epi òganize materyèlman dosye reyinyon yo",
+    "kontribye nan elabore lòd di jou yo",
+    "verifye disponiblite dokiman ki nesesè pou deliberasyon yo",
+    "kenbe rejis reyinyon Konsèy la",
+    "konstate prezans yo epi verifye eleman ki nesesè pou etabli kowòm nan",
+    "redije oswa sipèvize redaksyon pwosè vèbal yo",
+    "konsiye avèk presizyon rezolisyon, vòt ak desizyon yo",
+    "transmèt pwosè vèbal yo bay manm yo selon pwosedi etabli a",
+    "kenbe rejis ofisyèl rezolisyon Konsèy la",
+    "asire konsèvasyon ak klasman dokiman gouvènans yo",
+    "kenbe ajou vèsyon ofisyèl estati, règleman, politik ak desizyon entèn ki relve Konsèy la",
+    "asire swivi administratif dat limit Konsèy la deside yo",
+    "prepare sètifikasyon, ekstrè pwosè vèbal oswa atestasyon ki relve konpetans li",
+    "veye konfidansyalite ak entegrite achiv Konsèy la"
+   ]
+  },
+  "section_commun": "Dispozisyon komen pou tout manm Konsèy la",
+  "section_limites": "Limit otorite ak endepandans",
+  "section_mission": "Misyon jeneral",
+  "section_redevabilite": "Redevabilite",
+  "section_resp": "Responsablite prensipal yo",
+  "telecharger_btn": "📄 Telechaje TdR yo",
+  "tresorier": {
+   "extra": [
+    {
+     "text": "Trezorye a se pa otomatikman kesye a ni kontab CAPRI a. Fonksyon li nan Konsèy la se sitou yon fonksyon sipèvizyon finansye ak kontwòl. Li pa ta dwe kapab, pou kont li, otorize yon depans, fè peman an epi answit asire kontwòl li.",
+     "title": "Separasyon fonksyon yo"
+    }
+   ],
+   "limites": [],
+   "limites_intro": "",
+   "mission": "Asire, nan nivo Konsèy la, sipèvizyon jesyon finansye a, dirabilite bidjetè a ak mekanis kontwòl ki pwoteje resous CAPRI yo.",
+   "redevabilite": "Trezorye a rann kont travay li yo bay Konsèy Administrasyon an epi siyale l san dele nenpòt irregilarite finansye enpòtan li pran konesans.",
+   "responsabilites": [
+    "egzamine pwojè bidjè yo soumèt bay Konsèy la",
+    "analize rapò finansye peryodik yo",
+    "sipèvize evolisyon resèt, depans, angajman ak disponiblite yo",
+    "atire atansyon Konsèy la sou risk finansye enpòtan yo",
+    "veye pou gen bon pwosedi kontwòl finansye",
+    "egzamine konfòmite gwo depans yo ak bidjè ak otorizasyon yo",
+    "kontribye nan definisyon politik finansye CAPRI yo",
+    "swiv odit finansye yo lè yo nesesè",
+    "egzamine rekòmandasyon oditè yo ak aplikasyon yo",
+    "kontribye nan kontwòl mekanis ki gen rapò ak acha, peman, ranbousman ak angajman finansye",
+    "veye pou responsablite otorizasyon, egzekisyon, anrejistreman ak kontwòl separe ase",
+    "prezante bay Konsèy la yon apresyasyon peryodik sitiyasyon finansye CAPRI a",
+    "fòmile rekòmandasyon sou pwoteksyon byen yo ak viyabilite finansye òganizasyon an"
+   ]
+  },
+  "vice_president": {
+   "extra": [
+    {
+     "text": "Lè li ap sèvi kòm sipleyan Prezidan an, Vis-prezidan an gen pouvwa ki mare ak sipleyans sa a nan limit estati yo ak desizyon Konsèy la prevwa. Fonksyon Vis-prezidan an pa konstitiye yon dezyèm prezidans paralèl.",
+     "title": "Prensip sipleyans"
+    }
+   ],
+   "limites": [],
+   "limites_intro": "",
+   "mission": "Ede Prezidan an nan egzèsis responsablite li yo epi garanti kontinyite prezidans Konsèy la si gen absans, anpechman, pòs vid oswa delegasyon.",
+   "redevabilite": "Vis-prezidan an rann kont bay Konsèy la epi, pou misyon yo delege l espesyalman, li prezante eta avansman dosye konsène yo.",
+   "responsabilites": [
+    "ede Prezidan an nan preparasyon ak kondwit travay Konsèy la",
+    "swiv, lè Prezidan an mande l, sèten dosye estratejik",
+    "kontribye nan swivi rezolisyon ak oryantasyon Konsèy la",
+    "ka kowòdone komisyon oswa gwoup travay Konsèy la kreye",
+    "favorize kowòdinasyon ant diferan manm yo",
+    "egzèse fonksyon Prezidan an si gen absans oswa anpechman, konfòmeman ak tèks CAPRI yo",
+    "asire, si gen yon pòs vid, enterimè prezidans lan selon kondisyon ak dire estati yo prevwa",
+    "akonpli tout misyon espesifik Konsèy la konfye l pa rezolisyon"
+   ]
+  },
+  "voir_btn": "Gade TdR yo"
  },
  "values": {
   "001": "Valè nou yo",

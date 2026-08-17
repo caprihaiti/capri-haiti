@@ -190,8 +190,35 @@ section.dark{background:var(--navy-deep);color:#fff}
 .org-node.board{background:linear-gradient(135deg,var(--navy-deep),var(--navy));border-color:transparent}
 .org-node.board h3{color:var(--gold-light)}
 .org-node.board p{color:rgba(255,255,255,.72)}
-.org-board-seats{list-style:none;display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.15)}
-.org-board-seats li{background:rgba(255,255,255,.1);border:1px solid rgba(212,168,67,.35);color:#fff;font-size:.76rem;font-weight:500;padding:6px 13px;border-radius:50px}
+.org-board-seats{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:14px;padding-top:16px;border-top:1px solid rgba(255,255,255,.15);text-align:left}
+.org-board-seats li{background:rgba(255,255,255,.08);border:1px solid rgba(212,168,67,.3);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.org-board-seats .seat-name{color:#fff;font-size:.86rem;font-weight:700;font-family:var(--display)}
+.org-board-seats .seat-title{color:rgba(255,255,255,.75);font-size:.76rem;line-height:1.4}
+.seat-tdr{align-self:flex-start;margin-top:8px;background:none;border:1px solid var(--gold-light);color:var(--gold-light);font:600 .74rem var(--body);padding:5px 12px;border-radius:50px;cursor:pointer;transition:.2s}
+.seat-tdr:hover{background:var(--gold-light);color:var(--navy-deep)}
+
+/* ========== TDR MODAL ========== */
+.tdr-overlay{position:fixed;inset:0;background:rgba(10,22,40,.72);backdrop-filter:blur(3px);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
+.tdr-overlay[hidden]{display:none}
+.tdr-modal{background:#fff;border-radius:18px;max-width:640px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,.35);position:relative;padding:36px 34px 28px}
+.tdr-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;border:none;background:var(--off);color:var(--navy);font-size:1.3rem;line-height:1;cursor:pointer;display:grid;place-items:center;transition:.2s}
+.tdr-close:hover{background:var(--light)}
+.tdr-modal-head{border-bottom:2px solid var(--gold-pale);padding-bottom:16px;margin-bottom:20px}
+.tdr-modal-name{font-family:var(--display);font-size:1.3rem;color:var(--navy);font-weight:700}
+.tdr-modal-title{color:var(--teal-dark);font-size:.92rem;font-weight:600;margin-top:2px}
+.tdr-section{margin-bottom:20px}
+.tdr-section h4{font-family:var(--display);color:var(--navy);font-size:.95rem;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.tdr-section h4::before{content:"";width:18px;height:2px;background:var(--gold);display:inline-block}
+.tdr-section p{color:var(--dark);font-size:.9rem;line-height:1.65;margin-bottom:6px}
+.tdr-section ul{margin:0;padding-left:20px}
+.tdr-section li{color:var(--dark);font-size:.88rem;line-height:1.6;margin-bottom:5px}
+.tdr-extra{background:var(--off);border-left:3px solid var(--teal);border-radius:8px;padding:12px 16px;margin-top:10px}
+.tdr-extra h5{font-size:.82rem;color:var(--teal-dark);font-weight:700;margin-bottom:4px}
+.tdr-extra p{font-size:.85rem;color:var(--grey);line-height:1.6;margin:0}
+.tdr-modal-foot{border-top:1px solid var(--light);padding-top:18px;margin-top:6px;text-align:center}
+.tdr-download{background:var(--navy);color:#fff;border:none;padding:11px 24px;border-radius:50px;font:600 .85rem var(--body);cursor:not-allowed;opacity:.55}
+.tdr-download-note{color:var(--grey);font-size:.74rem;margin-top:8px}
+@media(max-width:600px){.tdr-modal{padding:28px 20px 22px;max-height:92vh}}
 .org-node.executive{background:linear-gradient(135deg,var(--teal-dark),var(--teal));border-color:transparent}
 .org-node.executive h3,.org-node.executive p{color:#fff}
 .org-line{width:2px;height:24px;background:linear-gradient(var(--gold),var(--teal));opacity:.7}
@@ -408,11 +435,31 @@ footer a:hover{color:var(--teal)}
       <h3 data-i18n="about.019">Conseil d'administration</h3>
       <p data-i18n="about.020">Orientation stratégique · supervision · approbation des politiques · reddition de comptes</p>
       <ul class="org-board-seats">
-        <li data-i18n="about.b03">Président</li>
-        <li data-i18n="about.b04">Vice-président</li>
-        <li data-i18n="about.b05">Secrétaire général</li>
-        <li data-i18n="about.b06">Trésorier</li>
-        <li data-i18n="about.b07">Conseiller chargé de la gouvernance, de l'éthique et du contrôle interne</li>
+        <li>
+          <span class="seat-name">Jean Wagner GUILLAUME</span>
+          <span class="seat-title" data-i18n="about.b03">Président</span>
+          <button type="button" class="seat-tdr" data-tdr="president" data-i18n="tdr.voir_btn">Voir les TdR</button>
+        </li>
+        <li>
+          <span class="seat-name">Joseph Benjamin LORMILUS</span>
+          <span class="seat-title" data-i18n="about.b04">Vice-président</span>
+          <button type="button" class="seat-tdr" data-tdr="vice_president" data-i18n="tdr.voir_btn">Voir les TdR</button>
+        </li>
+        <li>
+          <span class="seat-name" data-i18n="tdr.a_pourvoir">À pourvoir</span>
+          <span class="seat-title" data-i18n="about.b05">Secrétaire général</span>
+          <button type="button" class="seat-tdr" data-tdr="secretaire_general" data-i18n="tdr.voir_btn">Voir les TdR</button>
+        </li>
+        <li>
+          <span class="seat-name" data-i18n="tdr.a_pourvoir">À pourvoir</span>
+          <span class="seat-title" data-i18n="about.b06">Trésorier</span>
+          <button type="button" class="seat-tdr" data-tdr="tresorier" data-i18n="tdr.voir_btn">Voir les TdR</button>
+        </li>
+        <li>
+          <span class="seat-name">Michelle Sylvie RAMEAU</span>
+          <span class="seat-title" data-i18n="about.b07">Conseillère chargée de la gouvernance, de l'éthique et du contrôle interne</span>
+          <button type="button" class="seat-tdr" data-tdr="conseillere" data-i18n="tdr.voir_btn">Voir les TdR</button>
+        </li>
       </ul>
     </div>
 
@@ -1012,6 +1059,22 @@ footer a:hover{color:var(--teal)}
 </section>
 
 
+<!-- ===== TERMES DE RÉFÉRENCE — CONSEIL D'ADMINISTRATION ===== -->
+<div class="tdr-overlay" id="tdrOverlay" hidden>
+  <div class="tdr-modal" role="dialog" aria-modal="true" aria-labelledby="tdrName">
+    <button type="button" class="tdr-close" id="tdrClose" aria-label="Fermer" data-i18n-aria-label="tdr.fermer">×</button>
+    <div class="tdr-modal-head">
+      <div class="tdr-modal-name" id="tdrName"></div>
+      <div class="tdr-modal-title" id="tdrTitle"></div>
+    </div>
+    <div class="tdr-modal-body" id="tdrBody"></div>
+    <div class="tdr-modal-foot">
+      <button type="button" class="tdr-download" id="tdrDownload" data-i18n="tdr.telecharger_btn">📄 Télécharger les TdR</button>
+      <p class="tdr-download-note" data-i18n="tdr.pdf_note">Version PDF officielle à venir.</p>
+    </div>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer>
 <div class="footer-inner">
@@ -1043,6 +1106,7 @@ footer a:hover{color:var(--teal)}
 <!-- Base de connaissances et moteur de réponse de Claire Heureuse — voir assets/claire/README.md -->
 <!-- Système multilingue du site (FR par défaut, HT, EN) — voir assets/i18n/ -->
 <script src="assets/i18n/i18n.js"></script>
+<script src="assets/tdr.js"></script>
 <script src="assets/claire/knowledge-base.js"></script>
 <script src="assets/claire/engine.js"></script>
 <script>

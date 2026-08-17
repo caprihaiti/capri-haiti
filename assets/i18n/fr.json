@@ -51,7 +51,7 @@
   "b04": "Vice-président",
   "b05": "Secrétaire général",
   "b06": "Trésorier",
-  "b07": "Conseiller chargé de la gouvernance, de l'éthique et du contrôle interne"
+  "b07": "Conseillère chargée de la gouvernance, de l'éthique et du contrôle interne"
  },
  "catalog": {
   "001": "Catalogue des services",
@@ -557,6 +557,155 @@
   "041": "Suivi",
   "043": "Évaluation",
   "045": "Transfert"
+ },
+ "tdr": {
+  "a_pourvoir": "À pourvoir",
+  "commun_texte": "Le Conseil d'administration de CAPRI constitue l'organe collégial chargé de l'orientation stratégique, de la gouvernance, de la surveillance institutionnelle et de la protection des intérêts de l'organisation. Ses membres exercent leurs fonctions dans l'intérêt exclusif de CAPRI, conformément à sa mission, à ses statuts, à son règlement intérieur, à ses politiques internes et aux décisions régulièrement adoptées par le Conseil. Chaque administrateur est notamment tenu de respecter les principes suivants : collégialité, intégrité, confidentialité, diligence, responsabilité, prévention des conflits d'intérêts, traçabilité des décisions et bonne utilisation des ressources de CAPRI. Les fonctions du Conseil doivent demeurer distinctes de la gestion opérationnelle quotidienne : le Conseil oriente, autorise, supervise et contrôle ; l'équipe exécutive administre et met en œuvre.",
+  "conseillere": {
+   "extra": [
+    {
+     "text": "Dans l'exercice de ses responsabilités de contrôle, la Conseillère doit pouvoir présenter ses observations directement au Conseil, même lorsqu'elles concernent le Président, le Vice-président, un autre administrateur ou un responsable exécutif. Elle ne peut recevoir instruction de dissimuler, modifier ou supprimer une constatation substantielle relevant de son mandat.",
+     "title": "Indépendance fonctionnelle"
+    },
+    {
+     "text": "Elle exerce une fonction de surveillance et de conseil, non une fonction disciplinaire autonome. Lorsqu'une irrégularité est constatée, elle documente les faits, formule ses recommandations et saisit l'organe compétent conformément aux procédures de CAPRI.",
+     "title": "Limite importante"
+    }
+   ],
+   "limites": [],
+   "limites_intro": "",
+   "mission": "Contribuer à l'intégrité institutionnelle de CAPRI en surveillant la qualité de sa gouvernance, l'application de ses règles éthiques et l'efficacité de son dispositif de contrôle interne.",
+   "redevabilite": "",
+   "responsabilites": [
+    "conseille le Conseil sur les questions de gouvernance institutionnelle",
+    "surveille l'application des statuts, règlements et politiques adoptés",
+    "contribue à l'élaboration et à l'actualisation du Code d'éthique et de conduite",
+    "participe à la définition des mécanismes de déclaration et de traitement des conflits d'intérêts",
+    "veille à l'existence de procédures de contrôle interne proportionnées aux activités de CAPRI",
+    "identifie les faiblesses de gouvernance et recommande des mesures correctives",
+    "contribue à l'évaluation des principaux risques institutionnels",
+    "veille au respect des mécanismes internes de transparence et de redevabilité",
+    "peut proposer des audits ou contrôles spécifiques lorsque des risques sérieux sont identifiés",
+    "suit les recommandations issues des audits, contrôles ou évaluations institutionnelles",
+    "conseille le Conseil lorsqu'une situation peut porter atteinte à l'intégrité, à la réputation ou à l'indépendance de CAPRI",
+    "contribue à l'évaluation périodique des pratiques de gouvernance du Conseil lui-même"
+   ]
+  },
+  "fermer": "Fermer",
+  "pdf_note": "Version PDF officielle à venir.",
+  "president": {
+   "extra": [],
+   "limites": [
+    "engager seul CAPRI dans une décision stratégique majeure",
+    "modifier une décision du Conseil",
+    "engager des dépenses hors des limites qui lui sont déléguées",
+    "conclure seul un engagement institutionnel nécessitant l'autorisation du Conseil",
+    "intervenir dans la gestion opérationnelle quotidienne au-delà des pouvoirs qui lui sont formellement attribués"
+   ],
+   "limites_intro": "Le Président ne se substitue pas au Conseil. Il ne peut, sauf délégation expresse ou situation prévue par les textes internes :",
+   "mission": "Assurer la direction institutionnelle du Conseil d'administration, garantir son bon fonctionnement et veiller à ce que ses décisions contribuent effectivement à la réalisation de la mission et des orientations stratégiques de CAPRI.",
+   "redevabilite": "Le Président rend compte au Conseil d'administration collectivement.",
+   "responsabilites": [
+    "préside les réunions ordinaires et extraordinaires du Conseil",
+    "établit ou valide, avec le Secrétaire général, les projets d'ordre du jour",
+    "convoque les réunions conformément aux statuts et règlements",
+    "veille à la qualité, à la régularité et à l'efficacité des délibérations",
+    "facilite la recherche de consensus et organise les décisions soumises au vote",
+    "veille à l'exécution et au suivi des résolutions adoptées",
+    "assure la coordination institutionnelle entre le Conseil et la direction exécutive de CAPRI",
+    "veille au respect de la mission, des statuts et des orientations stratégiques",
+    "soumet au Conseil les grandes questions nécessitant une décision institutionnelle",
+    "représente le Conseil d'administration auprès des partenaires et autorités lorsque cette représentation relève de ses attributions",
+    "peut signer, au nom du Conseil, les actes et documents dont la signature lui est expressément attribuée",
+    "veille à ce qu'aucun administrateur n'exerce individuellement des pouvoirs appartenant au Conseil en tant qu'organe collégial",
+    "organise périodiquement l'évaluation du fonctionnement du Conseil"
+   ]
+  },
+  "secretaire_general": {
+   "extra": [
+    {
+     "text": "Aucune décision importante du Conseil ne devrait dépendre exclusivement de communications informelles. Le Secrétaire général veille à ce que les décisions institutionnelles soient documentées, datées, classées et retrouvables.",
+     "title": "Principe de traçabilité"
+    }
+   ],
+   "limites": [],
+   "limites_intro": "",
+   "mission": "Garantir la régularité administrative des travaux du Conseil, la conservation de sa mémoire institutionnelle et la traçabilité de ses décisions.",
+   "redevabilite": "Il présente au Conseil, lorsque nécessaire, l'état des résolutions en attente d'exécution et des obligations administratives liées à la gouvernance.",
+   "responsabilites": [
+    "prépare les convocations en coordination avec le Président",
+    "prépare et organise matériellement les dossiers des réunions",
+    "contribue à l'élaboration des ordres du jour",
+    "vérifie la disponibilité des documents nécessaires aux délibérations",
+    "tient le registre des réunions du Conseil",
+    "constate les présences et vérifie les éléments nécessaires à l'établissement du quorum",
+    "rédige ou supervise la rédaction des procès-verbaux",
+    "consigne avec précision les résolutions, votes et décisions",
+    "transmet les procès-verbaux aux membres selon la procédure établie",
+    "tient le registre officiel des résolutions du Conseil",
+    "assure la conservation et le classement des documents de gouvernance",
+    "tient à jour les versions officielles des statuts, règlements, politiques et décisions internes relevant du Conseil",
+    "assure le suivi administratif des échéances décidées par le Conseil",
+    "prépare les certifications, extraits de procès-verbaux ou attestations relevant de sa compétence",
+    "veille à la confidentialité et à l'intégrité des archives du Conseil"
+   ]
+  },
+  "section_commun": "Dispositions communes aux membres du Conseil",
+  "section_limites": "Limites d'autorité et d'indépendance",
+  "section_mission": "Mission générale",
+  "section_redevabilite": "Redevabilité",
+  "section_resp": "Responsabilités principales",
+  "telecharger_btn": "📄 Télécharger les TdR",
+  "tresorier": {
+   "extra": [
+    {
+     "text": "Le Trésorier n'est pas automatiquement le caissier ni le comptable de CAPRI. Sa fonction au sein du Conseil est principalement une fonction de surveillance financière et de contrôle. Il ne devrait pas pouvoir, seul, autoriser une dépense, effectuer le paiement et en assurer ensuite le contrôle.",
+     "title": "Séparation des fonctions"
+    }
+   ],
+   "limites": [],
+   "limites_intro": "",
+   "mission": "Assurer, au niveau du Conseil, la surveillance de la gestion financière, de la soutenabilité budgétaire et des mécanismes de contrôle protégeant les ressources de CAPRI.",
+   "redevabilite": "Le Trésorier rend compte de ses travaux au Conseil d'administration et lui signale sans délai toute irrégularité financière substantielle portée à sa connaissance.",
+   "responsabilites": [
+    "examine les projets de budget soumis au Conseil",
+    "analyse les rapports financiers périodiques",
+    "surveille l'évolution des recettes, dépenses, engagements et disponibilités",
+    "attire l'attention du Conseil sur les risques financiers significatifs",
+    "veille à l'existence de procédures adéquates de contrôle financier",
+    "examine la conformité des dépenses majeures aux budgets et autorisations",
+    "contribue à la définition des politiques financières de CAPRI",
+    "suit les audits financiers lorsqu'ils sont requis",
+    "examine les recommandations des auditeurs et leur mise en œuvre",
+    "contribue au contrôle des mécanismes relatifs aux achats, paiements, remboursements et engagements financiers",
+    "veille à ce que les responsabilités d'autorisation, d'exécution, d'enregistrement et de contrôle soient suffisamment séparées",
+    "présente au Conseil une appréciation périodique de la situation financière de CAPRI",
+    "formule des recommandations relatives à la protection des actifs et à la viabilité financière de l'organisation"
+   ]
+  },
+  "vice_president": {
+   "extra": [
+    {
+     "text": "Lorsqu'il exerce la suppléance du Président, le Vice-président dispose des pouvoirs attachés à cette suppléance dans les limites prévues par les statuts et les décisions du Conseil. La fonction de Vice-président ne constitue donc pas une seconde présidence parallèle.",
+     "title": "Principe de suppléance"
+    }
+   ],
+   "limites": [],
+   "limites_intro": "",
+   "mission": "Assister le Président dans l'exercice de ses responsabilités et garantir la continuité de la présidence du Conseil en cas d'absence, d'empêchement, de vacance ou de délégation.",
+   "redevabilite": "Le Vice-président rend compte au Conseil et, pour les missions qui lui sont spécialement déléguées, présente l'état d'avancement des dossiers concernés.",
+   "responsabilites": [
+    "assiste le Président dans la préparation et la conduite des travaux du Conseil",
+    "suit, à sa demande, certains dossiers stratégiques",
+    "contribue au suivi des résolutions et orientations du Conseil",
+    "peut coordonner des commissions ou groupes de travail créés par le Conseil",
+    "favorise la coordination entre les différents membres",
+    "exerce les fonctions du Président en cas d'absence ou d'empêchement conformément aux textes de CAPRI",
+    "assure, en cas de vacance, l'intérim de la présidence selon les conditions et pendant la durée prévues par les statuts",
+    "accomplit toute mission spécifique qui lui est confiée par résolution du Conseil"
+   ]
+  },
+  "voir_btn": "Voir les TdR"
  },
  "values": {
   "001": "Nos valeurs",

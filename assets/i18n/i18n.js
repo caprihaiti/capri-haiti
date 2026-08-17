@@ -27,6 +27,7 @@
 
   var translations = {}; // { fr: {...}, ht: {...}, en: {...} }
   var currentLang = DEFAULT_LANG;
+  var changeListeners = [];
 
   function detectInitialLang() {
     try {
@@ -99,6 +100,8 @@
     if (lang === DEFAULT_LANG) url.searchParams.delete("lang");
     else url.searchParams.set("lang", lang);
     history.replaceState(null, "", url.pathname + url.search + url.hash);
+
+    changeListeners.forEach(function (fn) { fn(lang); });
   }
 
   function setLang(lang) {
@@ -137,5 +140,16 @@
   }
 
   // Exposée pour debug / extension future (ex. ajout futur de l'espagnol).
-  window.CapriI18n = { setLang: setLang, getLang: function () { return currentLang; }, SUPPORTED_LANGS: SUPPORTED_LANGS };
+  window.CapriI18n = {
+    setLang: setLang,
+    getLang: function () { return currentLang; },
+    SUPPORTED_LANGS: SUPPORTED_LANGS,
+    // t(key, lang) : résout une clé "page.sous-clé" dans la langue donnée
+    // (ou la langue active si omise). Renvoie la valeur brute — chaîne,
+    // tableau ou objet — telle que stockée dans le fichier de traduction.
+    // Utilisé par des composants qui rendent leur propre contenu (ex.
+    // assets/tdr.js pour la fiche de poste affichée dans une fenêtre).
+    t: function (key, lang) { return resolve(lang || currentLang, key); },
+    onChange: function (fn) { changeListeners.push(fn); }
+  };
 })();

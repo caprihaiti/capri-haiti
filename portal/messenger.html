@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAPRI Messenger</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1B3A5C">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CAPRI">
+<link rel="stylesheet" href="assets/portal.css">
+<style>
+  .msg-layout{display:grid;grid-template-columns:280px 1fr;gap:0;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;height:74vh;min-height:480px}
+  @media(max-width:800px){.msg-layout{grid-template-columns:1fr;height:auto}.msg-thread{display:none}.msg-layout.thread-open .msg-list-pane{display:none}.msg-layout.thread-open .msg-thread{display:flex}}
+  .msg-list-pane{border-right:1px solid var(--off);display:flex;flex-direction:column;min-height:0}
+  .msg-list-head{padding:16px 16px 10px;border-bottom:1px solid var(--off);display:flex;justify-content:space-between;align-items:center}
+  .msg-list-head h2{font-size:.95rem;margin:0}
+  .msg-list{overflow-y:auto;flex:1}
+  .msg-list-item{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--off);padding:12px 16px;cursor:pointer;font:inherit}
+  .msg-list-item:hover{background:var(--off)}
+  .msg-list-item.active{background:var(--teal-pale, #eaf6f4)}
+  .msg-list-item .name{font-weight:600;font-size:.87rem;color:var(--dark)}
+  .msg-list-item .preview{font-size:.78rem;color:var(--grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+  .msg-thread{display:flex;flex-direction:column;min-height:0}
+  .msg-thread-head{padding:14px 18px;border-bottom:1px solid var(--off);font-weight:700;color:var(--navy);display:flex;align-items:center;gap:10px}
+  .msg-thread-head .back{display:none;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--navy)}
+  @media(max-width:800px){.msg-thread-head .back{display:inline}}
+  .msg-scroll{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+  .msg-bubble{max-width:72%;padding:9px 13px;border-radius:14px;font-size:.87rem;line-height:1.4}
+  .msg-bubble.mine{align-self:flex-end;background:var(--navy);color:#fff;border-bottom-right-radius:4px}
+  .msg-bubble.theirs{align-self:flex-start;background:var(--off);color:var(--dark);border-bottom-left-radius:4px}
+  .msg-bubble .who{font-size:.7rem;opacity:.7;margin-bottom:2px;font-weight:600}
+  .msg-compose{border-top:1px solid var(--off);padding:12px 14px;display:flex;gap:10px}
+  .msg-compose textarea{flex:1;resize:none;border:1px solid var(--light);border-radius:10px;padding:9px 12px;font:inherit;font-size:.87rem;max-height:100px}
+  .msg-new-panel{padding:16px}
+  .msg-new-panel .picklist{max-height:220px;overflow-y:auto;border:1px solid var(--light);border-radius:8px;margin:10px 0}
+  .msg-new-panel label{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:.85rem;border-bottom:1px solid var(--off);cursor:pointer}
+  .msg-new-panel label:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <h1>CAPRI Messenger</h1>
+      <p>Messagerie interne privée — visible uniquement par les membres de chaque conversation.</p>
+    </div>
+
+    <div class="msg-layout" id="msgLayout">
+      <div class="msg-list-pane">
+        <div class="msg-list-head">
+          <h2>Conversations</h2>
+          <button type="button" class="btn" style="padding:6px 14px;font-size:.8rem" id="newConvBtn">+ Nouveau</button>
+        </div>
+        <div class="msg-list" id="convList"><div class="empty-state">Chargement…</div></div>
+      </div>
+
+      <div class="msg-thread" id="msgThread" style="display:none">
+        <div class="msg-thread-head">
+          <button type="button" class="back" id="backBtn">←</button>
+          <span id="threadTitle">—</span>
+        </div>
+        <div class="msg-scroll" id="msgScroll"></div>
+        <form class="msg-compose" id="composeForm">
+          <textarea id="composeInput" rows="1" placeholder="Écrire un message… (Entrée pour envoyer, Maj+Entrée pour une nouvelle ligne)"></textarea>
+          <button type="submit" class="btn" style="align-self:flex-end">Envoyer</button>
+        </form>
+      </div>
+
+      <div class="msg-thread" id="newConvPanel" style="display:none">
+        <div class="msg-thread-head"><button type="button" class="back" id="backFromNewBtn">←</button><span>Nouvelle conversation</span></div>
+        <div class="msg-new-panel">
+          <p style="color:var(--grey);font-size:.85rem;margin-bottom:8px">Sélectionnez une ou plusieurs personnes. Un seul choix crée une conversation directe ; plusieurs choix créent un groupe.</p>
+          <div class="picklist" id="peoplePicklist"></div>
+          <div class="form-field" id="groupNameField" hidden>
+            <label for="groupNameInput">Nom du groupe</label>
+            <input type="text" id="groupNameInput" placeholder="ex. Comité Pôle 2">
+          </div>
+          <button type="button" class="btn" id="createConvBtn">Créer la conversation</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/pwa.js"></script>
+<script>
+var profileRef = null;
+var allProfiles = [];
+var channels = [];         // { id, name, is_direct, members: [profileId,...] }
+var activeChannelId = null;
+var realtimeSub = null;
+
+CapriAuth.requireSession().then(async function (session) {
+  profileRef = session.profile;
+  CapriShell.renderSidebar(session.profile, "messenger");
+
+  await loadPeople();
+  await loadConversations();
+
+  document.getElementById("newConvBtn").addEventListener("click", openNewConvPanel);
+  document.getElementById("backFromNewBtn").addEventListener("click", closeNewConvPanel);
+  document.getElementById("backBtn").addEventListener("click", closeThreadMobile);
+  document.getElementById("createConvBtn").addEventListener("click", createConversation);
+  document.getElementById("composeForm").addEventListener("submit", sendMessage);
+  document.getElementById("composeInput").addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); document.getElementById("composeForm").requestSubmit(); }
+  });
+});
+
+async function loadPeople() {
+  var { data, error } = await capriSupabase.from("profiles").select("id, full_name, role").eq("active", true).order("full_name");
+  if (error) return;
+  allProfiles = data.filter(function (p) { return p.id !== profileRef.id; });
+}
+
+function profileName(id) {
+  var p = allProfiles.find(function (x) { return x.id === id; });
+  return p ? p.full_name : (id === profileRef.id ? profileRef.full_name : "Ancien membre");
+}
+
+async function loadConversations() {
+  var { data: memberships, error } = await capriSupabase.from("channel_members").select("channel_id").eq("user_id", profileRef.id);
+  if (error) { document.getElementById("convList").innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  var ids = memberships.map(function (m) { return m.channel_id; });
+  if (!ids.length) { channels = []; renderConvList(); return; }
+
+  var { data: chData } = await capriSupabase.from("channels").select("id, name, is_direct, created_at").in("id", ids).order("created_at", { ascending: false });
+  var { data: memberRows } = await capriSupabase.from("channel_members").select("channel_id, user_id").in("channel_id", ids);
+
+  channels = (chData || []).map(function (c) {
+    return {
+      id: c.id, name: c.name, is_direct: c.is_direct,
+      members: memberRows.filter(function (m) { return m.channel_id === c.id; }).map(function (m) { return m.user_id; })
+    };
+  });
+  renderConvList();
+}
+
+function channelDisplayName(c) {
+  if (!c.is_direct) return c.name || "Groupe";
+  var other = c.members.find(function (id) { return id !== profileRef.id; });
+  return other ? profileName(other) : (c.name || "Conversation");
+}
+
+function renderConvList() {
+  var el = document.getElementById("convList");
+  if (!channels.length) { el.innerHTML = '<div class="empty-state">Aucune conversation. Cliquez « + Nouveau » pour en démarrer une.</div>'; return; }
+  el.innerHTML = channels.map(function (c) {
+    return '<button type="button" class="msg-list-item' + (c.id === activeChannelId ? " active" : "") + '" data-id="' + c.id + '">' +
+      '<div class="name">' + escapeHtml(channelDisplayName(c)) + (c.is_direct ? "" : " 👥") + "</div>" +
+      '<div class="preview">Ouvrir la conversation</div>' +
+      "</button>";
+  }).join("");
+  el.querySelectorAll(".msg-list-item").forEach(function (btn) {
+    btn.addEventListener("click", function () { openChannel(btn.getAttribute("data-id")); });
+  });
+}
+
+function openNewConvPanel() {
+  document.getElementById("peoplePicklist").innerHTML = allProfiles.map(function (p) {
+    return '<label><input type="checkbox" value="' + p.id + '" class="personCheck"> ' + escapeHtml(p.full_name) + '<span style="color:var(--grey);font-size:.76rem"> — ' + escapeHtml(window.CapriAuth.roleLabel(p.role)) + "</span></label>";
+  }).join("");
+  document.getElementById("peoplePicklist").querySelectorAll(".personCheck").forEach(function (cb) {
+    cb.addEventListener("change", function () {
+      var count = document.querySelectorAll(".personCheck:checked").length;
+      document.getElementById("groupNameField").hidden = count <= 1;
+    });
+  });
+  document.getElementById("groupNameField").hidden = true;
+  document.getElementById("msgThread").style.display = "none";
+  document.getElementById("newConvPanel").style.display = "flex";
+  document.getElementById("msgLayout").classList.add("thread-open");
+}
+function closeNewConvPanel() {
+  document.getElementById("newConvPanel").style.display = "none";
+  document.getElementById("msgLayout").classList.remove("thread-open");
+}
+function closeThreadMobile() {
+  document.getElementById("msgLayout").classList.remove("thread-open");
+}
+
+async function createConversation() {
+  var picked = Array.from(document.querySelectorAll(".personCheck:checked")).map(function (cb) { return cb.value; });
+  if (!picked.length) { CapriShell.toast("Choisissez au moins une personne.", true); return; }
+  var isDirect = picked.length === 1;
+  var name = null;
+  if (!isDirect) {
+    name = document.getElementById("groupNameInput").value.trim();
+    if (!name) { CapriShell.toast("Donnez un nom au groupe.", true); return; }
+  } else {
+    // Réutiliser une conversation directe existante avec cette personne si elle existe déjà.
+    var existing = channels.find(function (c) { return c.is_direct && c.members.indexOf(picked[0]) !== -1; });
+    if (existing) { closeNewConvPanel(); openChannel(existing.id); return; }
+  }
+
+  var { data: ch, error: chErr } = await capriSupabase.from("channels").insert({ name: name, is_direct: isDirect, created_by: profileRef.id }).select().single();
+  if (chErr) { CapriShell.toast("Erreur : " + chErr.message, true); return; }
+
+  // Deux insertions séparées et séquentielles (pas un seul insert multi-lignes) :
+  // la politique RLS d'invitation vérifie is_channel_member() sur le lecteur
+  // courant, qui doit donc déjà être membre en base au moment où les invités
+  // sont insérés — ce que garantit un « await » entre les deux, sans dépendre
+  // d'une visibilité intra-instruction entre lignes d'un même insert groupé.
+  var { error: selfErr } = await capriSupabase.from("channel_members").insert({ channel_id: ch.id, user_id: profileRef.id });
+  if (selfErr) { CapriShell.toast("Erreur : " + selfErr.message, true); return; }
+
+  var inviteRows = picked.map(function (uid) { return { channel_id: ch.id, user_id: uid }; });
+  var { error: memErr } = await capriSupabase.from("channel_members").insert(inviteRows);
+  if (memErr) { CapriShell.toast("Erreur : " + memErr.message, true); return; }
+
+  closeNewConvPanel();
+  await loadConversations();
+  openChannel(ch.id);
+}
+
+async function openChannel(id) {
+  activeChannelId = id;
+  document.getElementById("newConvPanel").style.display = "none";
+  document.getElementById("msgThread").style.display = "flex";
+  document.getElementById("msgLayout").classList.add("thread-open");
+  renderConvList();
+
+  var c = channels.find(function (x) { return x.id === id; });
+  document.getElementById("threadTitle").textContent = c ? channelDisplayName(c) : "Conversation";
+
+  await loadMessages(id);
+  subscribeRealtime(id);
+}
+
+async function loadMessages(channelId) {
+  var scroll = document.getElementById("msgScroll");
+  scroll.innerHTML = '<div class="empty-state">Chargement…</div>';
+  var { data, error } = await capriSupabase.from("messages").select("id, sender_id, body, created_at").eq("channel_id", channelId).order("created_at", { ascending: true });
+  if (error) { scroll.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  scroll.innerHTML = "";
+  data.forEach(appendMessageBubble);
+  scroll.scrollTop = scroll.scrollHeight;
+}
+
+function appendMessageBubble(m) {
+  var scroll = document.getElementById("msgScroll");
+  var mine = m.sender_id === profileRef.id;
+  var div = document.createElement("div");
+  div.className = "msg-bubble " + (mine ? "mine" : "theirs");
+  div.innerHTML = (mine ? "" : '<div class="who">' + escapeHtml(profileName(m.sender_id)) + "</div>") + escapeHtml(m.body).replace(/\n/g, "<br>");
+  scroll.appendChild(div);
+}
+
+function subscribeRealtime(channelId) {
+  if (realtimeSub) { capriSupabase.removeChannel(realtimeSub); realtimeSub = null; }
+  realtimeSub = capriSupabase
+    .channel("messages-" + channelId)
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: "channel_id=eq." + channelId }, function (payload) {
+      if (activeChannelId !== channelId) return;
+      appendMessageBubble(payload.new);
+      var scroll = document.getElementById("msgScroll");
+      scroll.scrollTop = scroll.scrollHeight;
+    })
+    .subscribe();
+}
+
+async function sendMessage(e) {
+  e.preventDefault();
+  var input = document.getElementById("composeInput");
+  var body = input.value.trim();
+  if (!body || !activeChannelId) return;
+  input.value = "";
+  var { error } = await capriSupabase.from("messages").insert({ channel_id: activeChannelId, sender_id: profileRef.id, body: body });
+  if (error) CapriShell.toast("Erreur : " + error.message, true);
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+</script>
+</body>
+</html>

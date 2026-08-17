@@ -46,11 +46,16 @@
       <p class="meet-note">Sur iPhone/iPad (Safari), si la réunion intégrée ci-dessous ne se connecte pas : utilisez le bouton <strong>« Ouvrir dans un nouvel onglet »</strong> qui apparaît après avoir cliqué « Rejoindre » — Safari bloque parfois la caméra/micro pour une visioconférence affichée à l'intérieur de la page.</p>
     </div>
 
+    <p id="meetStatus" hidden style="font-size:.8rem;color:var(--grey);margin-bottom:8px"></p>
     <div id="jitsiContainer" hidden></div>
     <p id="leaveWrap" hidden style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
       <button type="button" class="btn secondary" id="leaveBtn">← Retour à CAPRI Meet</button>
       <a class="btn secondary" id="directLinkBtn" href="#" target="_blank" rel="noopener">Ouvrir dans un nouvel onglet ↗</a>
     </p>
+    <details id="meetDiagWrap" hidden style="margin-top:14px">
+      <summary style="cursor:pointer;color:var(--grey);font-size:.78rem">Journal technique (en cas de déconnexion, capturez cet écran)</summary>
+      <div id="meetDiagBox" style="margin-top:8px;padding:10px 12px;background:var(--off);border-radius:8px;font-size:.72rem;font-family:monospace;max-height:180px;overflow-y:auto;white-space:pre-wrap"></div>
+    </details>
   </main>
 </div>
 
@@ -64,6 +69,10 @@
 <script>
 var profileRef = null;
 var jitsiApi = null;
+var currentRoomName = null;
+var userLeftIntentionally = false;
+var reconnectAttempts = 0;
+var MAX_RECONNECT_ATTEMPTS = 3;
 
 CapriAuth.requireSession().then(function (session) {
   profileRef = session.profile;
@@ -98,10 +107,22 @@ function joinMeeting() {
   }
 
   document.getElementById("meetSetup").hidden = true;
-  var container = document.getElementById("jitsiContainer");
-  container.hidden = false;
   document.getElementById("leaveWrap").hidden = false;
   document.getElementById("directLinkBtn").href = "https://meet.jit.si/" + roomName;
+  document.getElementById("meetDiagWrap").hidden = false;
+  document.getElementById("meetStatus").hidden = false;
+
+  currentRoomName = roomName;
+  userLeftIntentionally = false;
+  reconnectAttempts = 0;
+  logMeetDiag("Salle : " + roomName);
+  startJitsi(roomName);
+}
+
+function startJitsi(roomName) {
+  var container = document.getElementById("jitsiContainer");
+  container.hidden = false;
+  setMeetStatus("🟡 Connexion en cours…");
 
   jitsiApi = new JitsiMeetExternalAPI("meet.jit.si", {
     roomName: roomName,
@@ -117,13 +138,75 @@ function joinMeeting() {
   var iframe = jitsiApi.getIFrame();
   if (iframe) iframe.setAttribute("allow", "camera; microphone; fullscreen; display-capture; autoplay; clipboard-write");
 
-  jitsiApi.addEventListener("readyToClose", leaveMeeting);
+  jitsiApi.addEventListener("videoConferenceJoined", function () {
+    reconnectAttempts = 0;
+    setMeetStatus("🟢 Connecté");
+    logMeetDiag("videoConferenceJoined — connexion établie.");
+  });
+
+  jitsiApi.addEventListener("errorOccurred", function (data) {
+    logMeetDiag("errorOccurred — " + JSON.stringify(data || {}));
+  });
+
+  jitsiApi.addEventListener("videoConferenceLeft", function () {
+    logMeetDiag("videoConferenceLeft (" + (userLeftIntentionally ? "quitté volontairement" : "inattendu") + ")");
+  });
+
+  // « readyToClose » se déclenche à la fois quand on quitte volontairement
+  // (bouton raccrocher/← Retour) ET lors d'une déconnexion inattendue —
+  // seul userLeftIntentionally permet de distinguer les deux, pour ne
+  // tenter une reconnexion automatique que dans le second cas.
+  jitsiApi.addEventListener("readyToClose", function () {
+    if (userLeftIntentionally) {
+      logMeetDiag("readyToClose — fermeture volontaire.");
+      closeJitsiUi();
+    } else {
+      logMeetDiag("readyToClose — fermeture inattendue, tentative de reconnexion.");
+      attemptReconnect();
+    }
+  });
+}
+
+function attemptReconnect() {
+  if (jitsiApi) { jitsiApi.dispose(); jitsiApi = null; }
+  if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    logMeetDiag("Abandon après " + MAX_RECONNECT_ATTEMPTS + " tentatives de reconnexion automatique.");
+    setMeetStatus("🔴 Connexion perdue — cliquez « Rejoindre la réunion » pour réessayer.");
+    CapriShell.toast("Connexion à la réunion perdue.", true);
+    document.getElementById("jitsiContainer").hidden = true;
+    document.getElementById("meetSetup").hidden = false;
+    return;
+  }
+  reconnectAttempts++;
+  setMeetStatus("🟡 Connexion perdue — reconnexion automatique (tentative " + reconnectAttempts + "/" + MAX_RECONNECT_ATTEMPTS + ")…");
+  logMeetDiag("Tentative de reconnexion automatique #" + reconnectAttempts + "…");
+  setTimeout(function () { if (currentRoomName) startJitsi(currentRoomName); }, 2500);
+}
+
+function setMeetStatus(text) {
+  var el = document.getElementById("meetStatus");
+  el.textContent = text;
+}
+
+function logMeetDiag(text) {
+  var box = document.getElementById("meetDiagBox");
+  if (!box) return;
+  var line = document.createElement("div");
+  line.textContent = new Date().toLocaleTimeString("fr-FR") + " — " + text;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
 }
 
 function leaveMeeting() {
+  userLeftIntentionally = true;
   if (jitsiApi) { jitsiApi.dispose(); jitsiApi = null; }
+  closeJitsiUi();
+}
+
+function closeJitsiUi() {
   document.getElementById("jitsiContainer").hidden = true;
   document.getElementById("leaveWrap").hidden = true;
+  document.getElementById("meetStatus").hidden = true;
   document.getElementById("meetSetup").hidden = false;
 }
 </script>

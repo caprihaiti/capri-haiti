@@ -347,6 +347,11 @@ grant execute on function unread_message_count() to authenticated;
 do $$ begin
   alter publication supabase_realtime add table messages;
 exception when duplicate_object then null; end $$;
+-- Idem pour channel_members : permet aux accusés de lecture (« Lu par… »)
+-- de se mettre à jour en direct quand quelqu'un ouvre la conversation.
+do $$ begin
+  alter publication supabase_realtime add table channel_members;
+exception when duplicate_object then null; end $$;
 
 -- -----------------------------------------------------------------------------
 -- 9. Audit log — CAPRI Secure Vault + alimente CAPRI Institutional Pulse

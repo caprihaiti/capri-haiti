@@ -250,6 +250,9 @@ create table if not exists channel_members (
   primary key (channel_id, user_id)
 );
 create index if not exists idx_channel_members_user on channel_members(user_id);
+-- Sert au badge de notifications : dernière fois que ce membre a ouvert ce
+-- canal, pour compter les messages reçus depuis (cf. unread_message_count).
+alter table channel_members add column if not exists last_read_at timestamptz not null default now();
 
 create table if not exists messages (
   id uuid primary key default gen_random_uuid(),
@@ -314,6 +317,25 @@ end;
 $$;
 
 grant execute on function create_channel(text, boolean, uuid[]) to authenticated;
+
+-- Nombre de messages non lus, tous canaux confondus, pour le badge de
+-- notification affiché dans la barre latérale. S'appuie sur les politiques
+-- RLS normales (pas de security definer) : chacun ne compte que ce que ses
+-- propres politiques channels_select_member / messages_select_member
+-- l'autorisent déjà à voir.
+create or replace function unread_message_count()
+returns integer
+language sql
+stable
+as $$
+  select count(*)::int
+  from messages m
+  join channel_members cm on cm.channel_id = m.channel_id and cm.user_id = auth.uid()
+  where m.sender_id <> auth.uid()
+    and m.created_at > cm.last_read_at;
+$$;
+
+grant execute on function unread_message_count() to authenticated;
 
 -- Publication temps réel : nécessaire pour que les nouveaux messages
 -- s'affichent instantanément sans recharger la page (Supabase Realtime).
@@ -407,6 +429,10 @@ create policy "channel_members_select_if_member" on channel_members for select
 drop policy if exists "channel_members_insert_self_or_member" on channel_members;
 create policy "channel_members_insert_self_or_member" on channel_members for insert
   with check (user_id = auth.uid() or is_channel_member(channel_id, auth.uid()));
+drop policy if exists "channel_members_update_own" on channel_members;
+create policy "channel_members_update_own" on channel_members for update
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
 
 drop policy if exists "messages_select_member" on messages;
 create policy "messages_select_member" on messages for select

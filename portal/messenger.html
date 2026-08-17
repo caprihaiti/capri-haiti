@@ -242,6 +242,12 @@ async function openChannel(id) {
 
   await loadMessages(id);
   subscribeRealtime(id);
+  await markChannelRead(id);
+}
+
+async function markChannelRead(id) {
+  await capriSupabase.from("channel_members").update({ last_read_at: new Date().toISOString() }).eq("channel_id", id).eq("user_id", profileRef.id);
+  if (window.CapriShell && CapriShell.refreshUnreadBadge) CapriShell.refreshUnreadBadge();
 }
 
 async function loadMessages(channelId) {
@@ -272,6 +278,7 @@ function subscribeRealtime(channelId) {
       appendMessageBubble(payload.new);
       var scroll = document.getElementById("msgScroll");
       scroll.scrollTop = scroll.scrollHeight;
+      if (payload.new.sender_id !== profileRef.id) markChannelRead(channelId);
     })
     .subscribe();
 }

@@ -37,6 +37,9 @@ button{font-family:inherit}
 .app-nav a.active{background:var(--teal);color:#fff}
 .app-nav a.disabled{opacity:.35;cursor:default;pointer-events:none}
 .app-nav-label{font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.35);padding:16px 12px 4px}
+.app-nav-badge{display:none;margin-left:auto;background:var(--danger);color:#fff;font-size:.68rem;font-weight:700;line-height:1;padding:3px 7px;border-radius:20px;min-width:10px;text-align:center}
+.app-notif-btn{margin-top:10px;width:100%;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 10px;border-radius:8px;font-size:.76rem;cursor:pointer;text-align:center}
+.app-notif-btn:hover{background:rgba(255,255,255,.14)}
 .app-user{margin-top:auto;padding:14px 12px;border-top:1px solid rgba(255,255,255,.1);font-size:.8rem}
 .app-user-name{color:#fff;font-weight:600}
 .app-user-role{color:var(--gold-light);font-size:.72rem;margin:2px 0 10px}

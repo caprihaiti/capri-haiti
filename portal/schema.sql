@@ -243,6 +243,11 @@ create table if not exists channels (
 -- Migration : les installations ayant déjà exécuté une version antérieure
 -- du schéma avaient `name` obligatoire — l'assouplir sans perte de données.
 alter table channels alter column name drop not null;
+-- CAPRI Mail : un canal spécial (is_broadcast), auto-peuplé de tous les
+-- comptes actifs, où seuls Conseil d'administration et Direction peuvent
+-- publier — tout le monde le lit. Réutilise entièrement l'infrastructure
+-- Messenger (canaux, membres, messages, RLS, badge, notifications).
+alter table channels add column if not exists is_broadcast boolean not null default false;
 
 create table if not exists channel_members (
   channel_id uuid not null references channels(id) on delete cascade,
@@ -439,7 +444,72 @@ create policy "messages_select_member" on messages for select
   using (is_channel_member(channel_id, auth.uid()));
 drop policy if exists "messages_insert_member" on messages;
 create policy "messages_insert_member" on messages for insert
-  with check (sender_id = auth.uid() and is_channel_member(channel_id, auth.uid()));
+  with check (
+    sender_id = auth.uid()
+    and is_channel_member(channel_id, auth.uid())
+    and (
+      not exists (select 1 from channels c where c.id = channel_id and c.is_broadcast)
+      or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('conseil_administration', 'direction'))
+    )
+  );
+
+-- CAPRI Mail : crée le canal de diffusion une seule fois (idempotent), et
+-- l'ajoute/le retire automatiquement des membres à mesure que les comptes
+-- deviennent actifs/inactifs, pour que personne n'ait à gérer ça à la main.
+do $$
+declare
+  v_channel_id uuid;
+  v_creator uuid;
+begin
+  select id into v_channel_id from channels where is_broadcast limit 1;
+  if v_channel_id is null then
+    select id into v_creator from profiles where role = 'conseil_administration' order by created_at limit 1;
+    if v_creator is null then
+      select id into v_creator from profiles order by created_at limit 1;
+    end if;
+    if v_creator is not null then
+      insert into channels (name, is_direct, is_broadcast, created_by)
+      values ('📢 CAPRI Mail — Annonces à tous', false, true, v_creator)
+      returning id into v_channel_id;
+    end if;
+  end if;
+  if v_channel_id is not null then
+    insert into channel_members (channel_id, user_id)
+    select v_channel_id, p.id from profiles p where p.active
+    on conflict do nothing;
+  end if;
+end $$;
+
+create or replace function sync_broadcast_channel_membership()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_channel_id uuid;
+begin
+  select id into v_channel_id from channels where is_broadcast limit 1;
+  if v_channel_id is null then
+    return coalesce(new, old);
+  end if;
+  if tg_op = 'DELETE' then
+    delete from channel_members where channel_id = v_channel_id and user_id = old.id;
+    return old;
+  end if;
+  if new.active then
+    insert into channel_members (channel_id, user_id) values (v_channel_id, new.id) on conflict do nothing;
+  else
+    delete from channel_members where channel_id = v_channel_id and user_id = new.id;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_sync_broadcast_membership on profiles;
+create trigger trg_sync_broadcast_membership
+after insert or update of active on profiles
+for each row execute function sync_broadcast_channel_membership();
 
 -- CAPRI Docs : espace de documents internes, réservé par défaut au Conseil
 -- d'administration et à la Direction (documents de gouvernance, financiers,

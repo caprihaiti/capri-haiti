@@ -30,12 +30,30 @@ window.CapriShell = (function () {
 
   function renderSidebar(profile, activeKey) {
     var shell = document.getElementById("appShell");
+
+    // Barre du haut, visible seulement sur petit écran (téléphone) : la
+    // sidebar elle-même se transforme alors en tiroir masqué par défaut —
+    // sans ceci, il n'y avait tout simplement aucun moyen de naviguer entre
+    // les pages du portail sur mobile.
+    var topbar = document.createElement("div");
+    topbar.className = "app-topbar";
+    topbar.innerHTML =
+      '<button type="button" class="app-menu-btn" id="capriMenuBtn" aria-label="Ouvrir le menu">☰</button>' +
+      '<span class="app-topbar-brand">CAPRI</span>';
+    shell.insertBefore(topbar, shell.firstChild);
+
+    var backdrop = document.createElement("div");
+    backdrop.className = "app-sidebar-backdrop";
+    shell.insertBefore(backdrop, shell.firstChild);
+
     var sidebar = document.createElement("aside");
     sidebar.className = "app-sidebar";
 
     var brand = document.createElement("div");
     brand.className = "app-brand";
-    brand.innerHTML = "CAPRI<br><small>Digital Ecosystem</small>";
+    brand.innerHTML =
+      "<div>CAPRI<br><small>Digital Ecosystem</small></div>" +
+      '<button type="button" class="app-sidebar-close" id="capriSidebarClose" aria-label="Fermer le menu">✕</button>';
     sidebar.appendChild(brand);
 
     var nav = document.createElement("nav");
@@ -73,6 +91,12 @@ window.CapriShell = (function () {
     document.getElementById("capriLogoutBtn").addEventListener("click", function () {
       window.CapriAuth.signOut();
     });
+
+    function openMenu() { sidebar.classList.add("open"); backdrop.classList.add("open"); }
+    function closeMenu() { sidebar.classList.remove("open"); backdrop.classList.remove("open"); }
+    document.getElementById("capriMenuBtn").addEventListener("click", openMenu);
+    document.getElementById("capriSidebarClose").addEventListener("click", closeMenu);
+    backdrop.addEventListener("click", closeMenu);
   }
 
   function escapeHtml(s) {

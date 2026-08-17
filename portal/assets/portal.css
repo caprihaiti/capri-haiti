@@ -24,8 +24,13 @@ button{font-family:inherit}
 /* ---- Coquille de l'application (sidebar + contenu) ---- */
 .app-shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
 .app-sidebar{background:var(--navy-deep);color:#fff;padding:24px 16px;display:flex;flex-direction:column;gap:4px}
-.app-brand{font-family:var(--display);color:var(--gold-light);font-size:1.2rem;font-weight:700;margin-bottom:4px;padding:0 8px}
+.app-brand{font-family:var(--display);color:var(--gold-light);font-size:1.2rem;font-weight:700;margin-bottom:4px;padding:0 8px;display:flex;justify-content:space-between;align-items:flex-start}
 .app-brand small{display:block;color:rgba(255,255,255,.5);font-family:var(--body);font-size:.68rem;font-weight:400;margin-top:2px}
+.app-sidebar-close{display:none}
+
+/* ---- Barre + menu mobile (l'app-sidebar ci-dessus devient un tiroir) ---- */
+.app-topbar{display:none}
+.app-sidebar-backdrop{display:none}
 .app-nav{display:flex;flex-direction:column;gap:2px;margin-top:20px}
 .app-nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,.75);text-decoration:none;font-size:.88rem;font-weight:500;transition:.15s}
 .app-nav a:hover{background:rgba(255,255,255,.06);color:#fff}
@@ -47,7 +52,20 @@ button{font-family:inherit}
 .card h2{font-family:var(--display);color:var(--navy);font-size:1.05rem;margin-bottom:14px}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}.app-shell{grid-template-columns:1fr}.app-sidebar{display:none}.app-main{padding:20px}}
+@media(max-width:900px){
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .app-shell{grid-template-columns:1fr}
+  .app-main{padding:20px}
+
+  .app-topbar{display:flex;align-items:center;gap:14px;background:var(--navy-deep);color:#fff;padding:14px 18px;position:sticky;top:0;z-index:40;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+  .app-topbar .app-menu-btn{background:none;border:none;color:#fff;font-size:1.5rem;line-height:1;cursor:pointer;padding:2px 6px}
+  .app-topbar .app-topbar-brand{font-family:var(--display);color:var(--gold-light);font-weight:700;font-size:1.05rem}
+
+  .app-sidebar{display:none;position:fixed;top:0;left:0;bottom:0;width:80vw;max-width:280px;z-index:60;overflow-y:auto;box-shadow:0 0 50px rgba(0,0,0,.4)}
+  .app-sidebar.open{display:flex}
+  .app-sidebar-close{display:block;background:none;border:none;color:rgba(255,255,255,.6);font-size:1.3rem;cursor:pointer;line-height:1;padding:0 4px}
+  .app-sidebar-backdrop.open{display:block;position:fixed;inset:0;background:rgba(14,31,53,.55);z-index:55}
+}
 
 .btn{display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:#fff;border:none;padding:11px 22px;border-radius:50px;font-weight:600;font-size:.86rem;cursor:pointer;transition:.2s}
 .btn:hover{background:var(--navy-mid)}

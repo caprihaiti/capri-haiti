@@ -8,4 +8,4 @@
  * secret de ces valeurs.
  */
 window.CAPRI_SUPABASE_URL = "https://pfsrthzqlndnmfuqbrqc.supabase.co";
-window.CAPRI_SUPABASE_ANON_KEY = "REMPLACER_PAR_VOTRE_ANON_KEY";
+window.CAPRI_SUPABASE_ANON_KEY = "sb_publishable_6YzUVcb-nPJ0Ua8cwwNGPA_hs-BYmgB";

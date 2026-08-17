@@ -40,8 +40,8 @@
     "038": "Baseline · indicators · results · learning · quality assurance",
     "039": "Administration and compliance",
     "040": "Finance · human resources · procurement · legal · data protection",
-    "041": "Network of associate experts and mission teams",
-    "042": "Multidisciplinary teams are formed according to each mandate: lawyers, public administration specialists, trainers, electoral experts, digital specialists, data analysts, security specialists and sector experts.",
+    "041": "Associated Experts Network",
+    "042": "Legal experts, public administration specialists, trainers, electoral experts, digital specialists, data analysts, security specialists and sectoral experts, mobilized according to the mandate.",
     "043": "Growth principle:",
     "044": "Download CAPRI's public institutional presentation",
     "045": "CAPRI's functional organization chart",
@@ -51,7 +51,19 @@
     "b04": "Vice-Chair",
     "b05": "Secretary General",
     "b06": "Treasurer",
-    "b07": "Governance, Ethics and Internal Control Officer"
+    "b07": "Governance, Ethics and Internal Control Officer",
+    "046": "Mission Task Forces",
+    "047": "Temporary structures set up to carry out a specific intervention, with a defined mandate, mission lead, timeline and deliverables — dissolved once the mission is completed.",
+    "048": "Legend",
+    "049": "Hierarchical authority",
+    "050": "Board of Directors → Executive Direction → operational structures",
+    "051": "Independent oversight",
+    "052": "Board of Directors ↔ Ethics, Audit and Independence Committee",
+    "053": "Advisory relationship",
+    "054": "Scientific and Strategic Council → Board of Directors / Executive Direction",
+    "055": "Functional / cross-cutting relationship",
+    "056": "Observatory, Monitoring & Evaluation, Administration, Experts Network ↔ the four Divisions",
+    "057": "View role & composition"
   },
   "catalog": {
     "001": "Service catalog",
@@ -706,7 +718,429 @@
         "carries out any specific mission entrusted to them by Board resolution"
       ]
     },
-    "voir_btn": "View the ToR"
+    "voir_btn": "View the ToR",
+    "section_positionnement": "Positioning",
+    "section_attributions": "Responsibilities",
+    "section_composition": "Composition",
+    "section_designation": "Appointment process",
+    "section_fonctionnement": "Operation",
+    "section_relations": "Relations with other bodies",
+    "section_limites_organe": "Distinctions and mandate limits",
+    "section_livrables": "Deliverables and indicators",
+    "comite_ethique": {
+      "type": "organe",
+      "positionnement": "Collegial oversight body reporting directly to the Board of Directors. It exercises its functions independently of Executive Direction and CAPRI's operational structures.",
+      "mission": "Safeguard CAPRI's institutional integrity, prevent conflicts of interest, oversee the quality of internal controls, contribute to transparency, and preserve the organization's independence.",
+      "attributions": [
+        "monitors compliance with the Code of Ethics and rules of conduct",
+        "reviews conflict-of-interest declarations and situations",
+        "issues recommendations on institutional independence",
+        "reviews the internal control framework",
+        "monitors internal or external audits",
+        "analyzes major governance risks",
+        "receives and reviews reports falling within its mandate",
+        "monitors the implementation of corrective measures",
+        "alerts the Board when a situation poses a serious risk to CAPRI",
+        "recommends improvements to governance, ethics and control policies"
+      ],
+      "composition": [
+        "3 to 5 members",
+        "a Committee Chair",
+        "a member with expertise in audit, finance or control",
+        "a member with expertise in law, governance, compliance or ethics",
+        "possibly one or more independent external members"
+      ],
+      "mode_designation": "Members are appointed by the Board of Directors under CAPRI's internal procedures.",
+      "fonctionnement": "The Committee meets periodically and whenever an important situation requires it. Quorum, voting, term length and replacement procedures are set out in the internal bylaws.",
+      "relations": "The Committee may request information from CAPRI's structures within its mandate. It does not direct operations and does not substitute for Executive Direction.",
+      "extra": [
+        {
+          "title": "Essential institutional point",
+          "text": "The Board Advisor for governance, ethics and internal control may serve as an interface or point of contact for the Board, but this role is not the same as the Ethics, Audit and Independence Committee, which remains a separate collegial body."
+        }
+      ],
+      "redevabilite": "The Committee reports directly to the Board of Directors.",
+      "livrables": [
+        "periodic ethics and control report",
+        "conflict-of-interest register",
+        "audit recommendations",
+        "map of major governance risks",
+        "monitoring of corrective measures"
+      ]
+    },
+    "conseil_scientifique": {
+      "type": "organe",
+      "positionnement": "High-level advisory body to the Board of Directors and, depending on the request, to Executive Direction.",
+      "mission": "Provide CAPRI with the expertise, foresight, strategic reflection and scientific insight needed to strengthen the quality of its analyses, methods and interventions.",
+      "attributions": [
+        "issues strategic opinions",
+        "contributes to CAPRI's intervention doctrine",
+        "analyzes major institutional developments",
+        "conducts or oversees forward-looking studies",
+        "reviews certain methodologies, studies and projects",
+        "contributes to comparisons of institutional models",
+        "recommends innovations",
+        "advises CAPRI on complex institutional matters",
+        "may propose research or pilot topics"
+      ],
+      "composition": [
+        "5 to 11 experts and personalities, depending on needs",
+        "law and institutions",
+        "public administration",
+        "governance",
+        "internal security",
+        "public policy",
+        "digital transformation",
+        "elections",
+        "international cooperation",
+        "other fields related to CAPRI's areas of intervention"
+      ],
+      "mode_designation": "Members are appointed by the Board of Directors.",
+      "fonctionnement": "The Scientific and Strategic Council has a Chair and a Secretary. It may form thematic working groups or invite outside experts on an ad hoc basis.",
+      "relations": "The Scientific Council advises but does not direct operations. Its opinions may be requested by the Board of Directors, Executive Direction, or an authorized body.",
+      "redevabilite": "Its opinions are transmitted to the body that requested its input (the Board of Directors and/or Executive Direction, depending on the matter).",
+      "livrables": [
+        "opinions",
+        "strategic notes",
+        "forward-looking studies",
+        "methodological recommendations",
+        "expert reports"
+      ]
+    },
+    "direction_executive": {
+      "type": "organe",
+      "positionnement": "Operational leadership body placed under the strategic authority of the Board of Directors.",
+      "mission": "Manage CAPRI's day-to-day operations and translate the Board's strategic direction into actions, programs, projects and measurable results.",
+      "attributions": [
+        "implements CAPRI's strategy",
+        "prepares operational plans",
+        "coordinates the four Divisions",
+        "oversees projects and missions",
+        "coordinates the Observatory, Monitoring & Evaluation, and Administration",
+        "prepares budget proposals",
+        "organizes resource mobilization",
+        "manages operational relations with partners",
+        "supervises teams",
+        "produces management reports",
+        "prepares files submitted to the Board of Directors",
+        "ensures Board resolutions are implemented"
+      ],
+      "composition": [
+        "at least one Executive Director",
+        "the heads of structures under its authority",
+        "coordination functions as needed as CAPRI grows"
+      ],
+      "mode_designation": "The Executive Director is appointed under procedures defined by the Board of Directors.",
+      "fonctionnement": "Executive Direction operates on the basis of an annual plan, objectives, budgets and indicators.",
+      "relations": "It works in coordination with operational structures and consults specialized bodies as needed. It does not substitute for the Board of Directors.",
+      "redevabilite": "It reports to the Board of Directors.",
+      "livrables": [
+        "annual operating plan",
+        "budget",
+        "periodic reports",
+        "dashboard",
+        "annual report",
+        "implementation rate of Board decisions",
+        "project progress"
+      ]
+    },
+    "pole1": {
+      "type": "organe",
+      "positionnement": "Specialized operational unit under Executive Direction, covering institutional diagnostics, organization, procedures, legal analysis, public administration, territorial governance and implementation support.",
+      "mission": "Implement CAPRI's interventions in institutional performance and reform.",
+      "attributions": [
+        "develops projects within its domain",
+        "prepares diagnostics, analyses and proposals",
+        "carries out assigned missions",
+        "mobilizes the necessary expertise",
+        "prepares technical deliverables",
+        "monitors action plan implementation",
+        "reports on mission progress",
+        "contributes to results evaluation"
+      ],
+      "composition": [
+        "Division Head",
+        "program and project officers",
+        "experts or specialists as needed",
+        "temporary mission task forces"
+      ],
+      "redevabilite": "To Executive Direction.",
+      "livrables": [
+        "diagnostics",
+        "action plans",
+        "reports",
+        "recommendations",
+        "project implementation rate",
+        "adherence to deadlines",
+        "quality of deliverables"
+      ]
+    },
+    "pole2": {
+      "type": "organe",
+      "positionnement": "Specialized operational unit under Executive Direction, covering training, instructional design, institutional tools, data, interoperability, administrative innovation and skills transfer.",
+      "mission": "Design and implement CAPRI's interventions in capacity building, institutional tools and digital transformation.",
+      "attributions": [
+        "analysis",
+        "advisory work",
+        "solution design",
+        "implementation support",
+        "mission coordination",
+        "production of deliverables",
+        "results monitoring"
+      ],
+      "composition": [
+        "Division Head",
+        "specialists",
+        "mission officers",
+        "associate experts as needed"
+      ],
+      "redevabilite": "To Executive Direction.",
+      "livrables": [
+        "reports",
+        "diagnostics",
+        "tools",
+        "recommendations",
+        "action plans",
+        "measurable results"
+      ]
+    },
+    "pole3": {
+      "type": "organe",
+      "positionnement": "Specialized operational unit under Executive Direction, covering parliamentary support, electoral governance, independent observation, justice, public security and democratic oversight.",
+      "mission": "Develop CAPRI's interventions in democratic governance and the strengthening of the rule of law.",
+      "attributions": [
+        "diagnostics",
+        "design of reforms or improvements",
+        "support to institutions",
+        "technical coordination",
+        "monitoring of interventions",
+        "documentation of results",
+        "contribution to evaluations"
+      ],
+      "composition": [
+        "Division Head",
+        "technical team",
+        "mobilizable experts",
+        "mission task forces"
+      ],
+      "redevabilite": "To Executive Direction.",
+      "livrables": [
+        "results achieved",
+        "quality of interventions",
+        "adherence to deadlines",
+        "institutional satisfaction",
+        "documented impact"
+      ]
+    },
+    "pole4": {
+      "type": "organe",
+      "positionnement": "Specialized operational unit under Executive Direction, covering targeted partnerships, international cooperation, study missions, publications, institutional communication and resource mobilization.",
+      "mission": "Implement CAPRI's programs in cooperation, research and institutional outreach.",
+      "attributions": [
+        "project preparation",
+        "organization of interventions",
+        "coordination of experts",
+        "production of deliverables",
+        "operational monitoring",
+        "documentation and reporting"
+      ],
+      "composition": [
+        "Division Head",
+        "permanent or project team",
+        "associate experts"
+      ],
+      "redevabilite": "To Executive Direction.",
+      "livrables": [
+        "reports",
+        "tools",
+        "plans",
+        "recommendations",
+        "results",
+        "indicators"
+      ]
+    },
+    "observatoire": {
+      "type": "organe",
+      "positionnement": "Observation, research, monitoring and analysis unit reporting to Executive Direction.",
+      "mission": "Produce the knowledge, data, indicators and analyses needed to understand institutions and guide CAPRI's interventions.",
+      "attributions": [
+        "collects data",
+        "develops indicators",
+        "maintains institutional monitoring",
+        "conducts comparative analyses",
+        "produces studies",
+        "develops dashboards",
+        "produces mappings",
+        "documents trends",
+        "builds documentary databases",
+        "publishes notes or reports",
+        "contributes to foresight work"
+      ],
+      "composition": [
+        "Observatory Coordinator or Head",
+        "analysts",
+        "research officers",
+        "researchers",
+        "data and statistics expertise as needed",
+        "possible contributions from the Associated Experts Network"
+      ],
+      "fonctionnement": "Ongoing work, supplemented by targeted research programs. The Observatory works with the four Divisions, the Monitoring, Evaluation and Quality unit, the Scientific Council and the Experts Network.",
+      "extra": [
+        {
+          "title": "Mandate limit",
+          "text": "The Observatory observes, analyzes and informs. It is not an administrative audit service."
+        }
+      ],
+      "redevabilite": "Executive Direction.",
+      "livrables": [
+        "studies",
+        "indicators",
+        "monitoring notes",
+        "dashboards",
+        "reports",
+        "databases"
+      ]
+    },
+    "suivi_evaluation": {
+      "type": "organe",
+      "positionnement": "Cross-cutting unit reporting to Executive Direction.",
+      "mission": "Measure the results, quality and effectiveness of CAPRI's interventions and drive continuous improvement.",
+      "attributions": [
+        "defines indicators",
+        "establishes baselines",
+        "tracks objectives and targets",
+        "measures results",
+        "carries out or coordinates evaluations",
+        "analyzes gaps",
+        "controls methodological quality",
+        "organizes lessons-learned exercises",
+        "produces improvement recommendations",
+        "documents lessons from missions"
+      ],
+      "composition": [
+        "Head of Monitoring, Evaluation and Quality",
+        "monitoring & evaluation specialists",
+        "quality analysts",
+        "data expertise as needed"
+      ],
+      "relations": "Works with all Divisions, the Observatory, and Executive Direction.",
+      "extra": [
+        {
+          "title": "Mandate limit",
+          "text": "This unit measures performance, results and quality of interventions. It does not replace the Ethics, Audit and Independence Committee, the compliance function, or the Observatory."
+        }
+      ],
+      "redevabilite": "Executive Direction.",
+      "livrables": [
+        "results matrices",
+        "evaluation reports",
+        "dashboards",
+        "quality sheets",
+        "recommendations",
+        "target achievement rate"
+      ]
+    },
+    "administration_conformite": {
+      "type": "organe",
+      "positionnement": "Cross-cutting support unit reporting to Executive Direction.",
+      "mission": "Ensure CAPRI's administrative operations and oversee compliance with internal procedures and obligations.",
+      "attributions": [
+        "general administration",
+        "human resources",
+        "administrative and financial management",
+        "contracts",
+        "procurement",
+        "personnel files",
+        "archives",
+        "institutional documentation",
+        "internal procedures",
+        "regulatory compliance",
+        "administrative tracking of commitments",
+        "records management",
+        "logistical support"
+      ],
+      "composition": [
+        "Head of Administration and Compliance",
+        "administration/HR function",
+        "finance and accounting function",
+        "contracts and procurement function",
+        "records management",
+        "compliance function — scaling with CAPRI's growth"
+      ],
+      "relations": "Works with Executive Direction, the Divisions, and the oversight structures.",
+      "extra": [
+        {
+          "title": "Mandate limit",
+          "text": "Administration and Compliance applies, documents and verifies day-to-day procedures. The Ethics, Audit and Independence Committee exercises independent oversight."
+        }
+      ],
+      "redevabilite": "Executive Direction.",
+      "livrables": [
+        "administrative files",
+        "registers",
+        "compliance reports",
+        "contract tracking",
+        "HR reporting",
+        "processing times",
+        "documentary compliance"
+      ]
+    },
+    "reseau_experts": {
+      "type": "organe",
+      "positionnement": "Cross-cutting network that Executive Direction and the Divisions may mobilize as needed.",
+      "mission": "Give CAPRI access to specialized, flexible, high-level expertise without expanding its permanent structure.",
+      "composition": [
+        "law",
+        "governance",
+        "public administration",
+        "internal security",
+        "immigration and borders",
+        "customs",
+        "civil registry",
+        "archives",
+        "penitentiary system",
+        "digital transformation",
+        "elections",
+        "international cooperation",
+        "evaluation",
+        "other fields matching CAPRI's mandate"
+      ],
+      "fonctionnement": "Associate experts may be mobilized for missions, studies, training, analyses, projects, evaluations, or specialized advice.",
+      "extra": [
+        {
+          "title": "Status",
+          "text": "Associate experts do not automatically become CAPRI employees, directors, or decision-makers."
+        }
+      ],
+      "redevabilite": "According to the mandate entrusted to them.",
+      "livrables": [
+        "reports",
+        "opinions",
+        "studies",
+        "tools",
+        "training",
+        "technical contributions"
+      ]
+    },
+    "cellules_mission": {
+      "type": "organe",
+      "positionnement": "Temporary structures set up to carry out a specific CAPRI mission.",
+      "mission": "Quickly bring together the skills needed to carry out a defined intervention within a set timeframe.",
+      "composition": [
+        "a Mission Lead",
+        "the necessary specialists",
+        "possibly associate experts",
+        "a CAPRI institutional point of contact"
+      ],
+      "fonctionnement": "Each task force operates under a mandate specifying: purpose, objectives, composition, lead, timeline, resources, deliverables, reporting line, reporting frequency, and closure conditions. Deliverables are expressly defined in that mandate.",
+      "extra": [
+        {
+          "title": "Duration",
+          "text": "A mission task force is not a permanent structure. It ends once its mission is completed, unless expressly extended."
+        }
+      ],
+      "redevabilite": "To the structure that entrusted it with its mandate."
+    }
   },
   "values": {
     "001": "Our values",

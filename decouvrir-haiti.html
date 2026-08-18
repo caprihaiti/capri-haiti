@@ -80,6 +80,13 @@ section.alt{background:var(--off)}
 .overview-map img{border-radius:var(--radius);box-shadow:var(--shadow-lg);border:1px solid var(--light)}
 .overview-map figcaption{font-size:.74rem;color:var(--grey);margin-top:10px;text-align:center}
 
+.flag-timeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:20px;margin-top:30px}
+.flag-card{background:#fff;border:1px solid var(--light);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-sm)}
+.flag-swatch{width:100%;height:80px;border-radius:8px;border:1px solid rgba(0,0,0,.08);position:relative;overflow:hidden;display:flex}
+.flag-swatch .arms{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:26px;height:26px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;box-shadow:0 0 0 1px rgba(0,0,0,.06)}
+.flag-card .yr{font-weight:700;color:var(--navy);font-size:.86rem;margin-top:10px}
+.flag-card p{font-size:.78rem;color:var(--grey);margin-top:4px}
+
 /* ---- diaspora ---- */
 .diaspora-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start}
 @media(max-width:800px){.diaspora-grid{grid-template-columns:1fr}}
@@ -147,6 +154,7 @@ footer a{color:rgba(255,255,255,.75);text-decoration:none}
     </div>
     <nav class="subnav">
       <a href="#histoire">Histoire</a>
+      <a href="#drapeau">Drapeau</a>
       <a href="#diaspora">Diaspora</a>
       <a href="#potentiels">Potentiels</a>
       <a href="#institutions">Institutions</a>
@@ -194,9 +202,22 @@ footer a{color:rgba(255,255,255,.75);text-decoration:none}
     </div>
     <div class="timeline">
       <div class="tl-era">
+        <span class="dates">Avant 1492</span>
+        <h3>Ayiti, Kiskeya, Bohío : la terre taïno</h3>
+        <p>Avant l'arrivée des Européens, l'île porte déjà plusieurs noms dans la langue des peuples qui l'habitent — les Taïnos, un peuple de langue arawak installé dans les Grandes Antilles après des migrations venues du bassin de l'Orénoque, en Amérique du Sud :</p>
+        <ul>
+          <li><strong>Ayiti</strong> — généralement traduit par « terre des hautes montagnes » ; c'est ce nom que Dessalines fait renaître en 1804.</li>
+          <li><strong>Kiskeya</strong> (ou Quisqueya) — un autre nom taïno de l'île, souvent glosé comme « mère de toutes les terres » ; toujours très présent aujourd'hui, notamment dans l'identité nationale dominicaine, bien qu'il désignât historiquement l'île tout entière.</li>
+          <li><strong>Bohío</strong> — un nom relevé par des chroniqueurs espagnols dès le début de la colonisation ; les linguistes et historiens débattent toutefois s'il s'agissait vraiment d'un troisième nom de l'île ou d'une incompréhension initiale, « bohío » signifiant avant tout « maison » / « habitation » en taïno. À traiter avec cette nuance plutôt que comme un fait établi à l'identique des deux précédents.</li>
+        </ul>
+        <p style="margin-top:10px">La société taïno est organisée en <em>cacicazgos</em> (chefferies) dirigés par des <em>caciques</em> — l'île en compte plusieurs à l'arrivée des Espagnols, dont Marién, Maguana, Higüey, Magua et Xaragua. Économie fondée sur l'agriculture (manioc, maïs, patate douce), la pêche et une vie sociale et cérémonielle riche (le jeu de balle <em>batey</em>, les chants-danses <em>areito</em>).</p>
+        <p style="margin-top:10px">La colonisation à partir de 1492 est catastrophique pour les Taïnos : maladies apportées d'Europe auxquelles ils n'ont aucune immunité, travail forcé, violences — un effondrement démographique brutal en quelques décennies. Les estimations de la population taïno avant contact varient énormément selon les sources et restent débattues par les historiens ; aucun chiffre ne doit être présenté ici comme certain. La recherche récente (génétique et culturelle) montre par ailleurs une ascendance et des héritages taïnos bien vivants dans les populations caribéennes actuelles — la mémoire ne s'est pas éteinte. L'héritage linguistique taïno est resté très concret : <em>hamac</em>, <em>canot</em>, <em>tabac</em>, <em>barbecue</em>, <em>ouragan</em> en sont issus — et bien sûr le nom même d'Haïti.</p>
+        <div class="disclaimer">📌 Section à faire relire par un spécialiste (ethnohistoire taïno) avant publication définitive — plusieurs points (noms exacts de l'île, chiffres de population, limites précises des cacicazgos) admettent des versions différentes selon les sources.</div>
+      </div>
+      <div class="tl-era">
         <span class="dates">Avant l'indépendance</span>
         <h3>Ayiti taïno, puis colonie la plus riche du monde</h3>
-        <p>Avant l'arrivée des Européens, l'île est habitée par les Taïnos, qui la nomment <em>Ayiti</em> — « terre montagneuse ». Christophe Colomb y accoste en 1492 ; l'île devient espagnole, puis se divise progressivement, la partie occidentale passant sous contrôle français (officialisé par le traité de Ryswick, 1697) pour devenir la colonie de Saint-Domingue.</p>
+        <p>Christophe Colomb accoste sur l'île le 5 décembre 1492 ; elle devient espagnole, puis se divise progressivement, la partie occidentale passant sous contrôle français (officialisé par le traité de Ryswick, 1697) pour devenir la colonie de Saint-Domingue.</p>
         <p style="margin-top:8px">Au XVIII<sup>e</sup> siècle, Saint-Domingue devient la colonie la plus riche du monde — surnommée la « Perle des Antilles » — grâce au sucre, au café, à l'indigo et au coton. Cette prospérité repose entièrement sur le travail forcé de centaines de milliers de personnes réduites en esclavage, dans des conditions d'une violence extrême.</p>
         <div class="tl-maps">
           <figure><img src="assets/haiti/histoire-1492-decouverte.jpg" alt="Carte d'Haïti en 1492 : les cacicazgos taïnos Bohío et Higüey" loading="lazy"><figcaption>1492 — l'île avant la colonisation</figcaption></figure>
@@ -236,6 +257,49 @@ footer a{color:rgba(255,255,255,.75);text-decoration:none}
         <p style="margin-top:10px;font-size:.82rem;color:var(--grey)">Cette dernière période reste en évolution rapide — le contenu de cette section devra être révisé et actualisé avant toute publication finale.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<section id="drapeau">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Symbole national</span>
+      <h2>Le drapeau haïtien à travers l'histoire</h2>
+      <p>Peu de symboles nationaux ont autant changé au fil des régimes — chaque version du drapeau raconte, à sa façon, un chapitre de l'histoire politique du pays.</p>
+    </div>
+    <div class="flag-timeline">
+      <div class="flag-card">
+        <div class="flag-swatch" style="background:linear-gradient(to right,#002395 33%,#fff 33% 66%,#ED2939 66%)"></div>
+        <div class="yr">Avant 1803</div>
+        <p>Le drapeau tricolore français (bleu-blanc-rouge), sous lequel vit la colonie de Saint-Domingue.</p>
+      </div>
+      <div class="flag-card">
+        <div class="flag-swatch" style="background:linear-gradient(to bottom,#00209F 50%,#D21034 50%)"></div>
+        <div class="yr">18 mai 1803</div>
+        <p>Au Congrès de l'Arcahaie, Dessalines aurait fait retirer la bande blanche du drapeau français et fait recoudre le bleu et le rouge — selon la tradition, par Catherine Flon. Ce récit fondateur repose largement sur la tradition orale ; les détails précis (dont l'orientation exacte des bandes) varient selon les sources et mériteraient une vérification historique avant publication définitive.</p>
+      </div>
+      <div class="flag-card">
+        <div class="flag-swatch" style="background:#000"><div style="width:50%;height:100%;background:#D21034"></div></div>
+        <div class="yr">1804–1806</div>
+        <p>Sous l'Empire de Dessalines, un drapeau noir et rouge est adopté — une rupture symbolique nette avec le bleu-blanc-rouge colonial.</p>
+      </div>
+      <div class="flag-card">
+        <div class="flag-swatch" style="background:linear-gradient(to bottom,#00209F 50%,#D21034 50%)"><span class="arms">🌴</span></div>
+        <div class="yr">XIX<sup>e</sup> siècle – 1964</div>
+        <p>Retour au bleu et au rouge, avec l'ajout progressif des armoiries (palmiste, bonnet de la liberté, devise « L'Union fait la force ») sur le drapeau d'État. Plusieurs variantes d'orientation et de détails ont coexisté selon les régimes — une histoire précise qui reste à documenter finement.</p>
+      </div>
+      <div class="flag-card">
+        <div class="flag-swatch" style="background:#000"><div style="width:50%;height:100%;background:#D21034"></div></div>
+        <div class="yr">1964–1986</div>
+        <p>François Duvalier fait rétablir un drapeau noir et rouge, renouant symboliquement avec celui de Dessalines. Date à confirmer précisément avant publication définitive.</p>
+      </div>
+      <div class="flag-card">
+        <div class="flag-swatch" style="background:linear-gradient(to bottom,#00209F 50%,#D21034 50%)"><span class="arms">🌴</span></div>
+        <div class="yr">1986 à aujourd'hui</div>
+        <p>Après la chute de Jean-Claude Duvalier, le bleu et le rouge sont restaurés. La Constitution de 1987 consacre ce drapeau, avec ses armoiries, comme drapeau officiel de la République — celui en usage aujourd'hui.</p>
+      </div>
+    </div>
+    <div class="disclaimer">📌 Les couleurs et années ci-dessus reflètent le récit généralement enseigné de l'histoire du drapeau haïtien. Plusieurs détails précis (orientations exactes, dates charnières secondaires) varient selon les sources historiques et devraient être vérifiés auprès d'un spécialiste avant toute publication officielle par CAPRI.</div>
   </div>
 </section>
 
@@ -347,7 +411,9 @@ footer a{color:rgba(255,255,255,.75);text-decoration:none}
         <span class="ic">🌾</span><span class="name">Artibonite</span><span class="tag">Disponible</span>
       </a>
       <div class="dept-card soon"><span class="ic">⛰️</span><span class="name">Centre</span><span class="tag">À venir</span></div>
-      <div class="dept-card soon"><span class="ic">🌴</span><span class="name">Sud</span><span class="tag">À venir</span></div>
+      <a class="dept-card ready" href="haiti-sud.html">
+        <span class="ic">🌴</span><span class="name">Sud</span><span class="tag">Disponible</span>
+      </a>
       <div class="dept-card soon"><span class="ic">🎭</span><span class="name">Sud-Est</span><span class="tag">À venir</span></div>
       <a class="dept-card ready" href="haiti-grandanse.html">
         <span class="ic">🥭</span><span class="name">Grand'Anse</span><span class="tag">Disponible</span>

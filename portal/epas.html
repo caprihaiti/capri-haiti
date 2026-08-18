@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAPRI ePAS</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1B3A5C">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CAPRI">
+<link rel="stylesheet" href="assets/portal.css">
+<style>
+  .epas-card{border:1px solid var(--light);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+  .epas-card-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+  .epas-card-head h3{font-family:var(--display);color:var(--navy);font-size:.98rem;margin:0}
+  .epas-meta{font-size:.78rem;color:var(--grey)}
+  .pill.planification{background:var(--light);color:var(--grey)}
+  .pill.revue_mi_parcours{background:var(--gold-pale);color:#92680f}
+  .pill.evaluation_finale{background:var(--teal-pale);color:var(--teal-dark)}
+  .pill.complete{background:rgba(42,157,143,.15);color:var(--teal-dark)}
+  .epas-section{margin-top:12px}
+  .epas-section label{display:block;font-size:.78rem;font-weight:600;color:var(--navy);margin-bottom:5px}
+  .epas-section textarea{width:100%;padding:9px 11px;border:1px solid var(--light);border-radius:8px;font-family:inherit;font-size:.86rem;color:var(--dark)}
+  .epas-section .readonly{background:var(--off);border:1px solid var(--light);border-radius:8px;padding:9px 11px;font-size:.86rem;color:var(--dark);white-space:pre-wrap;min-height:20px}
+  .epas-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .epas-actions .btn,.epas-actions select{font-size:.8rem;padding:8px 16px}
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <h1>CAPRI ePAS</h1>
+      <p>Évaluation de la performance du personnel — plan de travail, auto-évaluation, revue du superviseur, notation. Distinct de CAPRI Performance, qui évalue les institutions accompagnées par CAPRI, pas le personnel de CAPRI.</p>
+    </div>
+
+    <div id="boardCyclesCard" class="card" hidden>
+      <h2>Cycle d'évaluation</h2>
+      <div id="cyclesList" class="epas-meta" style="margin-bottom:14px">Chargement…</div>
+      <form id="newCycleForm">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="cLabel">Libellé (ex. 2026)</label>
+            <input type="text" id="cLabel" required>
+          </div>
+          <div class="form-field"></div>
+          <div class="form-field">
+            <label for="cStart">Début</label>
+            <input type="date" id="cStart" required>
+          </div>
+          <div class="form-field">
+            <label for="cEnd">Fin</label>
+            <input type="date" id="cEnd" required>
+          </div>
+        </div>
+        <button type="submit" class="btn secondary">Créer un cycle</button>
+      </form>
+    </div>
+
+    <div id="boardCreateCard" class="card" hidden>
+      <h2>Créer une évaluation</h2>
+      <p class="epas-meta" style="margin-bottom:12px">Assigne une fiche d'évaluation à un membre de l'équipe pour le cycle actif.</p>
+      <form id="newAppraisalForm">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="aEmployee">Employé(e)</label>
+            <select id="aEmployee" required></select>
+          </div>
+          <div class="form-field">
+            <label for="aSupervisor">Superviseur(e)</label>
+            <select id="aSupervisor" required></select>
+          </div>
+        </div>
+        <button type="submit" class="btn">Créer l'évaluation</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Mon évaluation</h2>
+      <div id="myAppraisals"><div class="empty-state">Chargement…</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Mon équipe</h2>
+      <div id="teamAppraisals"><div class="empty-state">Chargement…</div></div>
+    </div>
+
+    <div id="boardAllCard" class="card" hidden>
+      <h2>Toutes les évaluations — cycle actif</h2>
+      <div id="allAppraisals"><div class="empty-state">Chargement…</div></div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/pwa.js"></script>
+<script>
+var profileRef = null;
+var isBoard = false;
+var allProfiles = [];
+var activeCycle = null;
+
+var STATUS_LABELS = { planification: "Planification", revue_mi_parcours: "Revue à mi-parcours", evaluation_finale: "Évaluation finale", complete: "Complété" };
+var STATUS_ORDER = ["planification", "revue_mi_parcours", "evaluation_finale", "complete"];
+var RATING_LABELS = {
+  exceptionnel: "Exceptionnel",
+  depasse_les_attentes: "Dépasse les attentes",
+  repond_pleinement_aux_attentes: "Répond pleinement aux attentes",
+  repond_partiellement_aux_attentes: "Répond partiellement aux attentes",
+  ne_repond_pas_aux_attentes: "Ne répond pas aux attentes"
+};
+
+CapriAuth.requireSession().then(async function (session) {
+  profileRef = session.profile;
+  isBoard = profileRef.role === "direction" || profileRef.role === "conseil_administration";
+  CapriShell.renderSidebar(session.profile, "epas");
+
+  if (isBoard) {
+    document.getElementById("boardCyclesCard").hidden = false;
+    document.getElementById("boardCreateCard").hidden = false;
+    document.getElementById("boardAllCard").hidden = false;
+    document.getElementById("newCycleForm").addEventListener("submit", createCycle);
+    document.getElementById("newAppraisalForm").addEventListener("submit", createAppraisal);
+    document.getElementById("aEmployee").addEventListener("change", prefillSupervisor);
+  }
+
+  await loadProfiles();
+  await loadCycles();
+  await loadMyAppraisals();
+  await loadTeamAppraisals();
+  if (isBoard) await loadAllAppraisals();
+});
+
+async function loadProfiles() {
+  var { data, error } = await capriSupabase.from("profiles").select("id, full_name, supervisor_id").eq("active", true).order("full_name");
+  if (error) return;
+  allProfiles = data;
+  if (isBoard) {
+    var opts = data.map(function (p) { return '<option value="' + p.id + '">' + escapeHtml(p.full_name) + "</option>"; }).join("");
+    document.getElementById("aEmployee").innerHTML = opts;
+    document.getElementById("aSupervisor").innerHTML = opts;
+    prefillSupervisor();
+  }
+}
+
+function prefillSupervisor() {
+  var empId = document.getElementById("aEmployee").value;
+  var emp = allProfiles.find(function (p) { return p.id === empId; });
+  if (emp && emp.supervisor_id) document.getElementById("aSupervisor").value = emp.supervisor_id;
+}
+
+async function loadCycles() {
+  var { data, error } = await capriSupabase.from("epas_cycles").select("*").order("start_date", { ascending: false });
+  if (error) { document.getElementById("cyclesList").textContent = "Erreur de chargement."; return; }
+  activeCycle = data.find(function (c) { return c.is_active; }) || null;
+
+  if (isBoard) {
+    var list = document.getElementById("cyclesList");
+    if (!data.length) { list.innerHTML = "Aucun cycle créé."; }
+    else {
+      list.innerHTML = data.map(function (c) {
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--light)">' +
+          "<span>" + escapeHtml(c.label) + " (" + c.start_date + " → " + c.end_date + ")" + (c.is_active ? ' <span class="pill complete">actif</span>' : "") + "</span>" +
+          (c.is_active ? "" : '<button type="button" class="btn secondary activateBtn" data-id="' + c.id + '" style="padding:5px 12px;font-size:.76rem">Activer</button>') +
+          "</div>";
+      }).join("");
+      list.querySelectorAll(".activateBtn").forEach(function (btn) {
+        btn.addEventListener("click", async function () {
+          await capriSupabase.from("epas_cycles").update({ is_active: false }).neq("id", "00000000-0000-0000-0000-000000000000");
+          var { error } = await capriSupabase.from("epas_cycles").update({ is_active: true }).eq("id", btn.getAttribute("data-id"));
+          if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+          CapriShell.toast("Cycle activé.");
+          loadCycles(); loadMyAppraisals(); loadTeamAppraisals(); if (isBoard) loadAllAppraisals();
+        });
+      });
+    }
+  }
+}
+
+async function createCycle(e) {
+  e.preventDefault();
+  var payload = {
+    label: document.getElementById("cLabel").value.trim(),
+    start_date: document.getElementById("cStart").value,
+    end_date: document.getElementById("cEnd").value,
+  };
+  var { error } = await capriSupabase.from("epas_cycles").insert(payload);
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  CapriShell.toast("Cycle créé.");
+  document.getElementById("newCycleForm").reset();
+  loadCycles();
+}
+
+async function createAppraisal(e) {
+  e.preventDefault();
+  if (!activeCycle) { CapriShell.toast("Aucun cycle actif — activez d'abord un cycle.", true); return; }
+  var payload = {
+    cycle_id: activeCycle.id,
+    employee_id: document.getElementById("aEmployee").value,
+    supervisor_id: document.getElementById("aSupervisor").value,
+  };
+  var { error } = await capriSupabase.from("epas_appraisals").insert(payload);
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  CapriShell.toast("Évaluation créée.");
+  loadMyAppraisals(); loadTeamAppraisals(); loadAllAppraisals();
+}
+
+function profileName(id) {
+  var p = allProfiles.find(function (x) { return x.id === id; });
+  return p ? p.full_name : "—";
+}
+
+function workPlanText(a) { return (a.work_plan && a.work_plan.text) || ""; }
+function competencyText(a) { return (a.competency_ratings && a.competency_ratings.text) || ""; }
+
+function statusPill(s) { return '<span class="pill ' + s + '">' + STATUS_LABELS[s] + "</span>"; }
+
+async function loadMyAppraisals() {
+  var { data, error } = await capriSupabase.from("epas_appraisals").select("*, epas_cycles(label)").eq("employee_id", profileRef.id).order("created_at", { ascending: false });
+  var el = document.getElementById("myAppraisals");
+  if (error) { el.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  if (!data.length) { el.innerHTML = '<div class="empty-state">Aucune évaluation créée pour vous pour le moment. Contactez la Direction si vous en attendez une.</div>'; return; }
+  el.innerHTML = "";
+  data.forEach(function (a) { el.appendChild(renderAppraisalCard(a, "employee")); });
+}
+
+async function loadTeamAppraisals() {
+  var { data, error } = await capriSupabase.from("epas_appraisals").select("*, epas_cycles(label)").eq("supervisor_id", profileRef.id).order("created_at", { ascending: false });
+  var el = document.getElementById("teamAppraisals");
+  if (error) { el.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  if (!data.length) { el.innerHTML = '<div class="empty-state">Vous ne supervisez actuellement aucune évaluation.</div>'; return; }
+  el.innerHTML = "";
+  data.forEach(function (a) { el.appendChild(renderAppraisalCard(a, "supervisor")); });
+}
+
+async function loadAllAppraisals() {
+  var { data, error } = await capriSupabase.from("epas_appraisals").select("*, epas_cycles(label)").order("created_at", { ascending: false });
+  var el = document.getElementById("allAppraisals");
+  if (error) { el.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  if (!data.length) { el.innerHTML = '<div class="empty-state">Aucune évaluation créée.</div>'; return; }
+  el.innerHTML = '<table class="data-table"><thead><tr><th>Employé(e)</th><th>Superviseur(e)</th><th>Cycle</th><th>Statut</th><th>Notation</th></tr></thead><tbody>' +
+    data.map(function (a) {
+      return "<tr><td>" + escapeHtml(profileName(a.employee_id)) + "</td><td>" + escapeHtml(profileName(a.supervisor_id)) + "</td><td>" +
+        escapeHtml(a.epas_cycles ? a.epas_cycles.label : "—") + "</td><td>" + statusPill(a.status) + "</td><td>" +
+        (a.supervisor_rating ? RATING_LABELS[a.supervisor_rating] : "—") + "</td></tr>";
+    }).join("") + "</tbody></table>";
+}
+
+function renderAppraisalCard(a, role) {
+  var wrap = document.createElement("div");
+  wrap.className = "epas-card";
+
+  var head = document.createElement("div");
+  head.className = "epas-card-head";
+  var title = role === "employee" ? "Cycle " + (a.epas_cycles ? a.epas_cycles.label : "—")
+    : escapeHtml(profileName(a.employee_id)) + " — Cycle " + (a.epas_cycles ? a.epas_cycles.label : "—");
+  head.innerHTML = "<h3>" + title + "</h3>" + statusPill(a.status);
+  wrap.appendChild(head);
+
+  if (role !== "employee") {
+    var meta = document.createElement("div");
+    meta.className = "epas-meta";
+    meta.textContent = "Superviseur(e) : " + profileName(a.supervisor_id);
+    wrap.appendChild(meta);
+  }
+
+  // Plan de travail — éditable par l'employé(e) ou le/la superviseur(e) tant que le cycle est en planification.
+  var wpSection = document.createElement("div");
+  wpSection.className = "epas-section";
+  var canEditPlan = (a.status === "planification") && (role === "employee" || role === "supervisor");
+  wpSection.innerHTML = "<label>Plan de travail</label>" +
+    (canEditPlan
+      ? '<textarea rows="3" class="wpInput">' + escapeHtml(workPlanText(a)) + "</textarea><div class='epas-actions'><button type='button' class='btn secondary saveWp'>Enregistrer le plan</button></div>"
+      : '<div class="readonly">' + (escapeHtml(workPlanText(a)) || "—") + "</div>");
+  wrap.appendChild(wpSection);
+
+  // Auto-évaluation — éditable par l'employé(e) uniquement.
+  var saSection = document.createElement("div");
+  saSection.className = "epas-section";
+  var canEditSa = role === "employee" && a.status !== "complete";
+  saSection.innerHTML = "<label>Auto-évaluation" + (a.self_assessment_at ? " (soumise le " + new Date(a.self_assessment_at).toLocaleDateString("fr-FR") + ")" : "") + "</label>" +
+    (canEditSa
+      ? '<textarea rows="3" class="saInput">' + escapeHtml(a.self_assessment || "") + "</textarea><div class='epas-actions'><button type='button' class='btn secondary saveSa'>Soumettre mon auto-évaluation</button></div>"
+      : '<div class="readonly">' + (escapeHtml(a.self_assessment || "") || "—") + "</div>");
+  wrap.appendChild(saSection);
+
+  // Revue à mi-parcours et évaluation finale — éditables par le/la superviseur(e) uniquement.
+  var svSection = document.createElement("div");
+  svSection.className = "epas-section";
+  var canEditSv = role === "supervisor" && a.status !== "complete";
+  svSection.innerHTML = "<label>Appréciation du/de la superviseur(e)</label>" +
+    (canEditSv
+      ? '<textarea rows="3" class="svInput">' + escapeHtml(a.supervisor_assessment || "") + "</textarea>"
+      : '<div class="readonly">' + (escapeHtml(a.supervisor_assessment || "") || "—") + "</div>");
+  wrap.appendChild(svSection);
+
+  var compSection = document.createElement("div");
+  compSection.className = "epas-section";
+  compSection.innerHTML = "<label>Observations sur les compétences</label>" +
+    (canEditSv
+      ? '<textarea rows="2" class="compInput">' + escapeHtml(competencyText(a)) + "</textarea>"
+      : '<div class="readonly">' + (escapeHtml(competencyText(a)) || "—") + "</div>");
+  wrap.appendChild(compSection);
+
+  var ratingSection = document.createElement("div");
+  ratingSection.className = "epas-section";
+  if (canEditSv) {
+    var opts = '<option value="">— Notation —</option>' + Object.keys(RATING_LABELS).map(function (k) {
+      return '<option value="' + k + '"' + (a.supervisor_rating === k ? " selected" : "") + ">" + RATING_LABELS[k] + "</option>";
+    }).join("");
+    ratingSection.innerHTML = "<label>Notation globale</label><select class='ratingInput'>" + opts + "</select>";
+  } else {
+    ratingSection.innerHTML = "<label>Notation globale</label><div class='readonly'>" + (a.supervisor_rating ? RATING_LABELS[a.supervisor_rating] : "—") + "</div>";
+  }
+  wrap.appendChild(ratingSection);
+
+  if (canEditSv) {
+    var actions = document.createElement("div");
+    actions.className = "epas-actions";
+    var saveBtn = document.createElement("button");
+    saveBtn.type = "button"; saveBtn.className = "btn secondary"; saveBtn.textContent = "Enregistrer la revue";
+    saveBtn.addEventListener("click", function () { saveSupervisorReview(a, wrap); });
+    actions.appendChild(saveBtn);
+
+    var idx = STATUS_ORDER.indexOf(a.status);
+    if (idx < STATUS_ORDER.length - 1) {
+      var advanceBtn = document.createElement("button");
+      advanceBtn.type = "button"; advanceBtn.className = "btn";
+      advanceBtn.textContent = idx === STATUS_ORDER.length - 2 ? "Finaliser l'évaluation" : "Passer à l'étape suivante";
+      advanceBtn.addEventListener("click", function () { advanceStatus(a); });
+      actions.appendChild(advanceBtn);
+    }
+    wrap.appendChild(actions);
+  }
+
+  // Bind work plan / self-assessment save handlers (accessible aux deux rôles concernés).
+  var saveWpBtn = wrap.querySelector(".saveWp");
+  if (saveWpBtn) saveWpBtn.addEventListener("click", function () { saveWorkPlan(a, wrap); });
+  var saveSaBtn = wrap.querySelector(".saveSa");
+  if (saveSaBtn) saveSaBtn.addEventListener("click", function () { saveSelfAssessment(a, wrap); });
+
+  return wrap;
+}
+
+async function saveWorkPlan(a, cardEl) {
+  var text = cardEl.querySelector(".wpInput").value.trim();
+  var { error } = await capriSupabase.from("epas_appraisals").update({ work_plan: { text: text }, updated_at: new Date().toISOString() }).eq("id", a.id);
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  CapriShell.toast("Plan de travail enregistré.");
+  loadMyAppraisals(); loadTeamAppraisals(); if (isBoard) loadAllAppraisals();
+}
+
+async function saveSelfAssessment(a, cardEl) {
+  var text = cardEl.querySelector(".saInput").value.trim();
+  var { error } = await capriSupabase.from("epas_appraisals").update({ self_assessment: text, self_assessment_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", a.id);
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  CapriShell.toast("Auto-évaluation soumise.");
+  loadMyAppraisals();
+}
+
+async function saveSupervisorReview(a, cardEl) {
+  var payload = {
+    supervisor_assessment: cardEl.querySelector(".svInput").value.trim(),
+    competency_ratings: { text: cardEl.querySelector(".compInput").value.trim() },
+    supervisor_rating: cardEl.querySelector(".ratingInput").value || null,
+    updated_at: new Date().toISOString(),
+  };
+  var { error } = await capriSupabase.from("epas_appraisals").update(payload).eq("id", a.id);
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  CapriShell.toast("Revue enregistrée.");
+  loadTeamAppraisals(); if (isBoard) loadAllAppraisals();
+}
+
+async function advanceStatus(a) {
+  var idx = STATUS_ORDER.indexOf(a.status);
+  var next = STATUS_ORDER[idx + 1];
+  if (!next) return;
+  var payload = { status: next, updated_at: new Date().toISOString() };
+  if (next === "revue_mi_parcours") payload.mid_review_at = new Date().toISOString();
+  if (next === "complete") payload.finalized_at = new Date().toISOString();
+  var { error } = await capriSupabase.from("epas_appraisals").update(payload).eq("id", a.id);
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  CapriShell.toast("Étape mise à jour : " + STATUS_LABELS[next]);
+  loadMyAppraisals(); loadTeamAppraisals(); if (isBoard) loadAllAppraisals();
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+</script>
+</body>
+</html>

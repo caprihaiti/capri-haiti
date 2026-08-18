@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAPRI Carrières</title>
+<meta name="description" content="Rejoindre CAPRI — avis de postes vacants et candidatures spontanées au Centre d'Appui à la Performance et au Renforcement Institutionnel.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1B3A5C;--navy-deep:#0E1F35;--navy-mid:#163152;
+  --teal:#2A9D8F;--teal-dark:#1E7A6E;--teal-pale:rgba(42,157,143,.08);
+  --gold:#D4A843;--gold-light:#E5C56E;--gold-pale:rgba(212,168,67,.1);
+  --white:#FFFFFF;--off:#F5F6F8;--light:#E9EAED;
+  --grey:#6B7280;--dark:#1A1D23;
+  --display:'Playfair Display',Georgia,serif;
+  --body:'Source Sans 3',-apple-system,system-ui,sans-serif;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06);
+  --shadow-md:0 4px 20px rgba(0,0,0,.08);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.12);
+  --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);color:var(--dark);line-height:1.7;background:var(--white);font-size:16px;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--display);color:var(--navy)}
+a{color:inherit}
+.wrap{max-width:920px;margin:0 auto;padding:0 28px}
+
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-bottom:1px solid rgba(27,58,92,.08)}
+.topbar-inner{max-width:920px;margin:0 auto;padding:16px 28px}
+.back-link{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--navy);font-weight:600;font-size:.86rem}
+.back-link:hover{color:var(--teal)}
+
+.hero{background:linear-gradient(165deg,var(--navy-deep),var(--navy) 55%,var(--navy-mid));color:#fff;padding:72px 0 56px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-100px;top:-80px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(212,168,67,.16),transparent 70%)}
+.hero-inner{position:relative;z-index:1}
+.eyebrow{display:inline-block;background:rgba(212,168,67,.16);color:var(--gold-light);font-size:.74rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:50px;margin-bottom:16px}
+.hero h1{font-size:2.3rem;color:#fff;line-height:1.15}
+.hero p.lead{margin-top:14px;max-width:640px;color:rgba(255,255,255,.85);font-size:1.05rem}
+
+section{padding:52px 0}
+section.alt{background:var(--off)}
+.section-head{max-width:680px;margin-bottom:24px}
+.section-head .kicker{font-size:.74rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-dark)}
+.section-head h2{font-size:1.55rem;margin-top:8px}
+p{color:#3a4250;font-size:.95rem}
+
+.status-box{background:var(--gold-pale);border:1px solid rgba(212,168,67,.35);border-radius:var(--radius);padding:26px 28px}
+.status-box h3{font-size:1.05rem;color:#7a5f1c;margin-bottom:10px}
+.status-box p{color:#6b551b;font-size:.9rem}
+
+.profile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+@media(max-width:700px){.profile-grid{grid-template-columns:1fr}}
+.profile-card{background:#fff;border:1px solid var(--light);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow-sm)}
+.profile-card .ic{font-size:1.5rem;margin-bottom:8px}
+.profile-card h3{font-size:1rem;margin-bottom:6px}
+.profile-card p{font-size:.85rem;color:var(--grey)}
+
+.value-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.value-pill{background:var(--teal-pale);color:var(--teal-dark);font-size:.82rem;font-weight:600;padding:8px 16px;border-radius:50px}
+
+.job-list{display:flex;flex-direction:column;gap:14px}
+.job-empty{background:#fff;border:1px dashed var(--light);border-radius:var(--radius);padding:32px 28px;text-align:center}
+.job-empty p{color:var(--grey);font-size:.92rem}
+
+.steps{counter-reset:step;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:8px}
+@media(max-width:760px){.steps{grid-template-columns:1fr}}
+.step{background:#fff;border:1px solid var(--light);border-radius:var(--radius);padding:22px;position:relative}
+.step::before{counter-increment:step;content:counter(step);display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--navy);color:var(--gold-light);font-family:var(--display);font-weight:700;font-size:.9rem;margin-bottom:10px}
+.step h3{font-size:.95rem;margin-bottom:6px}
+.step p{font-size:.85rem;color:var(--grey)}
+
+.contact-card{background:var(--navy-deep);color:#fff;border-radius:var(--radius);padding:32px 34px;text-align:center}
+.contact-card h2{color:#fff;font-size:1.4rem}
+.contact-card p{color:rgba(255,255,255,.8);margin-top:10px}
+.contact-card .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.contact-card .btn{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--navy-deep);text-decoration:none;font-weight:700;padding:12px 24px;border-radius:50px;font-size:.86rem}
+.contact-card .btn.secondary{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25)}
+
+footer{background:var(--navy-deep);color:rgba(255,255,255,.6);padding:36px 0;font-size:.78rem}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+footer a{color:rgba(255,255,255,.75);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="back-link" href="index.html">← Retour au site CAPRI</a>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <span class="eyebrow">CAPRI Carrières</span>
+    <h1>Construire des institutions plus fortes, avec vous</h1>
+    <p class="lead">CAPRI recherche des professionnels rigoureux, engagés et animés par la même conviction : des institutions publiques solides transforment durablement la vie des populations. Retrouvez ici nos avis de recrutement dès qu'ils sont publiés.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="status-box">
+      <h3>📌 Postes vacants actuellement</h3>
+      <div class="job-list">
+        <div class="job-empty">
+          <p>Aucun poste n'est actuellement ouvert au recrutement. CAPRI publiera ici ses avis de vacance de poste dès qu'ils seront disponibles — revenez consulter cette page ou écrivez-nous pour être informé(e).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Pourquoi CAPRI</span>
+      <h2>Une équipe au service du renforcement institutionnel</h2>
+    </div>
+    <p>CAPRI est un centre indépendant spécialisé dans l'appui, la modernisation et le renforcement des institutions publiques haïtiennes. Rejoindre CAPRI, c'est contribuer directement à des projets qui améliorent la capacité de l'État à servir la population — avec rigueur méthodologique, indépendance analytique et une culture du résultat mesurable.</p>
+    <div class="value-row">
+      <span class="value-pill">Intégrité</span>
+      <span class="value-pill">Professionnalisme</span>
+      <span class="value-pill">Efficience</span>
+      <span class="value-pill">Culture du résultat</span>
+      <span class="value-pill">Transmission</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Profils recherchés</span>
+      <h2>Le type de talents que CAPRI mobilise</h2>
+    </div>
+    <div class="profile-grid">
+      <div class="profile-card">
+        <div class="ic">⚖️</div>
+        <h3>Juristes &amp; spécialistes de l'administration publique</h3>
+        <p>Analyse juridique, réforme institutionnelle, gouvernance.</p>
+      </div>
+      <div class="profile-card">
+        <div class="ic">🎓</div>
+        <h3>Formateurs &amp; ingénieurs pédagogiques</h3>
+        <p>Conception et animation de formations pour cadres et agents publics.</p>
+      </div>
+      <div class="profile-card">
+        <div class="ic">💻</div>
+        <h3>Spécialistes du numérique &amp; données</h3>
+        <p>Transformation numérique, interopérabilité, analyse de données.</p>
+      </div>
+      <div class="profile-card">
+        <div class="ic">📊</div>
+        <h3>Chargés de suivi-évaluation</h3>
+        <p>Indicateurs, mesure de résultats, capitalisation des acquis.</p>
+      </div>
+      <div class="profile-card">
+        <div class="ic">🌐</div>
+        <h3>Chargés de coopération &amp; partenariats</h3>
+        <p>Relations institutionnelles, mobilisation de ressources.</p>
+      </div>
+      <div class="profile-card">
+        <div class="ic">🗂️</div>
+        <h3>Personnel administratif &amp; de mission</h3>
+        <p>Coordination de projets, appui administratif et logistique.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Candidature spontanée</span>
+      <h2>Comment postuler</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <h3>Préparez votre dossier</h3>
+        <p>CV à jour et lettre de motivation précisant le domaine d'intérêt.</p>
+      </div>
+      <div class="step">
+        <h3>Envoyez-le à CAPRI</h3>
+        <p>Par courriel à contact@capri-haiti.org, objet « Candidature — [domaine] ».</p>
+      </div>
+      <div class="step">
+        <h3>Restez en contact</h3>
+        <p>Votre dossier est conservé ; CAPRI vous contacte si un poste correspondant s'ouvre.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="contact-card">
+      <h2>Une question sur nos recrutements ?</h2>
+      <p>Écrivez-nous — nous répondons aux candidatures et aux demandes d'information dans les meilleurs délais.</p>
+      <div class="btns">
+        <a class="btn" href="mailto:contact@capri-haiti.org">✉️ contact@capri-haiti.org</a>
+        <a class="btn secondary" href="tel:+50937061335">📞 +509 37 06 1335</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>© CAPRI — Centre d'Appui à la Performance et au Renforcement Institutionnel.</div>
+    <div><a href="index.html">Retour au site CAPRI</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

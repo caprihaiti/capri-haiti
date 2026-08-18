@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Découvrir Haïti — CAPRI</title>
+<meta name="description" content="Haïti département par département : histoire, diaspora, potentialités et défis institutionnels — présenté par CAPRI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1B3A5C;--navy-deep:#0E1F35;--navy-mid:#163152;
+  --teal:#2A9D8F;--teal-dark:#1E7A6E;--teal-pale:rgba(42,157,143,.08);
+  --gold:#D4A843;--gold-light:#E5C56E;--gold-pale:rgba(212,168,67,.1);
+  --white:#FFFFFF;--off:#F5F6F8;--light:#E9EAED;
+  --grey:#6B7280;--dark:#1A1D23;
+  --display:'Playfair Display',Georgia,serif;
+  --body:'Source Sans 3',-apple-system,system-ui,sans-serif;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06);
+  --shadow-md:0 4px 20px rgba(0,0,0,.08);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.12);
+  --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);color:var(--dark);line-height:1.7;background:var(--white);font-size:16px;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--display);color:var(--navy)}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+
+/* ---- topbar ---- */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-bottom:1px solid rgba(27,58,92,.08)}
+.topbar-inner{max-width:1080px;margin:0 auto;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.back-link{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--navy);font-weight:600;font-size:.86rem}
+.back-link:hover{color:var(--teal)}
+.crumb{font-size:.72rem;color:var(--grey);text-transform:uppercase;letter-spacing:.08em}
+.subnav{display:flex;gap:4px;flex-wrap:wrap}
+.subnav a{text-decoration:none;font-size:.8rem;font-weight:600;color:var(--grey);padding:7px 12px;border-radius:50px;transition:.15s}
+.subnav a:hover{background:var(--teal-pale);color:var(--teal-dark)}
+@media(max-width:820px){.subnav{display:none}}
+
+/* ---- hero ---- */
+.hero{background:linear-gradient(165deg,var(--navy-deep),var(--navy) 55%,var(--navy-mid));color:#fff;padding:76px 0 64px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-120px;top:-80px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(212,168,67,.16),transparent 70%)}
+.hero-inner{position:relative;z-index:1}
+.eyebrow{display:inline-block;background:rgba(212,168,67,.16);color:var(--gold-light);font-size:.74rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:50px;margin-bottom:20px}
+.hero h1{font-size:2.6rem;color:#fff;line-height:1.15;max-width:680px}
+.hero p.lead{margin-top:16px;max-width:600px;color:rgba(255,255,255,.82);font-size:1.05rem}
+.stat-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:36px}
+.stat-chip{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:14px 18px;min-width:130px}
+.stat-chip .v{font-family:var(--display);font-size:1.3rem;color:var(--gold-light);line-height:1}
+.stat-chip .l{font-size:.7rem;color:rgba(255,255,255,.7);margin-top:5px;letter-spacing:.02em}
+.mountains{position:absolute;left:0;right:0;bottom:0;height:60px;opacity:.5}
+
+/* ---- sections ---- */
+section{padding:64px 0}
+section.alt{background:var(--off)}
+.section-head{max-width:680px;margin-bottom:36px}
+.section-head .kicker{font-size:.74rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-dark)}
+.section-head h2{font-size:1.9rem;margin-top:8px}
+.section-head p{color:var(--grey);margin-top:12px}
+.disclaimer{background:var(--gold-pale);border:1px solid rgba(212,168,67,.35);border-radius:10px;padding:12px 16px;font-size:.78rem;color:#7a5f1c;line-height:1.55;margin-top:18px}
+
+/* ---- timeline ---- */
+.timeline{position:relative;padding-left:28px;border-left:2px solid var(--light)}
+.tl-era{margin-bottom:38px}
+.tl-era:last-child{margin-bottom:0}
+.tl-era::before{content:"";position:absolute;left:-7px;width:12px;height:12px;border-radius:50%;background:var(--teal);border:2px solid #fff;box-shadow:0 0 0 2px var(--teal)}
+.tl-era h3{font-size:1.15rem;margin-bottom:4px}
+.tl-era .dates{font-size:.76rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:block}
+.tl-era p{color:#3a4250;font-size:.93rem;max-width:700px}
+.tl-era ul{margin:10px 0 0 18px;color:#3a4250;font-size:.93rem}
+.tl-era li{margin-bottom:6px}
+
+/* ---- diaspora ---- */
+.diaspora-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start}
+@media(max-width:800px){.diaspora-grid{grid-template-columns:1fr}}
+.diaspora-stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.dstat{background:#fff;border:1px solid var(--light);border-radius:12px;padding:16px}
+.dstat .v{font-family:var(--display);font-size:1.5rem;color:var(--navy)}
+.dstat .l{font-size:.76rem;color:var(--grey);margin-top:4px}
+.endured-box{background:var(--navy-deep);color:#fff;border-radius:var(--radius);padding:26px 28px;margin-top:22px}
+.endured-box h4{color:var(--gold-light);font-family:var(--display);font-size:1.05rem;margin-bottom:10px}
+.endured-box p{color:rgba(255,255,255,.85);font-size:.92rem}
+
+/* ---- sector cards ---- */
+.sector-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:900px){.sector-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.sector-grid{grid-template-columns:1fr}}
+.sector-card{background:#fff;border:1px solid var(--light);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow-sm)}
+.sector-card .ic{font-size:1.6rem;margin-bottom:10px}
+.sector-card h3{font-size:1.02rem;margin-bottom:8px}
+.sector-card p{font-size:.86rem;color:var(--grey)}
+
+/* ---- forces / faiblesses ---- */
+.ff-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:800px){.ff-grid{grid-template-columns:1fr}}
+.ff-card{border-radius:var(--radius);padding:26px}
+.ff-card.forces{background:var(--teal-pale);border:1px solid rgba(42,157,143,.25)}
+.ff-card.faiblesses{background:rgba(194,69,69,.06);border:1px solid rgba(194,69,69,.2)}
+.ff-card h3{font-size:1.05rem;margin-bottom:14px}
+.ff-card.forces h3{color:var(--teal-dark)}
+.ff-card.faiblesses h3{color:#a03c3c}
+.ff-card ul{list-style:none}
+.ff-card li{font-size:.88rem;color:#374151;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.06)}
+.ff-card li:last-child{border-bottom:none}
+
+/* ---- bridge / why capri ---- */
+.bridge{background:linear-gradient(165deg,var(--navy-deep),var(--navy));color:#fff;border-radius:var(--radius);padding:40px 44px}
+.bridge h2{color:#fff;font-size:1.6rem}
+.bridge p{color:rgba(255,255,255,.85);margin-top:14px;max-width:720px}
+.bridge .btn{display:inline-flex;margin-top:22px;background:var(--gold);color:var(--navy-deep);text-decoration:none;font-weight:700;padding:12px 26px;border-radius:50px;font-size:.88rem}
+
+/* ---- departments grid ---- */
+.dept-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+@media(max-width:900px){.dept-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.dept-grid{grid-template-columns:repeat(2,1fr)}}
+.dept-card{border-radius:12px;padding:18px 14px;text-align:center;text-decoration:none;transition:.15s;border:1px solid var(--light)}
+.dept-card.ready{background:var(--navy);color:#fff;box-shadow:var(--shadow-md)}
+.dept-card.ready:hover{background:var(--navy-mid);transform:translateY(-2px)}
+.dept-card.soon{background:var(--off);color:var(--grey);cursor:default;opacity:.72}
+.dept-card .ic{font-size:1.4rem;display:block;margin-bottom:8px}
+.dept-card .name{font-weight:700;font-size:.85rem;display:block}
+.dept-card .tag{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;margin-top:6px;display:block}
+.dept-card.ready .tag{color:var(--gold-light)}
+
+footer{background:var(--navy-deep);color:rgba(255,255,255,.6);padding:36px 0;font-size:.78rem}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+footer a{color:rgba(255,255,255,.75);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div>
+      <a class="back-link" href="index.html">← Retour au site CAPRI</a>
+      <div class="crumb" style="margin-top:2px">Découvrir Haïti</div>
+    </div>
+    <nav class="subnav">
+      <a href="#histoire">Histoire</a>
+      <a href="#diaspora">Diaspora</a>
+      <a href="#potentiels">Potentiels</a>
+      <a href="#institutions">Institutions</a>
+      <a href="#departements">Départements</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <span class="eyebrow">Série · Découvrir Haïti</span>
+    <h1>Haïti, département par département</h1>
+    <p class="lead">Avant de renforcer les institutions d'un pays, il faut comprendre le pays lui-même — son histoire, ses gens, ses richesses, ses défis. C'est le sens de cette série : présenter Haïti telle qu'elle est, avec sa profondeur historique et son potentiel réel.</p>
+    <div class="stat-row">
+      <div class="stat-chip"><div class="v">10</div><div class="l">départements</div></div>
+      <div class="stat-chip"><div class="v">1804</div><div class="l">indépendance</div></div>
+      <div class="stat-chip"><div class="v">≈ 27 750 km²</div><div class="l">superficie</div></div>
+      <div class="stat-chip"><div class="v">FR · HT</div><div class="l">langues officielles</div></div>
+      <div class="stat-chip"><div class="v">Port-au-Prince</div><div class="l">capitale</div></div>
+    </div>
+  </div>
+</header>
+
+<section id="apercu">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Haïti en bref</span>
+      <h2>Un pays, une île, deux nations</h2>
+      <p>Haïti occupe le tiers occidental de l'île d'Hispaniola, qu'elle partage avec la République dominicaine à l'est. Le pays est structuré depuis 2003 en dix départements : Ouest, Sud-Est, Nord, Nord-Est, Artibonite, Centre, Sud, Grand'Anse, Nord-Ouest et Nippes — chacun avec ses arrondissements et ses communes.</p>
+    </div>
+    <div class="disclaimer">📌 <strong>Note méthodologique :</strong> les données chiffrées de cette page (population, superficie, statistiques migratoires) sont des ordres de grandeur couramment cités. Elles doivent être vérifiées et actualisées auprès des sources officielles — Institut Haïtien de Statistique et d'Informatique (IHSI), Banque de la République d'Haïti (BRH), Organisation internationale pour les migrations (OIM) — avant toute utilisation officielle par CAPRI. Cette page est un contenu éditorial de sensibilisation, pas un document statistique certifié.</div>
+  </div>
+</section>
+
+<section class="alt" id="histoire">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Histoire</span>
+      <h2>D'Ayiti à Haïti : une trajectoire unique</h2>
+      <p>Peu de nations portent une histoire fondatrice aussi singulière. Comprendre cette trajectoire — avant, pendant et après l'indépendance — éclaire à la fois la fierté nationale haïtienne et les racines de certains défis institutionnels actuels.</p>
+    </div>
+    <div class="timeline">
+      <div class="tl-era">
+        <span class="dates">Avant l'indépendance</span>
+        <h3>Ayiti taïno, puis colonie la plus riche du monde</h3>
+        <p>Avant l'arrivée des Européens, l'île est habitée par les Taïnos, qui la nomment <em>Ayiti</em> — « terre montagneuse ». Christophe Colomb y accoste en 1492 ; l'île devient espagnole, puis se divise progressivement, la partie occidentale passant sous contrôle français (officialisé par le traité de Ryswick, 1697) pour devenir la colonie de Saint-Domingue.</p>
+        <p style="margin-top:8px">Au XVIII<sup>e</sup> siècle, Saint-Domingue devient la colonie la plus riche du monde — surnommée la « Perle des Antilles » — grâce au sucre, au café, à l'indigo et au coton. Cette prospérité repose entièrement sur le travail forcé de centaines de milliers de personnes réduites en esclavage, dans des conditions d'une violence extrême.</p>
+      </div>
+      <div class="tl-era">
+        <span class="dates">Pendant — la Révolution (1791–1803)</span>
+        <h3>La seule révolution d'esclaves ayant fondé un État</h3>
+        <p>En août 1791, un soulèvement d'ampleur s'organise dans le nord de la colonie. Toussaint Louverture émerge comme figure centrale, avant d'être capturé et de mourir en captivité en France (1803). Jean-Jacques Dessalines prend alors la tête de la lutte et inflige, le 18 novembre 1803, une défaite décisive aux forces françaises à la bataille de Vertières, près du Cap — aujourd'hui dans le département du Nord.</p>
+      </div>
+      <div class="tl-era">
+        <span class="dates">Indépendance — 1<sup>er</sup> janvier 1804</span>
+        <h3>Naissance d'Haïti</h3>
+        <p>À Gonaïves, Dessalines proclame l'indépendance et redonne au pays son nom taïno, <em>Haïti</em>. C'est la première République noire de l'Histoire, née de la seule révolte d'esclaves ayant abouti à la création d'un État souverain — un événement dont la portée symbolique dépasse largement les frontières du pays.</p>
+      </div>
+      <div class="tl-era">
+        <span class="dates">Après l'indépendance</span>
+        <h3>Une souveraineté chèrement défendue</h3>
+        <ul>
+          <li><strong>1825 :</strong> sous la menace d'une intervention militaire, la France impose à Haïti une « indemnité » en échange de la reconnaissance de son indépendance — une dette colossale, source d'un fardeau financier documenté sur plusieurs générations.</li>
+          <li><strong>1915–1934 :</strong> occupation militaire américaine.</li>
+          <li><strong>1957–1986 :</strong> régime autoritaire des Duvalier (François puis Jean-Claude Duvalier).</li>
+          <li><strong>1986 :</strong> chute du régime Duvalier, ouverture d'une transition démocratique longue et heurtée.</li>
+          <li><strong>2010 :</strong> séisme dévastateur, avec des pertes humaines considérables et des destructions majeures dans l'aire métropolitaine de Port-au-Prince.</li>
+          <li><strong>Années 2020 :</strong> crises politique et sécuritaire aiguës, dont l'assassinat du président Jovenel Moïse en juillet 2021.</li>
+        </ul>
+        <p style="margin-top:10px;font-size:.82rem;color:var(--grey)">Cette dernière période reste en évolution rapide — le contenu de cette section devra être révisé et actualisé avant toute publication finale.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="diaspora">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">La diaspora</span>
+      <h2>Un dixième département, hors du territoire</h2>
+      <p>Les Haïtiens eux-mêmes parlent souvent de la diaspora comme d'un « onzième département ». Elle est à la fois le résultat d'un exode difficile et l'une des forces vives du pays.</p>
+    </div>
+    <div class="diaspora-grid">
+      <div>
+        <p>Les vagues de départ se sont succédé pour des raisons différentes : exil politique sous les Duvalier, traversées maritimes périlleuses des années 1970 à 1990 (les « boat people »), départs massifs après le séisme de 2010, puis migration économique vers le Chili et le Brésil dans les années 2010, et plus récemment tentatives de rejoindre les États-Unis par voie terrestre à travers l'Amérique latine.</p>
+        <p style="margin-top:12px">Les principales terres d'accueil restent les États-Unis (notamment en Floride, à New York et dans le Massachusetts), le Canada (surtout le Québec), la République dominicaine voisine, la France, ainsi que le Chili et le Brésil plus récemment.</p>
+        <div class="diaspora-stats">
+          <div class="dstat"><div class="v">~ 1 M +</div><div class="l">personnes d'origine haïtienne aux États-Unis (estimation)</div></div>
+          <div class="dstat"><div class="v">~ 20 %+</div><div class="l">du PIB haïtien via les transferts de la diaspora (estimation)</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="endured-box">
+          <h4>Ce que la diaspora a enduré</h4>
+          <p>Traversées maritimes mortelles, interceptions et détentions (y compris à Guantánamo dans les années 1990), expulsions massives depuis la République dominicaine, discrimination et précarité administrative dans plusieurs pays d'accueil, séparations familiales prolongées. Cette histoire mérite d'être racontée avec exactitude et dignité — sans sensationnalisme, et avec les sources appropriées, dans une version future de cette page.</p>
+        </div>
+        <div class="endured-box" style="background:var(--teal-dark);margin-top:16px">
+          <h4 style="color:#fff">Et pourtant, une force pour le pays</h4>
+          <p>Transferts financiers vitaux pour des centaines de milliers de familles, réseaux professionnels et philanthropiques, transmission culturelle, et un vivier de compétences que d'anciens exilés et leurs enfants peuvent remettre au service d'Haïti — une dynamique que CAPRI considère comme une ressource institutionnelle à part entière.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="potentiels">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Potentialités</span>
+      <h2>Une richesse réelle, à valoriser</h2>
+      <p>Au-delà des difficultés largement documentées, Haïti dispose d'atouts concrets, souvent sous-exploités faute de capacités institutionnelles suffisantes pour les structurer.</p>
+    </div>
+    <div class="sector-grid">
+      <div class="sector-card"><div class="ic">🌾</div><h3>Agriculture</h3><p>Plaines fertiles (l'Artibonite, « grenier » rizicole du pays), café et cacao haïtiens de plus en plus recherchés sur les marchés spécialisés, mangue francisque exportée vers les États-Unis, vétiver — Haïti figurant parmi les tout premiers producteurs mondiaux d'huile essentielle de vétiver.</p></div>
+      <div class="sector-card"><div class="ic">🏛️</div><h3>Tourisme &amp; patrimoine</h3><p>La Citadelle Laferrière et le Palais Sans-Souci (patrimoine mondial de l'UNESCO), les plages du Sud et de l'Île-à-Vache, le patrimoine artistique et carnavalesque de Jacmel, l'architecture historique du Cap-Haïtien.</p></div>
+      <div class="sector-card"><div class="ic">☀️</div><h3>Énergie renouvelable</h3><p>Un ensoleillement propice au solaire, un potentiel éolien encore largement inexploité — des leviers concrets face à la fragilité du réseau électrique national.</p></div>
+      <div class="sector-card"><div class="ic">🧵</div><h3>Industrie &amp; textile</h3><p>Un secteur de la confection déjà actif (notamment le Parc industriel de Caracol, Nord-Est), une proximité géographique avec le marché américain et des régimes commerciaux préférentiels existants.</p></div>
+      <div class="sector-card"><div class="ic">🎓</div><h3>Capital humain</h3><p>Une population jeune, une diaspora qualifiée et mobilisable, un potentiel réel de transfert de compétences vers les institutions et entreprises haïtiennes.</p></div>
+      <div class="sector-card"><div class="ic">🎨</div><h3>Culture &amp; création</h3><p>Une scène musicale influente (konpa, musique racine et scène contemporaine), un mouvement pictural haïtien reconnu internationalement, une littérature d'auteurs haïtiens largement primée et traduite.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="institutions">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Regard institutionnel</span>
+      <h2>Forces et défis</h2>
+      <p>C'est précisément à l'articulation entre ce potentiel réel et ces défis institutionnels que se situe la mission de CAPRI.</p>
+    </div>
+    <div class="ff-grid">
+      <div class="ff-card forces">
+        <h3>✓ Forces</h3>
+        <ul>
+          <li>Une identité historique unique — première République noire, symbole mondial de la lutte contre l'esclavage.</li>
+          <li>Une société civile résiliente et une créativité populaire reconnues.</li>
+          <li>Une diaspora nombreuse, organisée et mobilisable.</li>
+          <li>Une position géographique stratégique dans la Caraïbe.</li>
+          <li>Des ressources naturelles et culturelles diversifiées, déjà présentées ci-dessus.</li>
+        </ul>
+      </div>
+      <div class="ff-card faiblesses">
+        <h3>✗ Défis</h3>
+        <ul>
+          <li>Une fragilité institutionnelle chronique — faible continuité administrative au fil des changements politiques.</li>
+          <li>Des infrastructures insuffisantes (routes, électricité, eau et assainissement).</li>
+          <li>Une vulnérabilité élevée aux catastrophes naturelles (séismes, ouragans).</li>
+          <li>Des défis de gouvernance et de sécurité qui pèsent sur la confiance institutionnelle.</li>
+          <li>Des ressources fiscales domestiques limitées, contraignant la capacité de l'État à investir durablement.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="bridge">
+      <h2>C'est précisément là qu'agit CAPRI</h2>
+      <p>L'écart entre le potentiel démontré d'Haïti et ses résultats concrets est, pour une large part, un écart institutionnel. Renforcer durablement les capacités des institutions publiques haïtiennes — centrales, autonomes et territoriales — c'est donner à ce potentiel les moyens de se réaliser. C'est la raison d'être de CAPRI.</p>
+      <a class="btn" href="index.html#about">Découvrir la mission de CAPRI →</a>
+    </div>
+  </div>
+</section>
+
+<section id="departements">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Les dix départements</span>
+      <h2>Explorer Haïti département par département</h2>
+      <p>Cette série s'enrichira progressivement. Le département du Nord ouvre la marche ; les neuf autres suivront.</p>
+    </div>
+    <div class="dept-grid">
+      <a class="dept-card ready" href="haiti-nord.html">
+        <span class="ic">🏔️</span><span class="name">Nord</span><span class="tag">Disponible</span>
+      </a>
+      <div class="dept-card soon"><span class="ic">🌊</span><span class="name">Ouest</span><span class="tag">À venir</span></div>
+      <div class="dept-card soon"><span class="ic">🌾</span><span class="name">Artibonite</span><span class="tag">À venir</span></div>
+      <div class="dept-card soon"><span class="ic">⛰️</span><span class="name">Centre</span><span class="tag">À venir</span></div>
+      <div class="dept-card soon"><span class="ic">🌴</span><span class="name">Sud</span><span class="tag">À venir</span></div>
+      <div class="dept-card soon"><span class="ic">🎭</span><span class="name">Sud-Est</span><span class="tag">À venir</span></div>
+      <div class="dept-card soon"><span class="ic">🥭</span><span class="name">Grand'Anse</span><span class="tag">À venir</span></div>
+      <div class="dept-card soon"><span class="ic">🐚</span><span class="name">Nord-Ouest</span><span class="tag">À venir</span></div>
+      <div class="dept-card soon"><span class="ic">🏭</span><span class="name">Nord-Est</span><span class="tag">À venir</span></div>
+      <div class="dept-card soon"><span class="ic">🌺</span><span class="name">Nippes</span><span class="tag">À venir</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>© CAPRI — Centre d'Appui à la Performance et au Renforcement Institutionnel. Contenu éditorial en cours d'enrichissement.</div>
+    <div><a href="index.html">Retour au site CAPRI</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

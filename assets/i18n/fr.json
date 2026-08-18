@@ -15,19 +15,8 @@
     "013": "Découvrez notre identité, notre mission, nos valeurs, nos domaines d'intervention et notre approche dans la présentation institutionnelle publique de CAPRI.",
     "014": "📄 Consulter la présentation publique (11 pages)",
     "015": "Document public de synthèse — les protocoles opérationnels, documents de gouvernance et éléments stratégiques internes font l'objet d'un accès contrôlé.",
-    "016": "Architecture organisationnelle",
-    "017": "L'organigramme fonctionnel de CAPRI",
-    "018": "Une structure légère, évolutive et orientée vers les résultats. Elle sépare la gouvernance, l'exécution, le contrôle et les fonctions techniques, tout en permettant de constituer des équipes de mission selon les besoins de chaque institution accompagnée.",
-    "019": "Conseil d'administration",
-    "020": "Orientation stratégique · supervision · approbation des politiques · reddition de comptes",
     "044": "Télécharger la présentation institutionnelle publique de CAPRI",
-    "045": "Organigramme fonctionnel de CAPRI",
-    "b02": "Document disponible en français.",
-    "b03": "Président",
-    "b04": "Vice-président",
-    "b05": "Secrétaire général",
-    "b06": "Trésorier",
-    "b07": "Conseillère chargée de la gouvernance, de l'éthique et du contrôle interne"
+    "b02": "Document disponible en français."
   },
   "contact": {
     "001": "Contactez CAPRI",
@@ -142,7 +131,8 @@
     "014": "Contact",
     "016": "Ouvrir le menu",
     "017": "Découvrir Haïti",
-    "018": "Soutenir CAPRI"
+    "018": "Soutenir CAPRI",
+    "019": "Carrières"
   },
   "home": {
     "001": "Centre d'Appui à la Performance et au Renforcement Institutionnel",

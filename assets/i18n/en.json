@@ -15,19 +15,8 @@
     "013": "Discover our identity, mission, values, fields of intervention and approach in CAPRI's public institutional presentation.",
     "014": "📄 View the public presentation (11 pages)",
     "015": "Public summary document — operational protocols, governance documents and internal strategic material are subject to controlled access.",
-    "016": "Organizational architecture",
-    "017": "CAPRI's functional organization chart",
-    "018": "A lean, adaptable, results-oriented structure. It separates governance, execution, control and technical functions, while allowing mission teams to be formed according to the needs of each institution supported.",
-    "019": "Board of Directors",
-    "020": "Strategic direction · oversight · policy approval · accountability",
     "044": "Download CAPRI's public institutional presentation",
-    "045": "CAPRI's functional organization chart",
-    "b02": "Document available in French.",
-    "b03": "Chair",
-    "b04": "Vice-Chair",
-    "b05": "Secretary General",
-    "b06": "Treasurer",
-    "b07": "Governance, Ethics and Internal Control Officer"
+    "b02": "Document available in French."
   },
   "contact": {
     "001": "Contact CAPRI",
@@ -142,7 +131,8 @@
     "014": "Contact",
     "016": "Open the menu",
     "017": "Discover Haiti",
-    "018": "Support CAPRI"
+    "018": "Support CAPRI",
+    "019": "Careers"
   },
   "home": {
     "001": "Center for Institutional Performance and Strengthening",

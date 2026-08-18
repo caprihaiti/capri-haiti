@@ -72,6 +72,13 @@ section.alt{background:var(--off)}
 .tl-era p{color:#3a4250;font-size:.93rem;max-width:700px}
 .tl-era ul{margin:10px 0 0 18px;color:#3a4250;font-size:.93rem}
 .tl-era li{margin-bottom:6px}
+.tl-maps{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px}
+.tl-maps figure{margin:0;max-width:340px;flex:1 1 260px}
+.tl-maps img{border-radius:10px;box-shadow:var(--shadow-md);border:1px solid var(--light)}
+.tl-maps figcaption{font-size:.72rem;color:var(--grey);margin-top:6px;text-align:center}
+.overview-map{margin-top:32px}
+.overview-map img{border-radius:var(--radius);box-shadow:var(--shadow-lg);border:1px solid var(--light)}
+.overview-map figcaption{font-size:.74rem;color:var(--grey);margin-top:10px;text-align:center}
 
 /* ---- diaspora ---- */
 .diaspora-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start}
@@ -171,6 +178,10 @@ footer a{color:rgba(255,255,255,.75);text-decoration:none}
       <p>Haïti occupe le tiers occidental de l'île d'Hispaniola, qu'elle partage avec la République dominicaine à l'est. Le pays est structuré depuis 2003 en dix départements : Ouest, Sud-Est, Nord, Nord-Est, Artibonite, Centre, Sud, Grand'Anse, Nord-Ouest et Nippes — chacun avec ses arrondissements et ses communes.</p>
     </div>
     <div class="disclaimer">📌 <strong>Note méthodologique :</strong> les données chiffrées de cette page (population, superficie, statistiques migratoires) sont des ordres de grandeur couramment cités. Elles doivent être vérifiées et actualisées auprès des sources officielles — Institut Haïtien de Statistique et d'Informatique (IHSI), Banque de la République d'Haïti (BRH), Organisation internationale pour les migrations (OIM) — avant toute utilisation officielle par CAPRI. Cette page est un contenu éditorial de sensibilisation, pas un document statistique certifié.</div>
+    <figure class="overview-map">
+      <img src="assets/haiti/haiti-vue-ensemble.jpg" alt="Carte des 10 départements d'Haïti, avec chefs-lieux, informations clés et frise de l'évolution géopolitique du pays" loading="lazy">
+      <figcaption>Les dix départements d'Haïti, leurs chefs-lieux et quelques repères clés. Chiffres à valider auprès de l'IHSI avant publication définitive.</figcaption>
+    </figure>
   </div>
 </section>
 
@@ -187,20 +198,33 @@ footer a{color:rgba(255,255,255,.75);text-decoration:none}
         <h3>Ayiti taïno, puis colonie la plus riche du monde</h3>
         <p>Avant l'arrivée des Européens, l'île est habitée par les Taïnos, qui la nomment <em>Ayiti</em> — « terre montagneuse ». Christophe Colomb y accoste en 1492 ; l'île devient espagnole, puis se divise progressivement, la partie occidentale passant sous contrôle français (officialisé par le traité de Ryswick, 1697) pour devenir la colonie de Saint-Domingue.</p>
         <p style="margin-top:8px">Au XVIII<sup>e</sup> siècle, Saint-Domingue devient la colonie la plus riche du monde — surnommée la « Perle des Antilles » — grâce au sucre, au café, à l'indigo et au coton. Cette prospérité repose entièrement sur le travail forcé de centaines de milliers de personnes réduites en esclavage, dans des conditions d'une violence extrême.</p>
+        <div class="tl-maps">
+          <figure><img src="assets/haiti/histoire-1492-decouverte.jpg" alt="Carte d'Haïti en 1492 : les cacicazgos taïnos Bohío et Higüey" loading="lazy"><figcaption>1492 — l'île avant la colonisation</figcaption></figure>
+          <figure><img src="assets/haiti/histoire-1697-partage-colonial.jpg" alt="Carte du partage colonial de 1697 entre Saint-Domingue (France) et Santo Domingo (Espagne)" loading="lazy"><figcaption>1697 — le partage colonial (traité de Ryswick)</figcaption></figure>
+        </div>
       </div>
       <div class="tl-era">
         <span class="dates">Pendant — la Révolution (1791–1803)</span>
         <h3>La seule révolution d'esclaves ayant fondé un État</h3>
         <p>En août 1791, un soulèvement d'ampleur s'organise dans le nord de la colonie. Toussaint Louverture émerge comme figure centrale, avant d'être capturé et de mourir en captivité en France (1803). Jean-Jacques Dessalines prend alors la tête de la lutte et inflige, le 18 novembre 1803, une défaite décisive aux forces françaises à la bataille de Vertières, près du Cap — aujourd'hui dans le département du Nord.</p>
+        <div class="tl-maps">
+          <figure><img src="assets/haiti/histoire-1791-1804-revolution.jpg" alt="Carte de la Révolution haïtienne 1791-1804 : batailles et mouvements des troupes" loading="lazy"><figcaption>1791–1804 — la lutte pour la liberté</figcaption></figure>
+        </div>
       </div>
       <div class="tl-era">
         <span class="dates">Indépendance — 1<sup>er</sup> janvier 1804</span>
         <h3>Naissance d'Haïti</h3>
         <p>À Gonaïves, Dessalines proclame l'indépendance et redonne au pays son nom taïno, <em>Haïti</em>. C'est la première République noire de l'Histoire, née de la seule révolte d'esclaves ayant abouti à la création d'un État souverain — un événement dont la portée symbolique dépasse largement les frontières du pays.</p>
+        <div class="tl-maps">
+          <figure><img src="assets/haiti/histoire-1804-1820-independance.jpg" alt="Carte d'Haïti indépendante, 1804-1820" loading="lazy"><figcaption>1804–1820 — Haïti indépendante</figcaption></figure>
+        </div>
       </div>
       <div class="tl-era">
         <span class="dates">Après l'indépendance</span>
         <h3>Une souveraineté chèrement défendue</h3>
+        <div class="tl-maps">
+          <figure><img src="assets/haiti/histoire-1844-aujourdhui.jpg" alt="Carte d'Haïti de 1844 à aujourd'hui, avec chronologie et départements" loading="lazy"><figcaption>1844 à aujourd'hui — construction nationale</figcaption></figure>
+        </div>
         <ul>
           <li><strong>1825 :</strong> sous la menace d'une intervention militaire, la France impose à Haïti une « indemnité » en échange de la reconnaissance de son indépendance — une dette colossale, source d'un fardeau financier documenté sur plusieurs générations.</li>
           <li><strong>1915–1934 :</strong> occupation militaire américaine.</li>

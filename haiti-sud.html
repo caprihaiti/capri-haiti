@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Département du Sud — Découvrir Haïti — CAPRI</title>
+<meta name="description" content="Le département du Sud d'Haïti, Les Cayes : histoire, potentiel et défis — présenté par CAPRI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1B3A5C;--navy-deep:#0E1F35;--navy-mid:#163152;
+  --teal:#2A9D8F;--teal-dark:#1E7A6E;--teal-pale:rgba(42,157,143,.08);
+  --gold:#D4A843;--gold-light:#E5C56E;--gold-pale:rgba(212,168,67,.1);
+  --white:#FFFFFF;--off:#F5F6F8;--light:#E9EAED;
+  --grey:#6B7280;--dark:#1A1D23;
+  --display:'Playfair Display',Georgia,serif;
+  --body:'Source Sans 3',-apple-system,system-ui,sans-serif;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06);
+  --shadow-md:0 4px 20px rgba(0,0,0,.08);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.12);
+  --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);color:var(--dark);line-height:1.7;background:var(--white);font-size:16px;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--display);color:var(--navy)}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-bottom:1px solid rgba(27,58,92,.08)}
+.topbar-inner{max-width:1080px;margin:0 auto;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.back-link{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--navy);font-weight:600;font-size:.86rem}
+.back-link:hover{color:var(--teal)}
+.crumb{font-size:.72rem;color:var(--grey);text-transform:uppercase;letter-spacing:.08em}
+.subnav{display:flex;gap:4px;flex-wrap:wrap}
+.subnav a{text-decoration:none;font-size:.8rem;font-weight:600;color:var(--grey);padding:7px 12px;border-radius:50px;transition:.15s}
+.subnav a:hover{background:var(--teal-pale);color:var(--teal-dark)}
+@media(max-width:820px){.subnav{display:none}}
+
+.hero{background:linear-gradient(165deg,var(--navy-deep),var(--navy) 55%,var(--navy-mid));color:#fff;padding:72px 0 56px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-100px;top:-80px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(212,168,67,.16),transparent 70%)}
+.hero-inner{position:relative;z-index:1;display:flex;gap:40px;align-items:center;flex-wrap:wrap}
+.hero-icon{width:100px;height:100px;border-radius:24px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:2.8rem;flex-shrink:0}
+.eyebrow{display:inline-block;background:rgba(212,168,67,.16);color:var(--gold-light);font-size:.74rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:50px;margin-bottom:16px}
+.hero h1{font-size:2.3rem;color:#fff;line-height:1.15}
+.hero p.lead{margin-top:12px;max-width:560px;color:rgba(255,255,255,.82);font-size:1rem}
+.stat-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px}
+.stat-chip{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:12px 16px;min-width:120px}
+.stat-chip .v{font-family:var(--display);font-size:1.15rem;color:var(--gold-light);line-height:1}
+.stat-chip .l{font-size:.68rem;color:rgba(255,255,255,.7);margin-top:4px}
+
+section{padding:56px 0}
+section.alt{background:var(--off)}
+.section-head{max-width:680px;margin-bottom:28px}
+.section-head .kicker{font-size:.74rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-dark)}
+.section-head h2{font-size:1.7rem;margin-top:8px}
+.disclaimer{background:var(--gold-pale);border:1px solid rgba(212,168,67,.35);border-radius:10px;padding:12px 16px;font-size:.78rem;color:#7a5f1c;line-height:1.55;margin-top:16px}
+
+.dept-infographic{border-radius:var(--radius);box-shadow:var(--shadow-lg);border:1px solid var(--light);width:100%}
+.infographic-wrap figcaption{font-size:.74rem;color:var(--grey);margin-top:10px;text-align:center}
+
+.two-col{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:start}
+@media(max-width:800px){.two-col{grid-template-columns:1fr}}
+
+.heritage-box{background:var(--navy-deep);color:#fff;border-radius:var(--radius);padding:28px 30px}
+.heritage-box h4{color:var(--gold-light);font-family:var(--display);font-size:1.1rem;margin-bottom:10px}
+.heritage-box p{color:rgba(255,255,255,.85);font-size:.92rem}
+
+.sector-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+@media(max-width:700px){.sector-grid{grid-template-columns:1fr}}
+.sector-card{background:#fff;border:1px solid var(--light);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow-sm)}
+.sector-card .ic{font-size:1.5rem;margin-bottom:8px}
+.sector-card h3{font-size:1rem;margin-bottom:6px}
+.sector-card p{font-size:.85rem;color:var(--grey)}
+
+.next-dept{display:flex;justify-content:space-between;align-items:center;background:var(--off);border-radius:var(--radius);padding:22px 26px;flex-wrap:wrap;gap:14px}
+.next-dept a{text-decoration:none;font-weight:700;color:var(--navy);font-size:.9rem}
+
+footer{background:var(--navy-deep);color:rgba(255,255,255,.6);padding:36px 0;font-size:.78rem}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+footer a{color:rgba(255,255,255,.75);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div>
+      <a class="back-link" href="decouvrir-haiti.html">← Découvrir Haïti</a>
+      <div class="crumb" style="margin-top:2px">Département du Sud</div>
+    </div>
+    <nav class="subnav">
+      <a href="#profil">Profil</a>
+      <a href="#histoire">Histoire</a>
+      <a href="#defis">Défis</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div class="hero-icon">🌴</div>
+    <div>
+      <span class="eyebrow">Découvrir Haïti · Département 5/10</span>
+      <h1>Le Sud</h1>
+      <p class="lead">Un littoral exceptionnel bordé par la mer des Caraïbes, une richesse agricole et naturelle remarquable — dont l'une des plus belles chutes d'eau du pays, Saut-Mathurine.</p>
+      <div class="stat-row">
+        <div class="stat-chip"><div class="v">Les Cayes</div><div class="l">chef-lieu</div></div>
+        <div class="stat-chip"><div class="v">1806</div><div class="l">création du département</div></div>
+        <div class="stat-chip"><div class="v">Île-à-Vache</div><div class="l">joyau insulaire</div></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="profil">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Profil</span>
+      <h2>Le département en bref</h2>
+    </div>
+    <figure class="infographic-wrap">
+      <img class="dept-infographic" src="assets/haiti/departement-sud.jpg" alt="Infographie du département du Sud : carte des 18 communes, informations clés, économie, patrimoine naturel et culturel" loading="lazy">
+      <figcaption>Repères sur le département du Sud. Chiffres à vérifier auprès de l'IHSI avant publication définitive.</figcaption>
+    </figure>
+    <div class="disclaimer">📌 Deux points à clarifier avant publication définitive : (1) les chiffres de population et de superficie sont des estimations à valider auprès de l'IHSI ; (2) Anse-à-Veau et Baradères, mentionnées dans la liste des communes, sont aujourd'hui généralement rattachées au département des Nippes (créé en 2003 à partir de territoires du Sud et de la Grand'Anse) plutôt qu'au Sud — probable référence à un découpage antérieur à 2003, à vérifier avant toute publication officielle.</div>
+  </div>
+</section>
+
+<section class="alt" id="histoire">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Histoire</span>
+      <h2>Les Cayes et l'héritage du Sud</h2>
+    </div>
+    <div class="two-col">
+      <div>
+        <p>Les Cayes (aussi appelée Aux Cayes) s'est développée dès la période coloniale comme un port important de Saint-Domingue, tourné vers le commerce agricole. La ville a conservé ce rôle de pôle économique et portuaire du grand Sud du pays, aujourd'hui encore l'un des centres urbains majeurs en dehors de l'aire métropolitaine de Port-au-Prince.</p>
+        <p style="margin-top:12px">Le département abrite également l'Île-à-Vache, une petite île au large des Cayes, connue pour ses plages et associée dans la mémoire régionale à des figures et épisodes de l'histoire de la piraterie et du commerce maritime caribéen des XVII<sup>e</sup>–XVIII<sup>e</sup> siècles — un sujet à approfondir avec des sources historiques avant publication détaillée.</p>
+      </div>
+      <div class="heritage-box">
+        <h4>💧 Saut-Mathurine</h4>
+        <p>Située à Camp-Perrin, cette chute d'eau est régulièrement citée comme l'un des plus beaux sites naturels d'Haïti — un symbole de la richesse naturelle du département.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="defis">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Potentiels et défis</span>
+      <h2>Littoral, agriculture et exposition climatique</h2>
+    </div>
+    <div class="sector-grid">
+      <div class="sector-card"><div class="ic">🏝️</div><h3>Tourisme balnéaire</h3><p>Un littoral et des sites naturels (Île-à-Vache, plage de Port-Salut, Saut-Mathurine) offrant un potentiel touristique comparable à celui du Nord, encore largement à développer.</p></div>
+      <div class="sector-card"><div class="ic">🌀</div><h3>Vulnérabilité aux ouragans</h3><p>Le département a été durement frappé par plusieurs catastrophes climatiques récentes (dont l'ouragan Matthew en 2016 et le séisme d'août 2021) — une exposition qui pèse sur l'agriculture, le logement et les infrastructures locales.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="next-dept">
+      <span style="color:var(--grey);font-size:.85rem">Cinq autres départements suivront progressivement.</span>
+      <a href="decouvrir-haiti.html#departements">← Retour à la carte des départements</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>© CAPRI — Centre d'Appui à la Performance et au Renforcement Institutionnel. Contenu éditorial en cours d'enrichissement.</div>
+    <div><a href="decouvrir-haiti.html">Découvrir Haïti</a> · <a href="index.html">Site CAPRI</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

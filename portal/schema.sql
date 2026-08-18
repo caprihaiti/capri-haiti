@@ -568,6 +568,88 @@ drop policy if exists "capri_docs_storage_insert" on storage.objects;
 create policy "capri_docs_storage_insert" on storage.objects for insert
   with check (bucket_id = 'capri-docs' and exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('conseil_administration', 'direction')));
 
+-- -----------------------------------------------------------------------------
+-- 8. CAPRI ePAS — évaluation de la performance du personnel
+-- Distinct de « CAPRI Performance » (section 6, projects/kpis) qui mesure la
+-- performance des institutions clientes de CAPRI. ePAS évalue le personnel
+-- de CAPRI lui-même — inspiré du système e-PAS des Nations Unies (plan de
+-- travail annuel, revue à mi-parcours, évaluation de fin de cycle, notation).
+-- -----------------------------------------------------------------------------
+do $$ begin
+  create type epas_status as enum ('planification', 'revue_mi_parcours', 'evaluation_finale', 'complete');
+exception when duplicate_object then null; end $$;
+
+do $$ begin
+  create type epas_rating as enum (
+    'exceptionnel',
+    'depasse_les_attentes',
+    'repond_pleinement_aux_attentes',
+    'repond_partiellement_aux_attentes',
+    'ne_repond_pas_aux_attentes'
+  );
+exception when duplicate_object then null; end $$;
+
+-- Lien hiérarchique direct — nécessaire pour déterminer qui évalue qui.
+-- Nullable : tout le monde n'a pas encore de superviseur assigné.
+alter table profiles add column if not exists supervisor_id uuid references profiles(id);
+
+create table if not exists epas_cycles (
+  id uuid primary key default gen_random_uuid(),
+  label text not null unique, -- ex. "2026"
+  start_date date not null,
+  end_date date not null,
+  is_active boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists epas_appraisals (
+  id uuid primary key default gen_random_uuid(),
+  cycle_id uuid not null references epas_cycles(id) on delete cascade,
+  employee_id uuid not null references profiles(id) on delete cascade,
+  supervisor_id uuid not null references profiles(id),
+  status epas_status not null default 'planification',
+  work_plan jsonb not null default '{}', -- v1 : {text}, texte libre — structuration fine possible plus tard sans migration
+  self_assessment text,
+  self_assessment_at timestamptz,
+  mid_review_notes text,
+  mid_review_at timestamptz,
+  supervisor_assessment text,
+  supervisor_rating epas_rating,
+  competency_ratings jsonb not null default '{}', -- v1 : {text}, texte libre — idem
+  employee_comments text,
+  finalized_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (cycle_id, employee_id)
+);
+
+alter table epas_cycles enable row level security;
+alter table epas_appraisals enable row level security;
+
+drop policy if exists "epas_cycles_select_authenticated" on epas_cycles;
+create policy "epas_cycles_select_authenticated" on epas_cycles for select
+  using (auth.uid() is not null);
+drop policy if exists "epas_cycles_manage_board" on epas_cycles;
+create policy "epas_cycles_manage_board" on epas_cycles for all
+  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration')))
+  with check (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration')));
+
+drop policy if exists "epas_appraisals_select_relevant" on epas_appraisals;
+create policy "epas_appraisals_select_relevant" on epas_appraisals for select
+  using (
+    auth.uid() = employee_id or auth.uid() = supervisor_id
+    or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
+  );
+drop policy if exists "epas_appraisals_insert_board" on epas_appraisals;
+create policy "epas_appraisals_insert_board" on epas_appraisals for insert
+  with check (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration')));
+drop policy if exists "epas_appraisals_update_relevant" on epas_appraisals;
+create policy "epas_appraisals_update_relevant" on epas_appraisals for update
+  using (
+    auth.uid() = employee_id or auth.uid() = supervisor_id
+    or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
+  );
+
 -- Phase 3+ : activer RLS sur les tables restantes au fur et à mesure qu'une
 -- interface les utilise réellement (meetings, resolutions, projects, kpis,
 -- partners, audit_log). Les créer maintenant sans RLS actif évite de

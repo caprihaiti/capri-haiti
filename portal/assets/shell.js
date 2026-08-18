@@ -20,6 +20,7 @@ window.CapriShell = (function () {
       { key: "meet", href: "meet.html", label: "CAPRI Meet", icon: "🎥" },
       { key: "messenger", href: "messenger.html", label: "CAPRI Messenger", icon: "💬" },
       { key: "docs", href: "docs.html", label: "CAPRI Docs", icon: "📄" },
+      { key: "institutionnel", href: "institutionnel.html", label: "Institutionnel", icon: "🏛️" },
     ]},
     { group: "À venir", items: [
       { key: "sign", href: null, label: "CAPRI Sign", icon: "✍️" },

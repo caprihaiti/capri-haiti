@@ -650,6 +650,32 @@ create policy "epas_appraisals_update_relevant" on epas_appraisals for update
     or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
   );
 
+-- -----------------------------------------------------------------------------
+-- 9. CAPRI ID — photos de profil (bucket public, contenu non sensible)
+-- Contrairement à capri-docs (privé), les photos de profil peuvent être
+-- lues publiquement dans le bucket lui-même : ça évite de générer une URL
+-- signée à chaque fois qu'un avatar s'affiche (sidebar, Messenger, Tasks…).
+-- L'accès au portail reste de toute façon protégé par CapriAuth en amont.
+-- Seule l'écriture est restreinte : chacun ne peut déposer/modifier/
+-- supprimer que sa propre photo (nom de fichier = son propre uuid).
+-- -----------------------------------------------------------------------------
+insert into storage.buckets (id, name, public)
+select 'avatars', 'avatars', true
+where not exists (select 1 from storage.buckets where id = 'avatars');
+
+drop policy if exists "avatars_storage_select" on storage.objects;
+create policy "avatars_storage_select" on storage.objects for select
+  using (bucket_id = 'avatars');
+drop policy if exists "avatars_storage_insert_own" on storage.objects;
+create policy "avatars_storage_insert_own" on storage.objects for insert
+  with check (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "avatars_storage_update_own" on storage.objects;
+create policy "avatars_storage_update_own" on storage.objects for update
+  using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+drop policy if exists "avatars_storage_delete_own" on storage.objects;
+create policy "avatars_storage_delete_own" on storage.objects for delete
+  using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+
 -- Phase 3+ : activer RLS sur les tables restantes au fur et à mesure qu'une
 -- interface les utilise réellement (meetings, resolutions, projects, kpis,
 -- partners, audit_log). Les créer maintenant sans RLS actif évite de

@@ -13,6 +13,7 @@ window.CapriShell = (function () {
   var NAV = [
     { group: "Écosystème", items: [
       { key: "desk", href: "desk.html", label: "CAPRI Desk", icon: "🏠" },
+      { key: "profil", href: "profil.html", label: "Mon profil", icon: "🪪" },
     ]},
     { group: "Travail", items: [
       { key: "pointage", href: "pointage.html", label: "Punch / Lunch", icon: "🕒" },
@@ -94,6 +95,7 @@ window.CapriShell = (function () {
     var userBox = document.createElement("div");
     userBox.className = "app-user";
     userBox.innerHTML =
+      (profile.avatar_url ? '<img class="app-user-avatar" src="' + escapeHtml(profile.avatar_url) + '" alt="">' : "") +
       '<div class="app-user-name">' + escapeHtml(profile.full_name) + "</div>" +
       '<div class="app-user-role">' + escapeHtml(window.CapriAuth.roleLabel(profile.role)) + "</div>" +
       '<button type="button" id="capriLogoutBtn">Se déconnecter</button>';

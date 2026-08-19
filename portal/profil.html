@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon profil — CAPRI ID</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1B3A5C">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CAPRI">
+<link rel="stylesheet" href="assets/portal.css">
+<style>
+  .profil-head{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+  .profil-avatar{width:96px;height:96px;border-radius:50%;background:linear-gradient(145deg,var(--gold-light),var(--gold));color:var(--navy-deep);font-family:var(--display);font-weight:800;font-size:2rem;display:grid;place-items:center;flex:none;overflow:hidden;position:relative;border:3px solid #fff;box-shadow:var(--shadow)}
+  .profil-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
+  .profil-identity h2{font-family:var(--display);color:var(--navy);font-size:1.2rem;margin-bottom:2px}
+  .profil-identity p{color:var(--grey);font-size:.86rem}
+  .profil-upload{margin-top:20px;padding-top:18px;border-top:1px solid var(--off)}
+  .profil-upload input[type=file]{font-size:.85rem}
+  .profil-hint{color:var(--grey);font-size:.78rem;margin-top:8px}
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <h1>Mon profil</h1>
+      <p>Votre identité CAPRI ID, commune à tous les modules du portail.</p>
+    </div>
+
+    <div class="card">
+      <div class="profil-head">
+        <div class="profil-avatar" id="profilAvatar">—</div>
+        <div class="profil-identity">
+          <h2 id="profilName">—</h2>
+          <p id="profilRole">—</p>
+        </div>
+      </div>
+
+      <div class="profil-upload">
+        <label for="avatarInput" style="display:block;font-size:.8rem;font-weight:600;color:var(--navy);margin-bottom:8px">Photo de profil</label>
+        <input type="file" id="avatarInput" accept="image/png,image/jpeg,image/webp">
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <button type="button" class="btn" id="avatarSaveBtn" disabled>Enregistrer la photo</button>
+          <button type="button" class="btn secondary" id="avatarRemoveBtn">Retirer ma photo</button>
+        </div>
+        <p class="profil-hint">Formats acceptés : JPG, PNG, WEBP — 5 Mo maximum. Visible par tous les membres du portail (sidebar, Messenger, Tâches…).</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/pwa.js"></script>
+<script>
+var profileRef = null;
+var pendingFile = null;
+
+CapriAuth.requireSession().then(function (session) {
+  profileRef = session.profile;
+  CapriShell.renderSidebar(session.profile, "profil");
+  renderIdentity();
+
+  document.getElementById("avatarInput").addEventListener("change", onFileChosen);
+  document.getElementById("avatarSaveBtn").addEventListener("click", saveAvatar);
+  document.getElementById("avatarRemoveBtn").addEventListener("click", removeAvatar);
+});
+
+function initials(name) {
+  return (name || "").trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0]; }).join("").toUpperCase();
+}
+
+function renderIdentity() {
+  document.getElementById("profilName").textContent = profileRef.full_name;
+  document.getElementById("profilRole").textContent = window.CapriAuth.roleLabel(profileRef.role);
+  renderAvatarPreview(profileRef.avatar_url);
+}
+
+function renderAvatarPreview(url) {
+  var el = document.getElementById("profilAvatar");
+  el.innerHTML = url ? '<img src="' + url + '" alt="">' : initials(profileRef.full_name);
+}
+
+function onFileChosen(e) {
+  var file = e.target.files[0];
+  var saveBtn = document.getElementById("avatarSaveBtn");
+  if (!file) { pendingFile = null; saveBtn.disabled = true; return; }
+  if (file.size > 5 * 1024 * 1024) {
+    CapriShell.toast("Fichier trop volumineux (5 Mo maximum).", true);
+    e.target.value = "";
+    pendingFile = null; saveBtn.disabled = true;
+    return;
+  }
+  pendingFile = file;
+  saveBtn.disabled = false;
+  var reader = new FileReader();
+  reader.onload = function (ev) {
+    document.getElementById("profilAvatar").innerHTML = '<img src="' + ev.target.result + '" alt="">';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveAvatar() {
+  if (!pendingFile) return;
+  var btn = document.getElementById("avatarSaveBtn");
+  btn.disabled = true;
+  btn.textContent = "Envoi en cours…";
+  try {
+    var ext = (pendingFile.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+    var path = profileRef.id + "/photo." + ext;
+    var { error: upErr } = await capriSupabase.storage.from("avatars").upload(path, pendingFile, { upsert: true });
+    if (upErr) throw upErr;
+
+    var { data: pub } = capriSupabase.storage.from("avatars").getPublicUrl(path);
+    var publicUrl = pub.publicUrl + "?v=" + Date.now();
+
+    var { error: updErr } = await capriSupabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", profileRef.id);
+    if (updErr) throw updErr;
+
+    profileRef.avatar_url = publicUrl;
+    renderAvatarPreview(publicUrl);
+    pendingFile = null;
+    document.getElementById("avatarInput").value = "";
+    CapriShell.toast("Photo de profil enregistrée.");
+  } catch (err) {
+    CapriShell.toast("Erreur : " + (err.message || "envoi impossible."), true);
+  } finally {
+    btn.disabled = true;
+    btn.textContent = "Enregistrer la photo";
+  }
+}
+
+async function removeAvatar() {
+  if (!profileRef.avatar_url) { CapriShell.toast("Aucune photo à retirer."); return; }
+  var { error } = await capriSupabase.from("profiles").update({ avatar_url: null }).eq("id", profileRef.id);
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  profileRef.avatar_url = null;
+  renderAvatarPreview(null);
+  CapriShell.toast("Photo retirée.");
+}
+</script>
+</body>
+</html>

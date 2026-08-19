@@ -43,6 +43,7 @@ button{font-family:inherit}
 .app-user{margin-top:auto;padding:14px 12px;border-top:1px solid rgba(255,255,255,.1);font-size:.8rem}
 .app-user-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;display:block;margin-bottom:8px;border:2px solid rgba(255,255,255,.25)}
 .app-user-name{color:#fff;font-weight:600}
+.app-user-title{color:var(--gold-light);font-size:.72rem;line-height:1.35;margin-top:1px}
 .app-user-role{color:var(--gold-light);font-size:.72rem;margin:2px 0 10px}
 .app-user button{background:none;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.75);padding:6px 12px;border-radius:50px;font-size:.75rem;cursor:pointer;width:100%}
 .app-user button:hover{border-color:#fff;color:#fff}

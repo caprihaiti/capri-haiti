@@ -47,9 +47,11 @@ create table if not exists profiles (
   role capri_role not null default 'pending',
   department text,
   avatar_url text,
+  title text, -- fonction affichée (ex. « Secrétaire général du Conseil d'administration ») — distincte du rôle système ; modifiable uniquement par Direction/CA, voir déclencheur guard_profiles_title_update plus bas
   active boolean not null default true,
   created_at timestamptz not null default now()
 );
+alter table profiles add column if not exists title text;
 
 -- À l'inscription (Supabase Auth), le compte reçoit automatiquement le rôle
 -- 'pending' (aucun accès réel) jusqu'à ce qu'un administrateur lui attribue
@@ -384,6 +386,38 @@ create policy "profiles_select_all_active" on profiles for select
 drop policy if exists "profiles_update_own_basic_fields" on profiles;
 create policy "profiles_update_own_basic_fields" on profiles for update
   using (auth.uid() = id);
+
+-- Restriction au niveau colonne : même si la politique ci-dessus permet à
+-- chacun de modifier sa propre ligne (photo, etc.), la « fonction » (title)
+-- reste un contenu officiel que seuls Direction/CA peuvent attribuer —
+-- contrôle appliqué en base, pas seulement caché dans l'interface.
+-- auth.uid() est null en dehors de PostgREST (SQL Editor, service_role) —
+-- contexte déjà pleinement privilégié, donc non concerné par ce garde-fou.
+create or replace function guard_profiles_title_update()
+returns trigger as $$
+begin
+  if new.title is distinct from old.title and auth.uid() is not null then
+    if not exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration')) then
+      raise exception 'Seuls la Direction et le Conseil d''administration peuvent modifier la fonction affichée.';
+    end if;
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists profiles_title_guard on profiles;
+create trigger profiles_title_guard
+  before update on profiles
+  for each row execute function guard_profiles_title_update();
+
+-- Amorçage des fonctions connues du Conseil d'administration actuel —
+-- n'écrit que si title est encore vide, pour ne jamais écraser une valeur
+-- déjà corrigée manuellement par Direction/CA depuis l'interface.
+update profiles set title = 'CEO/Président' where full_name ilike 'Jean Wagner GUILLAUME' and title is null;
+update profiles set title = 'COO/Vice-président' where full_name ilike 'Joseph Benjamin LORMILUS' and title is null;
+update profiles set title = 'Trésorier/Trésorière' where full_name ilike 'Arlande Saint Juste' and title is null;
+update profiles set title = 'Conseillère chargée de la gouvernance, de l''éthique et du contrôle interne' where full_name ilike 'Marie Michelle Sylvie Rameau' and title is null;
+update profiles set title = 'Secrétaire général' where full_name ilike '%Emmanuel%Juin%' and title is null;
 
 drop policy if exists "time_entries_own_or_direction" on time_entries;
 drop policy if exists "time_entries_select_own_or_direction" on time_entries;

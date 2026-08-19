@@ -97,6 +97,7 @@ window.CapriShell = (function () {
     userBox.innerHTML =
       (profile.avatar_url ? '<img class="app-user-avatar" src="' + escapeHtml(profile.avatar_url) + '" alt="">' : "") +
       '<div class="app-user-name">' + escapeHtml(profile.full_name) + "</div>" +
+      (profile.title ? '<div class="app-user-title">' + escapeHtml(profile.title) + "</div>" : "") +
       '<div class="app-user-role">' + escapeHtml(window.CapriAuth.roleLabel(profile.role)) + "</div>" +
       '<button type="button" id="capriLogoutBtn">Se déconnecter</button>';
     sidebar.appendChild(userBox);

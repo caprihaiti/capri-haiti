@@ -21,6 +21,13 @@
   .profil-upload{margin-top:20px;padding-top:18px;border-top:1px solid var(--off)}
   .profil-upload input[type=file]{font-size:.85rem}
   .profil-hint{color:var(--grey);font-size:.78rem;margin-top:8px}
+  #profilTitle{color:var(--teal-dark);font-weight:600;font-size:.86rem}
+  .team-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--off)}
+  .team-row:last-child{border-bottom:none}
+  .team-row-name{flex:1;min-width:160px;font-size:.88rem;font-weight:600;color:var(--dark)}
+  .team-row-name small{display:block;font-weight:400;color:var(--grey);font-size:.76rem}
+  .team-row input{flex:2;min-width:200px;padding:8px 10px;border:1px solid var(--light);border-radius:8px;font-family:inherit;font-size:.84rem}
+  .team-row .btn{padding:7px 16px;font-size:.78rem}
 </style>
 </head>
 <body>
@@ -37,6 +44,7 @@
         <div class="profil-avatar" id="profilAvatar">—</div>
         <div class="profil-identity">
           <h2 id="profilName">—</h2>
+          <p id="profilTitle" style="display:none"></p>
           <p id="profilRole">—</p>
         </div>
       </div>
@@ -51,6 +59,12 @@
         <p class="profil-hint">Formats acceptés : JPG, PNG, WEBP — 5 Mo maximum. Visible par tous les membres du portail (sidebar, Messenger, Tâches…).</p>
       </div>
     </div>
+
+    <div id="teamTitlesCard" class="card" hidden>
+      <h2>Fonctions de l'équipe</h2>
+      <p style="color:var(--grey);font-size:.86rem;margin-bottom:12px">Réservé à Direction/CA. La fonction saisie ici s'affiche sous le nom de chaque membre, en plus de son rôle système.</p>
+      <div id="teamTitlesList"><div class="empty-state">Chargement…</div></div>
+    </div>
   </main>
 </div>
 
@@ -64,7 +78,7 @@
 var profileRef = null;
 var pendingFile = null;
 
-CapriAuth.requireSession().then(function (session) {
+CapriAuth.requireSession().then(async function (session) {
   profileRef = session.profile;
   CapriShell.renderSidebar(session.profile, "profil");
   renderIdentity();
@@ -72,6 +86,12 @@ CapriAuth.requireSession().then(function (session) {
   document.getElementById("avatarInput").addEventListener("change", onFileChosen);
   document.getElementById("avatarSaveBtn").addEventListener("click", saveAvatar);
   document.getElementById("avatarRemoveBtn").addEventListener("click", removeAvatar);
+
+  var isBoard = profileRef.role === "direction" || profileRef.role === "conseil_administration";
+  if (isBoard) {
+    document.getElementById("teamTitlesCard").hidden = false;
+    await loadTeamTitles();
+  }
 });
 
 function initials(name) {
@@ -81,6 +101,8 @@ function initials(name) {
 function renderIdentity() {
   document.getElementById("profilName").textContent = profileRef.full_name;
   document.getElementById("profilRole").textContent = window.CapriAuth.roleLabel(profileRef.role);
+  var titleEl = document.getElementById("profilTitle");
+  if (profileRef.title) { titleEl.textContent = profileRef.title; titleEl.style.display = "block"; }
   renderAvatarPreview(profileRef.avatar_url);
 }
 
@@ -146,6 +168,39 @@ async function removeAvatar() {
   renderAvatarPreview(null);
   CapriShell.toast("Photo retirée.");
 }
+
+async function loadTeamTitles() {
+  var container = document.getElementById("teamTitlesList");
+  var { data, error } = await capriSupabase.from("profiles").select("id, full_name, title, role").eq("active", true).order("full_name");
+  if (error) { container.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  if (!data.length) { container.innerHTML = '<div class="empty-state">Aucun membre.</div>'; return; }
+
+  container.innerHTML = data.map(function (p) {
+    return '<div class="team-row" data-id="' + p.id + '">' +
+      '<div class="team-row-name">' + escapeHtml(p.full_name) + '<small>' + escapeHtml(window.CapriAuth.roleLabel(p.role)) + '</small></div>' +
+      '<input type="text" class="titleInput" placeholder="Fonction (ex. Trésorier/Trésorière)" value="' + escapeHtml(p.title || "") + '">' +
+      '<button type="button" class="btn secondary saveTitleBtn">Enregistrer</button>' +
+    '</div>';
+  }).join("");
+
+  container.querySelectorAll(".saveTitleBtn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var row = btn.closest(".team-row");
+      saveTeamTitle(row.getAttribute("data-id"), row.querySelector(".titleInput").value.trim(), btn);
+    });
+  });
+}
+
+async function saveTeamTitle(id, title, btn) {
+  btn.disabled = true;
+  var { error } = await capriSupabase.from("profiles").update({ title: title || null }).eq("id", id);
+  btn.disabled = false;
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  CapriShell.toast("Fonction enregistrée.");
+  if (id === profileRef.id) { profileRef.title = title || null; renderIdentity(); }
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
 </script>
 </body>
 </html>

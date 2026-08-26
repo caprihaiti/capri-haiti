@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAPRI Courrier</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1B3A5C">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CAPRI">
+<link rel="stylesheet" href="assets/portal.css">
+<style>
+  .recipient-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:8px;margin-bottom:14px}
+  .recipient-check{display:flex;align-items:center;gap:8px;font-size:.86rem;color:var(--dark)}
+  .courrier-card{border:1px solid var(--light);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+  .courrier-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+  .courrier-head h3{font-family:var(--display);color:var(--navy);font-size:.98rem;margin:0}
+  .courrier-meta{font-size:.78rem;color:var(--grey);margin-bottom:10px}
+  .recipient-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--off);font-size:.84rem}
+  .recipient-row:last-child{border-bottom:none}
+  .pill.en_attente{background:var(--light);color:var(--grey)}
+  .pill.envoye{background:var(--teal-pale);color:var(--teal-dark)}
+  .pill.livre{background:var(--gold-pale);color:#8A6D1F}
+  .pill.ouvert{background:rgba(42,157,143,.15);color:var(--teal-dark)}
+  .pill.echec{background:var(--danger-pale);color:var(--danger)}
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <h1>CAPRI Courrier</h1>
+      <p>Courrier électronique officiel de CAPRI — envoi par courriel avec suivi de livraison et d'ouverture.</p>
+    </div>
+
+    <div id="restrictedNotice" hidden class="card">
+      <h2>Accès restreint</h2>
+      <p style="color:var(--grey);font-size:.88rem">Cet espace est réservé aux membres du Conseil d'administration et de la Direction. Votre rôle actuel n'y donne pas accès.</p>
+    </div>
+
+    <div id="courrierContent" hidden>
+      <div class="card">
+        <h2>Rédiger un courrier</h2>
+        <form id="courrierForm">
+          <div class="form-field">
+            <label for="cSubject">Objet</label>
+            <input type="text" id="cSubject" required>
+          </div>
+          <div class="form-field">
+            <label for="cBody">Message</label>
+            <textarea id="cBody" rows="6" required placeholder="Corps du courrier…"></textarea>
+          </div>
+          <div class="form-field">
+            <label>Destinataires — équipe CAPRI</label>
+            <div class="recipient-grid" id="recipientGrid"><div class="empty-state">Chargement…</div></div>
+          </div>
+          <div class="form-field">
+            <label for="cExternal">Destinataires externes (adresses séparées par des virgules)</label>
+            <input type="text" id="cExternal" placeholder="ex. contact@mict.gouv.ht, secretariat@pnh.gouv.ht">
+          </div>
+          <button type="submit" class="btn" id="sendBtn">Envoyer le courrier</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Courrier envoyé</h2>
+        <div id="courrierList"><div class="empty-state">Chargement…</div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/pwa.js"></script>
+<script>
+var profileRef = null;
+var allProfiles = [];
+
+var STATUS_LABELS = { en_attente: "En attente", envoye: "Envoyé", livre: "Livré", ouvert: "Ouvert", echec: "Échec" };
+
+CapriAuth.requireSession().then(async function (session) {
+  profileRef = session.profile;
+  CapriShell.renderSidebar(session.profile, "courrier");
+
+  var isBoard = profileRef.role === "direction" || profileRef.role === "conseil_administration";
+  if (!isBoard) {
+    document.getElementById("restrictedNotice").hidden = false;
+    return;
+  }
+  document.getElementById("courrierContent").hidden = false;
+
+  await loadRecipientGrid();
+  document.getElementById("courrierForm").addEventListener("submit", sendCourrier);
+  await loadCourrierList();
+});
+
+async function loadRecipientGrid() {
+  var { data, error } = await capriSupabase.from("profiles").select("id, full_name, role, email").eq("active", true).order("full_name");
+  var grid = document.getElementById("recipientGrid");
+  if (error) { grid.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  allProfiles = data || [];
+
+  grid.innerHTML = allProfiles.map(function (p) {
+    var checked = (p.role === "conseil_administration" || p.role === "direction") ? "checked" : "";
+    return '<label class="recipient-check"><input type="checkbox" class="recipientBox" value="' + p.id + '" ' + checked + '> ' + escapeHtml(p.full_name) + '</label>';
+  }).join("");
+}
+
+async function sendCourrier(e) {
+  e.preventDefault();
+  var btn = document.getElementById("sendBtn");
+  var subject = document.getElementById("cSubject").value.trim();
+  var bodyText = document.getElementById("cBody").value.trim();
+  var externalRaw = document.getElementById("cExternal").value.trim();
+
+  var recipients = [];
+  document.querySelectorAll(".recipientBox:checked").forEach(function (box) {
+    var p = allProfiles.find(function (x) { return x.id === box.value; });
+    if (p && p.email) recipients.push({ user_id: p.id, email: p.email });
+  });
+  if (externalRaw) {
+    externalRaw.split(",").forEach(function (addr) {
+      addr = addr.trim();
+      if (addr) recipients.push({ email: addr });
+    });
+  }
+
+  if (!subject || !bodyText) { CapriShell.toast("Objet et message sont obligatoires.", true); return; }
+  if (!recipients.length) { CapriShell.toast("Choisissez au moins un(e) destinataire.", true); return; }
+
+  btn.disabled = true;
+  btn.textContent = "Envoi en cours…";
+  try {
+    var htmlBody = escapeHtml(bodyText).replace(/\n/g, "<br>");
+    var { data, error } = await capriSupabase.functions.invoke("send-courrier", {
+      body: { subject: subject, body: htmlBody, recipients: recipients },
+    });
+    if (error) throw error;
+    if (data && data.error) throw new Error(data.error);
+
+    CapriShell.toast("Courrier envoyé (" + data.sent + " destinataire(s), " + data.failed + " échec(s)).");
+    document.getElementById("courrierForm").reset();
+    await loadRecipientGrid();
+    await loadCourrierList();
+  } catch (err) {
+    CapriShell.toast("Erreur : " + (err.message || "envoi impossible."), true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Envoyer le courrier";
+  }
+}
+
+async function loadCourrierList() {
+  var container = document.getElementById("courrierList");
+  var { data, error } = await capriSupabase
+    .from("courrier_messages")
+    .select("*, courrier_recipients(id, email, status, sent_at, delivered_at, opened_at)")
+    .order("created_at", { ascending: false });
+  if (error) { container.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  if (!data.length) { container.innerHTML = '<div class="empty-state">Aucun courrier envoyé pour le moment.</div>'; return; }
+
+  container.innerHTML = "";
+  data.forEach(function (c) { container.appendChild(renderCourrierCard(c)); });
+}
+
+function renderCourrierCard(c) {
+  var wrap = document.createElement("div");
+  wrap.className = "courrier-card";
+
+  var head = document.createElement("div");
+  head.className = "courrier-head";
+  head.innerHTML = "<h3>" + escapeHtml(c.subject) + "</h3>";
+  wrap.appendChild(head);
+
+  var meta = document.createElement("div");
+  meta.className = "courrier-meta";
+  meta.textContent = new Date(c.created_at).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" }) +
+    " · " + (c.courrier_recipients || []).length + " destinataire(s)";
+  wrap.appendChild(meta);
+
+  (c.courrier_recipients || []).forEach(function (r) {
+    var row = document.createElement("div");
+    row.className = "recipient-row";
+    row.innerHTML = "<span>" + escapeHtml(r.email) + "</span><span class='pill " + r.status + "'>" + STATUS_LABELS[r.status] + "</span>";
+    wrap.appendChild(row);
+  });
+
+  return wrap;
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+</script>
+</body>
+</html>

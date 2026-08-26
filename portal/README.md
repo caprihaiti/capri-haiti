@@ -42,12 +42,66 @@ données de plusieurs modules sans que rien n'ait besoin d'être reconstruit.
 | **CAPRI Meet** | `meet.html` | Visioconférence intégrée (Jitsi Meet) — salle Conseil, salle Équipe, ou réunion nommée |
 | **CAPRI Messenger** | `messenger.html` | Messagerie interne privée — conversations directes ou de groupe, en temps réel (Supabase Realtime) |
 | **CAPRI Docs** | `docs.html` | Dépôt de documents internes (Supabase Storage, bucket privé) — visibilité par défaut réservée au Conseil d'administration et à la Direction, ouvrable à toute l'équipe document par document |
+| **CAPRI Courrier** | `courrier.html` | Courrier électronique officiel (Direction/CA) — envoi par courriel via Resend, avec suivi de livraison et d'ouverture. Nécessite une configuration Edge Functions séparée, voir plus bas |
 
 **Installer le portail comme app sur le téléphone (PWA)** : ouvrir
 `https://capri-haiti.org/portal/` dans Chrome (Android) ou Safari (iPhone) →
 menu **⋮ → Installer l'application** (Android) ou **Partager → Sur l'écran
 d'accueil** (iOS). L'icône CAPRI apparaît alors sur l'écran d'accueil comme
 une vraie app, sans passer par un app store.
+
+## CAPRI Courrier — configuration (Resend + Edge Functions)
+
+CAPRI Courrier envoie de vrais courriels — contrairement au reste du
+portail, ça ne peut pas se faire uniquement avec `schema.sql` et
+`config.js` : il faut un compte chez un fournisseur d'envoi transactionnel
+(**Resend**, choisi pour sa simplicité) et deux petites fonctions serveur
+(*Supabase Edge Functions*) qui gardent la clé Resend hors du navigateur.
+
+1. **Créer un compte Resend** — https://resend.com (plan gratuit largement
+   suffisant pour le volume de CAPRI).
+2. **Vérifier le domaine `capri-haiti.org`** — Resend → *Domains* → *Add
+   Domain* → suivre les instructions pour ajouter les enregistrements DNS
+   (SPF/DKIM) indiqués, dans le panneau où le domaine est géré (ex.
+   Squarespace → Settings → Domains → capri-haiti.org → DNS Settings).
+   Sans domaine vérifié, Resend n'autorise pas l'envoi depuis
+   `courrier@capri-haiti.org`.
+3. **Activer le suivi d'ouverture** — Resend → *Domains* → le domaine →
+   activer *Open Tracking* (et *Click Tracking* si souhaité).
+4. **Créer une clé API** — Resend → *API Keys* → *Create API Key* (droits
+   *Sending access* suffisent).
+5. **Installer la CLI Supabase** si ce n'est pas déjà fait, puis se lier au
+   projet : `supabase link --project-ref <id-du-projet>` (l'id est dans
+   l'URL du tableau de bord Supabase).
+6. **Déployer les deux fonctions** :
+   ```
+   supabase functions deploy send-courrier
+   supabase functions deploy resend-webhook --no-verify-jwt
+   ```
+   (`--no-verify-jwt` est nécessaire pour `resend-webhook` : c'est Resend
+   qui l'appelle, pas une personne connectée au portail — la vérification
+   d'authenticité se fait par signature Svix à l'intérieur de la fonction.)
+7. **Configurer les secrets** — Supabase → *Project Settings → Edge
+   Functions → Secrets* :
+   - `RESEND_API_KEY` — la clé créée à l'étape 4.
+   - `COURRIER_FROM_ADDRESS` — optionnel, ex.
+     `CAPRI <courrier@capri-haiti.org>` (sinon cette valeur par défaut est
+     utilisée).
+   - `RESEND_WEBHOOK_SECRET` — voir étape 8 (fortement recommandé, sinon
+     `resend-webhook` accepte les événements sans vérifier qu'ils viennent
+     bien de Resend).
+8. **Configurer le webhook Resend** — Resend → *Webhooks* → *Add Endpoint* →
+   coller l'URL de la fonction déployée (affichée après le déploiement,
+   de la forme `https://<projet>.supabase.co/functions/v1/resend-webhook`)
+   → cocher les événements `email.delivered`, `email.opened`,
+   `email.bounced`, `email.delivery_delayed` → Resend affiche alors un
+   secret de signature (`whsec_...`) à copier dans `RESEND_WEBHOOK_SECRET`
+   (étape 7).
+
+Une fois ces étapes faites, `courrier.html` (visible dans le menu du
+portail pour Direction/CA) envoie réellement les courriels et affiche leur
+statut (Envoyé → Livré → Ouvert) au fur et à mesure que Resend notifie le
+webhook.
 
 ## Ce qui est prévu (schéma déjà en place, interfaces à venir)
 

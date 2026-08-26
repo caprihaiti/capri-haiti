@@ -48,10 +48,16 @@ create table if not exists profiles (
   department text,
   avatar_url text,
   title text, -- fonction affichée (ex. « Secrétaire général du Conseil d'administration ») — distincte du rôle système ; modifiable uniquement par Direction/CA, voir déclencheur guard_profiles_title_update plus bas
+  email text, -- copie de auth.users.email — évite d'exposer l'API admin aux pages qui doivent juste afficher/utiliser l'adresse (ex. CAPRI Courrier)
   active boolean not null default true,
   created_at timestamptz not null default now()
 );
 alter table profiles add column if not exists title text;
+alter table profiles add column if not exists email text;
+
+-- Amorçage : renseigne l'email des comptes déjà créés avant l'ajout de cette
+-- colonne. Sans danger à ré-exécuter (n'écrase rien qui serait déjà rempli).
+update profiles set email = au.email from auth.users au where au.id = profiles.id and profiles.email is null;
 
 -- À l'inscription (Supabase Auth), le compte reçoit automatiquement le rôle
 -- 'pending' (aucun accès réel) jusqu'à ce qu'un administrateur lui attribue
@@ -60,8 +66,8 @@ alter table profiles add column if not exists title text;
 create or replace function handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, full_name, role)
-  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', new.email), 'pending');
+  insert into public.profiles (id, full_name, role, email)
+  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', new.email), 'pending', new.email);
   return new;
 end;
 $$ language plpgsql security definer;
@@ -750,6 +756,57 @@ drop policy if exists "meeting_attendees_update_relevant" on meeting_attendees;
 create policy "meeting_attendees_update_relevant" on meeting_attendees for update
   using (
     auth.uid() = user_id
+    or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
+  );
+
+-- -----------------------------------------------------------------------------
+-- 11. CAPRI Courrier — courrier électronique officiel, avec accusé de
+-- réception (ouverture) via Resend. L'envoi réel se fait depuis la fonction
+-- Supabase Edge Function send-courrier (clé API Resend jamais exposée côté
+-- client) ; ces tables ne font qu'enregistrer le courrier et son suivi.
+-- -----------------------------------------------------------------------------
+do $$ begin
+  create type courrier_recipient_status as enum ('en_attente', 'envoye', 'livre', 'ouvert', 'echec');
+exception when duplicate_object then null; end $$;
+
+create table if not exists courrier_messages (
+  id uuid primary key default gen_random_uuid(),
+  subject text not null,
+  body text not null, -- HTML simple
+  sender_id uuid not null references profiles(id),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists courrier_recipients (
+  id uuid primary key default gen_random_uuid(),
+  courrier_id uuid not null references courrier_messages(id) on delete cascade,
+  user_id uuid references profiles(id), -- null si destinataire externe (adresse libre)
+  email text not null,
+  resend_message_id text, -- id retourné par Resend, sert à rapprocher les événements du webhook
+  status courrier_recipient_status not null default 'en_attente',
+  sent_at timestamptz,
+  delivered_at timestamptz,
+  opened_at timestamptz
+);
+
+alter table courrier_messages enable row level security;
+alter table courrier_recipients enable row level security;
+
+drop policy if exists "courrier_messages_select_board" on courrier_messages;
+create policy "courrier_messages_select_board" on courrier_messages for select
+  using (
+    auth.uid() = sender_id
+    or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
+  );
+-- Pas de politique insert/update ici : ces tables ne sont écrites que par la
+-- fonction Edge Function send-courrier/resend-webhook, avec la clé
+-- service_role qui contourne RLS — jamais directement depuis le navigateur.
+
+drop policy if exists "courrier_recipients_select_relevant" on courrier_recipients;
+create policy "courrier_recipients_select_relevant" on courrier_recipients for select
+  using (
+    auth.uid() = user_id
+    or exists (select 1 from courrier_messages c where c.id = courrier_recipients.courrier_id and c.sender_id = auth.uid())
     or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
   );
 

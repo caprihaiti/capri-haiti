@@ -730,11 +730,36 @@ create policy "avatars_storage_delete_own" on storage.objects for delete
 alter table meetings enable row level security;
 alter table meeting_attendees enable row level security;
 
+-- Fonctions utilitaires (security definer, contournent volontairement RLS
+-- pour cette seule vérification) : sans elles, la politique de meetings
+-- interroge meeting_attendees, dont la politique interroge meetings en
+-- retour — une récursion infinie ("infinite recursion detected in policy
+-- for relation"). Même remède que is_channel_member pour CAPRI Messenger.
+create or replace function is_meeting_attendee(mid uuid, uid uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (select 1 from meeting_attendees ma where ma.meeting_id = mid and ma.user_id = uid);
+$$;
+
+create or replace function is_meeting_creator(mid uuid, uid uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (select 1 from meetings m where m.id = mid and m.created_by = uid);
+$$;
+
 drop policy if exists "meetings_select_relevant" on meetings;
 create policy "meetings_select_relevant" on meetings for select
   using (
     auth.uid() = created_by
-    or exists (select 1 from meeting_attendees ma where ma.meeting_id = meetings.id and ma.user_id = auth.uid())
+    or is_meeting_attendee(meetings.id, auth.uid())
     or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
   );
 drop policy if exists "meetings_insert_board" on meetings;
@@ -748,7 +773,7 @@ drop policy if exists "meeting_attendees_select_relevant" on meeting_attendees;
 create policy "meeting_attendees_select_relevant" on meeting_attendees for select
   using (
     auth.uid() = user_id
-    or exists (select 1 from meetings m where m.id = meeting_attendees.meeting_id and m.created_by = auth.uid())
+    or is_meeting_creator(meeting_attendees.meeting_id, auth.uid())
     or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
   );
 drop policy if exists "meeting_attendees_insert_board" on meeting_attendees;

@@ -276,9 +276,11 @@ create table if not exists messages (
   channel_id uuid not null references channels(id) on delete cascade,
   sender_id uuid not null references profiles(id),
   body text not null,
+  meeting_id uuid references meetings(id) on delete set null, -- non nul pour une convocation postée depuis CAPRI Meet : permet d'afficher les boutons RSVP directement dans CAPRI Messenger
   created_at timestamptz not null default now()
 );
 create index if not exists idx_messages_channel_at on messages(channel_id, created_at);
+alter table messages add column if not exists meeting_id uuid references meetings(id) on delete set null;
 
 -- Fonction utilitaire (security definer, contourne volontairement RLS pour
 -- cette seule vérification) : évite les politiques RLS auto-référentes sur

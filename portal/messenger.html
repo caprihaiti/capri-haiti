@@ -41,6 +41,10 @@
   .msg-new-panel .picklist{max-height:220px;overflow-y:auto;border:1px solid var(--light);border-radius:8px;margin:10px 0}
   .msg-new-panel label{display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:.85rem;border-bottom:1px solid var(--off);cursor:pointer}
   .msg-new-panel label:last-child{border-bottom:none}
+  .msg-rsvp{align-self:flex-start;max-width:72%;margin-top:-4px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .msg-rsvp.mine{align-self:flex-end}
+  .msg-rsvp .btn{padding:5px 12px;font-size:.74rem}
+  .msg-rsvp-status{font-size:.76rem;color:var(--teal-dark);font-weight:600}
 </style>
 </head>
 <body>
@@ -106,6 +110,9 @@ var realtimeSub = null;
 var activeChannelMembers = []; // { user_id, last_read_at } — membres du canal ouvert, sert aux accusés de lecture
 var lastMessage = null;        // dernier message du canal ouvert
 var lastReceiptEl = null;      // élément affichant « Lu par… » sous le dernier message
+var meetingAttendanceCache = {}; // meeting_id -> { rsvp_status, acknowledged_at } | null, pour les convocations postées dans CAPRI Mail
+var RSVP_LABELS = { present: "Présent(e)", absent: "Absent(e)", incertain: "Incertain(e)" };
+var RSVP_ICONS = { present: "✅", absent: "❌", incertain: "❓" };
 
 CapriAuth.requireSession().then(async function (session) {
   profileRef = session.profile;
@@ -272,7 +279,7 @@ async function markChannelRead(id) {
 async function loadMessages(channelId) {
   var scroll = document.getElementById("msgScroll");
   scroll.innerHTML = '<div class="empty-state">Chargement…</div>';
-  var { data, error } = await capriSupabase.from("messages").select("id, sender_id, body, created_at").eq("channel_id", channelId).order("created_at", { ascending: true });
+  var { data, error } = await capriSupabase.from("messages").select("id, sender_id, body, meeting_id, created_at").eq("channel_id", channelId).order("created_at", { ascending: true });
   if (error) { scroll.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
 
   var { data: memberRows } = await capriSupabase.from("channel_members").select("user_id, last_read_at").eq("channel_id", channelId);
@@ -292,6 +299,7 @@ function appendMessageBubble(m, isLast) {
   div.className = "msg-bubble " + (mine ? "mine" : "theirs");
   div.innerHTML = (mine ? "" : '<div class="who">' + escapeHtml(profileName(m.sender_id)) + "</div>") + escapeHtml(m.body).replace(/\n/g, "<br>");
   scroll.appendChild(div);
+  if (m.meeting_id) appendRsvpBlock(m.meeting_id, mine);
   if (isLast) {
     if (lastReceiptEl) lastReceiptEl.remove();
     lastMessage = m;
@@ -347,6 +355,64 @@ async function sendMessage(e) {
   input.value = "";
   var { error } = await capriSupabase.from("messages").insert({ channel_id: activeChannelId, sender_id: profileRef.id, body: body });
   if (error) CapriShell.toast("Erreur : " + error.message, true);
+}
+
+// Boutons RSVP directement sous une convocation postée depuis CAPRI Meet,
+// pour répondre sans avoir à changer de page. Écrit dans la même colonne
+// (meeting_attendees.rsvp_status) que CAPRI Meet — les deux vues restent
+// synchronisées automatiquement.
+async function appendRsvpBlock(meetingId, mine) {
+  var scroll = document.getElementById("msgScroll");
+  var wrap = document.createElement("div");
+  wrap.className = "msg-rsvp" + (mine ? " mine" : "");
+  wrap.innerHTML = '<span style="font-size:.76rem;color:var(--grey)">Chargement…</span>';
+  scroll.appendChild(wrap);
+
+  var attendance = meetingAttendanceCache[meetingId];
+  if (attendance === undefined) {
+    var { data } = await capriSupabase.from("meeting_attendees").select("rsvp_status, acknowledged_at").eq("meeting_id", meetingId).eq("user_id", profileRef.id).maybeSingle();
+    attendance = data || null;
+    meetingAttendanceCache[meetingId] = attendance;
+  }
+
+  renderRsvp(meetingId, wrap, attendance);
+}
+
+function renderRsvp(meetingId, wrap, attendance) {
+  wrap.innerHTML = "";
+  if (!attendance) { wrap.remove(); return; } // pas convoqué(e) à cette réunion (ex. réunion d'équipe, membre non concerné)
+
+  if (attendance.rsvp_status) {
+    var status = document.createElement("span");
+    status.className = "msg-rsvp-status";
+    status.textContent = RSVP_ICONS[attendance.rsvp_status] + " " + RSVP_LABELS[attendance.rsvp_status];
+    wrap.appendChild(status);
+    var changeBtn = document.createElement("button");
+    changeBtn.type = "button"; changeBtn.className = "btn secondary";
+    changeBtn.textContent = "Modifier";
+    changeBtn.addEventListener("click", function () { renderRsvp(meetingId, wrap, { rsvp_status: null }); });
+    wrap.appendChild(changeBtn);
+    return;
+  }
+
+  [["present", "✅ Présent(e)"], ["absent", "❌ Absent(e)"], ["incertain", "❓ Incertain(e)"]].forEach(function (opt) {
+    var btn = document.createElement("button");
+    btn.type = "button"; btn.className = "btn secondary";
+    btn.textContent = opt[1];
+    btn.addEventListener("click", function () { submitMessengerRsvp(meetingId, opt[0], wrap); });
+    wrap.appendChild(btn);
+  });
+}
+
+async function submitMessengerRsvp(meetingId, status, wrap) {
+  var { error } = await capriSupabase.from("meeting_attendees")
+    .update({ rsvp_status: status, acknowledged_at: new Date().toISOString() })
+    .eq("meeting_id", meetingId).eq("user_id", profileRef.id);
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  var attendance = { rsvp_status: status, acknowledged_at: new Date().toISOString() };
+  meetingAttendanceCache[meetingId] = attendance;
+  renderRsvp(meetingId, wrap, attendance);
+  CapriShell.toast("Réponse envoyée : " + RSVP_LABELS[status] + ".");
 }
 
 function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }

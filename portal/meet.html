@@ -16,6 +16,23 @@
   #jitsiContainer{width:100%;height:72vh;min-height:420px;border-radius:var(--radius);overflow:hidden;background:#000}
   .meet-setup{max-width:540px}
   .meet-note{color:var(--grey);font-size:.8rem;margin-top:12px;line-height:1.5}
+  .meeting-card{border:1px solid var(--light);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+  .meeting-card-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+  .meeting-card-head h3{font-family:var(--display);color:var(--navy);font-size:.98rem;margin:0}
+  .meeting-when{font-size:.82rem;color:var(--teal-dark);font-weight:600;margin-bottom:4px}
+  .meeting-location{font-size:.8rem;color:var(--grey);margin-bottom:8px}
+  .pill.conseil{background:var(--gold-pale);color:#8A6D1F}
+  .pill.equipe{background:var(--teal-pale);color:var(--teal-dark)}
+  .pill.externe{background:var(--light);color:var(--grey)}
+  .meeting-agenda{margin-top:8px}
+  .meeting-agenda summary{cursor:pointer;font-size:.82rem;font-weight:600;color:var(--navy)}
+  .meeting-agenda-text{white-space:pre-wrap;font-size:.85rem;color:var(--dark);margin-top:8px;padding:10px 12px;background:var(--off);border-radius:8px}
+  .meeting-ack{margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .ack-done{color:var(--teal-dark);font-size:.82rem;font-weight:600}
+  .ack-tracker{margin-top:10px;font-size:.78rem;color:var(--grey)}
+  .ack-tracker summary{cursor:pointer;font-weight:600;color:var(--navy)}
+  .ack-list{margin-top:6px;list-style:none}
+  .ack-list li{padding:3px 0}
 </style>
 </head>
 <body>
@@ -25,6 +42,51 @@
     <div class="app-header">
       <h1>CAPRI Meet</h1>
       <p>Visioconférence intégrée à l'écosystème — sans compte ni logiciel supplémentaire.</p>
+    </div>
+
+    <div id="scheduleMeetingCard" class="card" hidden>
+      <h2>Planifier une réunion</h2>
+      <p style="color:var(--grey);font-size:.86rem;margin-bottom:12px">Les personnes concernées sont automatiquement invitées et peuvent accuser réception depuis « Réunions à venir » ci-dessous.</p>
+      <form id="scheduleForm">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="mTitle">Titre</label>
+            <input type="text" id="mTitle" required placeholder="ex. Séance ordinaire du Conseil">
+          </div>
+          <div class="form-field">
+            <label for="mType">Type</label>
+            <select id="mType">
+              <option value="conseil" selected>Conseil d'administration</option>
+              <option value="equipe">Équipe CAPRI</option>
+              <option value="externe">Externe</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="mDate">Date</label>
+            <input type="date" id="mDate" required>
+          </div>
+          <div class="form-field">
+            <label for="mTime">Heure</label>
+            <input type="time" id="mTime" required>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="mLocation">Lieu / lien</label>
+          <input type="text" id="mLocation" placeholder="ex. https://meet.jit.si/CAPRIHaiti-ConseilAdministration">
+        </div>
+        <div class="form-field">
+          <label for="mAgenda">Ordre du jour</label>
+          <textarea id="mAgenda" rows="4" placeholder="1. Point 1&#10;2. Point 2&#10;3. Divers"></textarea>
+        </div>
+        <button type="submit" class="btn">Planifier &amp; convoquer</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Réunions à venir</h2>
+      <div id="upcomingMeetings"><div class="empty-state">Chargement…</div></div>
     </div>
 
     <div class="card meet-setup" id="meetSetup">
@@ -74,7 +136,10 @@ var userLeftIntentionally = false;
 var reconnectAttempts = 0;
 var MAX_RECONNECT_ATTEMPTS = 3;
 
-CapriAuth.requireSession().then(function (session) {
+var isBoard = false;
+var allProfiles = [];
+
+CapriAuth.requireSession().then(async function (session) {
   profileRef = session.profile;
   CapriShell.renderSidebar(session.profile, "meet");
 
@@ -83,7 +148,191 @@ CapriAuth.requireSession().then(function (session) {
   });
   document.getElementById("joinBtn").addEventListener("click", joinMeeting);
   document.getElementById("leaveBtn").addEventListener("click", leaveMeeting);
+
+  isBoard = profileRef.role === "direction" || profileRef.role === "conseil_administration";
+  if (isBoard) {
+    document.getElementById("scheduleMeetingCard").hidden = false;
+    document.getElementById("mType").addEventListener("change", prefillLocation);
+    document.getElementById("scheduleForm").addEventListener("submit", scheduleMeeting);
+    prefillLocation();
+    var { data } = await capriSupabase.from("profiles").select("id, full_name, role").eq("active", true);
+    allProfiles = data || [];
+  }
+
+  await loadUpcomingMeetings();
 });
+
+function prefillLocation() {
+  var type = document.getElementById("mType").value;
+  var loc = document.getElementById("mLocation");
+  if (loc.value.trim()) return;
+  if (type === "conseil") loc.value = "https://meet.jit.si/CAPRIHaiti-ConseilAdministration";
+  else if (type === "equipe") loc.value = "https://meet.jit.si/CAPRIHaiti-Equipe";
+}
+
+async function scheduleMeeting(e) {
+  e.preventDefault();
+  var btn = e.target.querySelector("button[type=submit]");
+  var title = document.getElementById("mTitle").value.trim();
+  var type = document.getElementById("mType").value;
+  var date = document.getElementById("mDate").value;
+  var time = document.getElementById("mTime").value;
+  var location = document.getElementById("mLocation").value.trim();
+  var agenda = document.getElementById("mAgenda").value.trim();
+  if (!date || !time) { CapriShell.toast("Donnez une date et une heure.", true); return; }
+
+  btn.disabled = true;
+  try {
+    var scheduledAt = new Date(date + "T" + time).toISOString();
+    var { data: meeting, error: mErr } = await capriSupabase.from("meetings")
+      .insert({ title: title, meeting_type: type, scheduled_at: scheduledAt, location: location || null, agenda: agenda || null, created_by: profileRef.id })
+      .select().single();
+    if (mErr) throw mErr;
+
+    var invitees;
+    if (type === "conseil") invitees = allProfiles.filter(function (p) { return p.role === "conseil_administration" || p.role === "direction"; });
+    else invitees = allProfiles;
+
+    var rows = invitees.map(function (p) { return { meeting_id: meeting.id, user_id: p.id }; });
+    if (rows.length) {
+      var { error: aErr } = await capriSupabase.from("meeting_attendees").insert(rows);
+      if (aErr) throw aErr;
+    }
+
+    CapriShell.toast("Réunion planifiée et convocations envoyées (" + rows.length + " personne(s)).");
+    document.getElementById("scheduleForm").reset();
+    prefillLocation();
+    await loadUpcomingMeetings();
+  } catch (err) {
+    CapriShell.toast("Erreur : " + (err.message || "planification impossible."), true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+var MEETING_TYPE_LABELS = { conseil: "Conseil d'administration", equipe: "Équipe CAPRI", externe: "Externe" };
+
+async function loadUpcomingMeetings() {
+  var container = document.getElementById("upcomingMeetings");
+  var { data, error } = await capriSupabase
+    .from("meetings")
+    .select("*, meeting_attendees(user_id, acknowledged_at, rsvp_status)")
+    .gte("scheduled_at", new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString())
+    .order("scheduled_at", { ascending: true });
+  if (error) { container.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  if (!data.length) { container.innerHTML = '<div class="empty-state">Aucune réunion à venir pour le moment.</div>'; return; }
+
+  container.innerHTML = "";
+  data.forEach(function (m) { container.appendChild(renderMeetingCard(m)); });
+}
+
+function renderMeetingCard(m) {
+  var wrap = document.createElement("div");
+  wrap.className = "meeting-card";
+
+  var head = document.createElement("div");
+  head.className = "meeting-card-head";
+  head.innerHTML = "<h3>" + escapeHtml(m.title) + "</h3><span class='pill " + m.meeting_type + "'>" + MEETING_TYPE_LABELS[m.meeting_type] + "</span>";
+  wrap.appendChild(head);
+
+  var when = document.createElement("div");
+  when.className = "meeting-when";
+  when.textContent = "📅 " + new Date(m.scheduled_at).toLocaleString("fr-FR", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  wrap.appendChild(when);
+
+  if (m.location) {
+    var loc = document.createElement("div");
+    loc.className = "meeting-location";
+    if (/^https?:\/\//.test(m.location)) loc.innerHTML = "🔗 <a href='" + escapeHtml(m.location) + "' target='_blank' rel='noopener'>" + escapeHtml(m.location) + "</a>";
+    else loc.textContent = "📍 " + m.location;
+    wrap.appendChild(loc);
+  }
+
+  if (m.agenda) {
+    var ag = document.createElement("details");
+    ag.className = "meeting-agenda";
+    ag.innerHTML = "<summary>Ordre du jour</summary><div class='meeting-agenda-text'>" + escapeHtml(m.agenda) + "</div>";
+    wrap.appendChild(ag);
+  }
+
+  var myAttendance = (m.meeting_attendees || []).find(function (a) { return a.user_id === profileRef.id; });
+  if (myAttendance) {
+    wrap.appendChild(renderRsvpBlock(m.id, myAttendance));
+  }
+
+  if (isBoard && m.created_by === profileRef.id) {
+    var attendees = m.meeting_attendees || [];
+    var confirmed = attendees.filter(function (a) { return a.rsvp_status; }).length;
+    var counts = { present: 0, absent: 0, incertain: 0 };
+    attendees.forEach(function (a) { if (a.rsvp_status) counts[a.rsvp_status]++; });
+    var tracker = document.createElement("details");
+    tracker.className = "ack-tracker";
+    var listHtml = attendees.map(function (a) {
+      var p = allProfiles.find(function (x) { return x.id === a.user_id; });
+      var name = p ? p.full_name : "—";
+      return "<li>" + RSVP_ICONS[a.rsvp_status || "pending"] + " " + escapeHtml(name) +
+        (a.rsvp_status ? " — " + RSVP_LABELS[a.rsvp_status] : " — en attente de réponse") + "</li>";
+    }).join("");
+    tracker.innerHTML = "<summary>" + confirmed + "/" + attendees.length + " ont répondu (" +
+      counts.present + " présent(e)s · " + counts.absent + " absent(e)s · " + counts.incertain + " incertain(e)s)</summary>" +
+      "<ul class='ack-list'>" + listHtml + "</ul>";
+    wrap.appendChild(tracker);
+  }
+
+  return wrap;
+}
+
+var RSVP_LABELS = { present: "Présent(e)", absent: "Absent(e)", incertain: "Incertain(e)" };
+var RSVP_ICONS = { present: "✅", absent: "❌", incertain: "❓", pending: "⏳" };
+
+function renderRsvpBlock(meetingId, attendance) {
+  var wrap = document.createElement("div");
+  wrap.className = "meeting-ack";
+
+  function showButtons() {
+    wrap.innerHTML = "";
+    var label = document.createElement("span");
+    label.style.cssText = "font-size:.82rem;color:var(--navy);font-weight:600;width:100%";
+    label.textContent = "Serez-vous présent(e) ?";
+    wrap.appendChild(label);
+    [["present", "✅ Je serai présent(e)"], ["absent", "❌ Je serai absent(e)"], ["incertain", "❓ Incertain(e)"]].forEach(function (opt) {
+      var btn = document.createElement("button");
+      btn.type = "button"; btn.className = "btn secondary";
+      btn.textContent = opt[1];
+      btn.addEventListener("click", function () { submitRsvp(meetingId, opt[0], wrap, attendance); });
+      wrap.appendChild(btn);
+    });
+  }
+
+  function showStatus() {
+    wrap.innerHTML = "";
+    var status = document.createElement("span");
+    status.className = "ack-done";
+    status.textContent = RSVP_ICONS[attendance.rsvp_status] + " " + RSVP_LABELS[attendance.rsvp_status] +
+      " — réponse envoyée le " + new Date(attendance.acknowledged_at).toLocaleDateString("fr-FR");
+    wrap.appendChild(status);
+    var changeBtn = document.createElement("button");
+    changeBtn.type = "button"; changeBtn.className = "btn secondary";
+    changeBtn.style.marginLeft = "10px";
+    changeBtn.textContent = "Modifier ma réponse";
+    changeBtn.addEventListener("click", showButtons);
+    wrap.appendChild(changeBtn);
+  }
+
+  if (attendance.rsvp_status) showStatus(); else showButtons();
+  return wrap;
+}
+
+async function submitRsvp(meetingId, status, wrap, attendance) {
+  var { error } = await capriSupabase.from("meeting_attendees")
+    .update({ rsvp_status: status, acknowledged_at: new Date().toISOString() })
+    .eq("meeting_id", meetingId).eq("user_id", profileRef.id);
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  CapriShell.toast("Réponse envoyée : " + RSVP_LABELS[status] + ".");
+  await loadUpcomingMeetings();
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
 
 function slugify(s) {
   return s.normalize("NFD").replace(/[̀-ͯ]/g, "")

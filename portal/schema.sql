@@ -174,9 +174,13 @@ create table if not exists meetings (
 create table if not exists meeting_attendees (
   meeting_id uuid not null references meetings(id) on delete cascade,
   user_id uuid not null references profiles(id) on delete cascade,
-  present boolean,
+  present boolean, -- présence effective, constatée après la réunion (rempli a posteriori)
+  rsvp_status text check (rsvp_status in ('present', 'absent', 'incertain')), -- réponse de l'invité(e) avant la réunion
+  acknowledged_at timestamptz, -- horodatage de la réponse RSVP — vaut accusé de réception
   primary key (meeting_id, user_id)
 );
+alter table meeting_attendees add column if not exists acknowledged_at timestamptz;
+alter table meeting_attendees add column if not exists rsvp_status text check (rsvp_status in ('present', 'absent', 'incertain'));
 
 create table if not exists resolutions (
   id uuid primary key default gen_random_uuid(),
@@ -710,8 +714,46 @@ drop policy if exists "avatars_storage_delete_own" on storage.objects;
 create policy "avatars_storage_delete_own" on storage.objects for delete
   using (bucket_id = 'avatars' and (storage.foldername(name))[1] = auth.uid()::text);
 
+-- -----------------------------------------------------------------------------
+-- 10. CAPRI Meet — réunions planifiées, ordre du jour, accusé de réception
+-- Première interface réelle sur les tables meetings/meeting_attendees
+-- (créées en section 5) : RLS activée maintenant que CAPRI Meet les utilise.
+-- -----------------------------------------------------------------------------
+alter table meetings enable row level security;
+alter table meeting_attendees enable row level security;
+
+drop policy if exists "meetings_select_relevant" on meetings;
+create policy "meetings_select_relevant" on meetings for select
+  using (
+    auth.uid() = created_by
+    or exists (select 1 from meeting_attendees ma where ma.meeting_id = meetings.id and ma.user_id = auth.uid())
+    or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
+  );
+drop policy if exists "meetings_insert_board" on meetings;
+create policy "meetings_insert_board" on meetings for insert
+  with check (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration')));
+drop policy if exists "meetings_update_board" on meetings;
+create policy "meetings_update_board" on meetings for update
+  using (auth.uid() = created_by or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration')));
+
+drop policy if exists "meeting_attendees_select_relevant" on meeting_attendees;
+create policy "meeting_attendees_select_relevant" on meeting_attendees for select
+  using (
+    auth.uid() = user_id
+    or exists (select 1 from meetings m where m.id = meeting_attendees.meeting_id and m.created_by = auth.uid())
+    or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
+  );
+drop policy if exists "meeting_attendees_insert_board" on meeting_attendees;
+create policy "meeting_attendees_insert_board" on meeting_attendees for insert
+  with check (exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration')));
+drop policy if exists "meeting_attendees_update_relevant" on meeting_attendees;
+create policy "meeting_attendees_update_relevant" on meeting_attendees for update
+  using (
+    auth.uid() = user_id
+    or exists (select 1 from profiles p where p.id = auth.uid() and p.role in ('direction', 'conseil_administration'))
+  );
+
 -- Phase 3+ : activer RLS sur les tables restantes au fur et à mesure qu'une
--- interface les utilise réellement (meetings, resolutions, projects, kpis,
--- partners, audit_log). Les créer maintenant sans RLS actif évite de
--- bloquer leur usage avant d'avoir une politique d'accès définie module par
--- module.
+-- interface les utilise réellement (resolutions, projects, kpis, partners,
+-- audit_log). Les créer maintenant sans RLS actif évite de bloquer leur
+-- usage avant d'avoir une politique d'accès définie module par module.

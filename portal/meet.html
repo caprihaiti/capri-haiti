@@ -199,6 +199,8 @@ async function scheduleMeeting(e) {
       if (aErr) throw aErr;
     }
 
+    await postConvocationToMessenger(meeting, title, type, scheduledAt, location, agenda);
+
     CapriShell.toast("Réunion planifiée et convocations envoyées (" + rows.length + " personne(s)).");
     document.getElementById("scheduleForm").reset();
     prefillLocation();
@@ -211,6 +213,30 @@ async function scheduleMeeting(e) {
 }
 
 var MEETING_TYPE_LABELS = { conseil: "Conseil d'administration", equipe: "Équipe CAPRI", externe: "Externe" };
+
+// Publie la convocation dans CAPRI Mail (le canal de diffusion de CAPRI
+// Messenger) en plus de la liste « Réunions à venir » — pour que les
+// personnes convoquées la voient aussi là où elles lisent déjà leurs
+// messages, sans avoir à penser à ouvrir CAPRI Meet. Échec silencieux
+// volontaire : l'absence du canal de diffusion ne doit jamais empêcher la
+// planification de la réunion elle-même.
+async function postConvocationToMessenger(meeting, title, type, scheduledAt, location, agenda) {
+  try {
+    var { data: broadcastChannel } = await capriSupabase.from("channels").select("id").eq("is_broadcast", true).limit(1).maybeSingle();
+    if (!broadcastChannel) return;
+
+    var when = new Date(scheduledAt).toLocaleString("fr-FR", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    var lines = [
+      "📅 Convocation — " + title,
+      MEETING_TYPE_LABELS[type] + " · " + when,
+    ];
+    if (location) lines.push("🔗 " + location);
+    if (agenda) lines.push("", "Ordre du jour :", agenda);
+    lines.push("", "Répondez directement dans CAPRI Meet (Présent(e) / Absent(e) / Incertain(e)).");
+
+    await capriSupabase.from("messages").insert({ channel_id: broadcastChannel.id, sender_id: profileRef.id, body: lines.join("\n"), meeting_id: meeting.id });
+  } catch (e) { /* la convocation reste visible dans CAPRI Meet même si ceci échoue */ }
+}
 
 async function loadUpcomingMeetings() {
   var container = document.getElementById("upcomingMeetings");

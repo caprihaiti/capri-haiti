@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAPRI Communiqués</title>
+<meta name="description" content="Communiqués officiels de CAPRI — Centre d'Appui à la Performance et au Renforcement Institutionnel.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1B3A5C;--navy-deep:#0E1F35;--navy-mid:#163152;
+  --teal:#2A9D8F;--teal-dark:#1E7A6E;--teal-pale:rgba(42,157,143,.08);
+  --gold:#D4A843;--gold-light:#E5C56E;--gold-pale:rgba(212,168,67,.1);
+  --white:#FFFFFF;--off:#F5F6F8;--light:#E9EAED;
+  --grey:#6B7280;--dark:#1A1D23;
+  --display:'Playfair Display',Georgia,serif;
+  --body:'Source Sans 3',-apple-system,system-ui,sans-serif;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06);
+  --shadow-md:0 4px 20px rgba(0,0,0,.08);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.12);
+  --radius:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);color:var(--dark);line-height:1.7;background:var(--white);font-size:16px;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+h1,h2,h3{font-family:var(--display);color:var(--navy)}
+a{color:inherit}
+.wrap{max-width:820px;margin:0 auto;padding:0 28px}
+
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-bottom:1px solid rgba(27,58,92,.08)}
+.topbar-inner{max-width:820px;margin:0 auto;padding:16px 28px}
+.back-link{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--navy);font-weight:600;font-size:.86rem}
+.back-link:hover{color:var(--teal)}
+
+.hero{background:linear-gradient(165deg,var(--navy-deep),var(--navy) 55%,var(--navy-mid));color:#fff;padding:64px 0 48px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-100px;top:-80px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(212,168,67,.16),transparent 70%)}
+.hero-inner{position:relative;z-index:1}
+.eyebrow{display:inline-block;background:rgba(212,168,67,.16);color:var(--gold-light);font-size:.74rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:50px;margin-bottom:16px}
+.hero h1{font-size:2.1rem;color:#fff;line-height:1.2}
+.hero p.lead{margin-top:14px;max-width:600px;color:rgba(255,255,255,.85);font-size:1rem}
+
+section{padding:44px 0}
+p{color:#3a4250;font-size:.95rem}
+
+.communique{background:#fff;border:1px solid var(--light);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:30px 32px;margin-bottom:24px}
+.communique-meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:6px}
+.communique-date{font-size:.76rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal-dark)}
+.communique h2{font-size:1.35rem;margin-bottom:18px}
+
+.lang-tabs{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap}
+.lang-tab{background:var(--off);border:1px solid var(--light);color:var(--grey);font:600 .78rem var(--body);padding:7px 16px;border-radius:50px;cursor:pointer;transition:.15s}
+.lang-tab:hover{border-color:var(--teal)}
+.lang-tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+.communique-body{display:none}
+.communique-body.active{display:block}
+.communique-body p{margin-bottom:14px}
+.communique-body ul{margin:14px 0 14px 22px}
+.communique-body li{color:#3a4250;font-size:.95rem;margin-bottom:8px}
+.communique-sign{margin-top:22px;padding-top:16px;border-top:1px solid var(--off);font-size:.86rem;color:var(--navy);font-weight:600}
+.communique-sign span{display:block;font-weight:400;color:var(--grey);font-size:.82rem;margin-top:2px}
+
+.empty-more{background:var(--off);border:1px dashed var(--light);border-radius:var(--radius);padding:24px 28px;text-align:center;color:var(--grey);font-size:.88rem}
+
+footer{background:var(--navy-deep);color:rgba(255,255,255,.6);padding:36px 0;font-size:.78rem}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+footer a{color:rgba(255,255,255,.75);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="back-link" href="index.html">← Retour au site CAPRI</a>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <span class="eyebrow">CAPRI Communiqués</span>
+    <h1>Communiqués officiels de CAPRI</h1>
+    <p class="lead">Positions publiques et déclarations institutionnelles de CAPRI — Centre d'Appui à la Performance et au Renforcement Institutionnel — disponibles en français, en créole haïtien et en anglais.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+
+    <article class="communique">
+      <div class="communique-meta">
+        <span class="communique-date">26 août 2026</span>
+      </div>
+      <div class="lang-tabs" role="group" aria-label="Langue du communiqué">
+        <button type="button" class="lang-tab active" data-clang="fr">Français</button>
+        <button type="button" class="lang-tab" data-clang="ht">Kreyòl</button>
+        <button type="button" class="lang-tab" data-clang="en">English</button>
+      </div>
+
+      <div class="communique-body active" data-clang="fr">
+        <h2>Solidarité avec la population de Kenscoff</h2>
+        <p>CAPRI — Centre d'Appui à la Performance et au Renforcement Institutionnel — a appris avec une profonde douleur les conséquences de l'attaque armée qui a frappé Kenscoff dans la nuit du 23 au 24 août 2026.</p>
+        <p>Nous présentons nos sincères condoléances aux familles endeuillées et exprimons notre solidarité avec les personnes blessées, enlevées ou contraintes de quitter leur domicile. Nos pensées accompagnent également les autorités locales et toutes les personnes mobilisées pour porter secours aux victimes.</p>
+        <p>CAPRI condamne fermement les assassinats, les enlèvements, les violences sexuelles, les incendies d'habitations et les autres actes de brutalité commis contre la population civile. Ces crimes portent atteinte à la vie, à la dignité humaine et à l'autorité de l'État sur le territoire national.</p>
+        <p>La tragédie des 23 et 24 août 2026 ne constitue malheureusement pas un événement isolé. Elle s'inscrit dans une succession d'attaques meurtrières qui frappent la commune de Kenscoff depuis janvier 2025, causant des centaines de morts, des déplacements massifs de population et la destruction de nombreuses habitations — dont, le 6 avril 2025, l'incendie de l'hôtel Le Montcel, site historique et touristique emblématique de la commune. CAPRI estime que cette répétition révèle une défaillance structurelle exigeant une réponse permanente, coordonnée et territorialisée de l'État, au-delà des interventions sécuritaires temporaires.</p>
+        <p>La tragédie de Kenscoff touche CAPRI au cœur de sa mission. Elle rappelle l'urgence de renforcer les capacités des institutions publiques en matière de prévention, de renseignement, de coordination territoriale, de gestion de crise, de protection de la population et de réponse rapide aux menaces.</p>
+        <p>CAPRI demande à l'État haïtien, par l'intermédiaire des institutions compétentes, de :</p>
+        <ul>
+          <li>fournir rapidement une assistance médicale, psychologique, alimentaire et logistique aux victimes ;</li>
+          <li>protéger la population de Kenscoff et sécuriser les zones menacées ;</li>
+          <li>renforcer la coordination entre le MICT, le CSPN, la PNH, les autorités locales, la protection civile et les autorités judiciaires ;</li>
+          <li>mobiliser les moyens nécessaires pour retrouver et libérer les personnes enlevées ;</li>
+          <li>conduire des enquêtes rigoureuses afin d'identifier, d'arrêter et de traduire les responsables en justice ;</li>
+          <li>établir des mécanismes territoriaux d'alerte, de prévention et de réponse capables de limiter la répétition de telles tragédies.</li>
+        </ul>
+        <p>CAPRI appelle également les Nations Unies, les organisations régionales, les pays amis d'Haïti et les autres partenaires potentiels à fournir une assistance rapide, coordonnée et adaptée aux besoins de la population, en appui aux autorités haïtiennes. Kenscoff a besoin de secours immédiats ; Haïti a besoin de moyens durables pour rétablir la sécurité et la présence de l'État sur l'ensemble du territoire.</p>
+        <p>Dans le respect de la mémoire des victimes, CAPRI renouvelle son engagement à contribuer au renforcement des institutions chargées de la prévention, de la sécurité intérieure, de la gestion des crises et de la protection de la population.</p>
+        <div class="communique-sign">CAPRI<span>Votre référence en renforcement institutionnel — 26 août 2026</span></div>
+      </div>
+
+      <div class="communique-body" data-clang="ht">
+        <h2>Solidarite avèk popilasyon Kenscoff la</h2>
+        <p>CAPRI — Centre d'Appui à la Performance et au Renforcement Institutionnel — aprann avèk anpil doulè konsekans atak ame ki te frape Kenscoff nan nwit 23 pou rive 24 dawout 2026 la.</p>
+        <p>Nou prezante senpati nou bay fanmi moun ki pèdi lavi yo, moun ki blese yo, moun yo kidnape yo, ansanm ak tout fanmi ki oblije kite kay yo. Nou kanpe an solidarite avèk popilasyon Kenscoff la, otorite lokal yo ak tout moun k ap pote sekou bay viktim yo nan moman difisil sa a.</p>
+        <p>CAPRI kondane ak tout fòs li asasina, kidnapin, vyolans seksyèl, destriksyon kay ak tout lòt zak brutalite ki fèt kont popilasyon sivil la. Zak sa yo se yon atak sou lavi, diyite moun ak otorite Leta sou teritwa nasyonal la.</p>
+        <p>Malerezman, trajedi 23 ak 24 dawout 2026 la se pa yon zak izole. Li fè pati yon seri atak mòtèl k ap frape komin Kenscoff depi janvye 2025, ki lakòz plizyè santèn moun mouri, gwo deplasman popilasyon ak destriksyon anpil kay — pami yo, boule Otèl Le Montcel, yon sit istorik ak touristik ki te make komin nan, nan dat 6 avril 2025. CAPRI estime repetisyon sa a montre gen yon feblès estriktirèl ki mande yon repons Leta ki pèmanan, kowòdone e ki anrasinen nan reyalite tèritwa a, pi lwen pase sèl entèvansyon sekirite tanporè.</p>
+        <p>Trajedi Kenscoff la touche CAPRI dirèkteman nan misyon li. Li montre ankò nesesite pou ranfòse kapasite enstitisyon piblik yo nan prevansyon, ranseyman, kowòdinasyon teritoryal, jesyon kriz, pwoteksyon popilasyon an ak repons rapid devan menas yo.</p>
+        <p>CAPRI mande Leta ayisyen, atravè enstitisyon ki konsène yo, pou li :</p>
+        <ul>
+          <li>pote asistans medikal, sikolojik, alimantè ak lojistik rapid bay viktim yo ;</li>
+          <li>pwoteje moun ki rete Kenscoff yo epi sekirize zòn ki menase yo ;</li>
+          <li>ranfòse kowòdinasyon ant MICT, CSPN, PNH, otorite lokal yo, sèvis pwoteksyon sivil ak lajistis ;</li>
+          <li>chèche epi delivre moun yo kidnape yo ;</li>
+          <li>mennen ankèt serye pou idantifye, arete epi jije moun ki responsab zak sa yo ;</li>
+          <li>mete yon sistèm alèt, prevansyon ak repons teritoryal ki kapab limite repetisyon trajedi sa yo.</li>
+        </ul>
+        <p>CAPRI mande tou Nasyonzini, òganizasyon rejyonal yo, peyi zanmi Ayiti yo ansanm ak lòt patnè potansyèl yo pou yo pote yon asistans rapid, kowòdone ak adapte ak bezwen popilasyon an, an sipò ak otorite ayisyen yo. Kenscoff bezwen sekou imedya ; Ayiti bezwen mwayen dirab pou retabli sekirite ak prezans Leta sou tout teritwa li.</p>
+        <p>Nan respè memwa viktim yo, CAPRI renouvle angajman li pou kontribye nan ranfòsman enstitisyon ki responsab prevansyon, sekirite enteryè, jesyon kriz ak pwoteksyon popilasyon an.</p>
+        <div class="communique-sign">CAPRI<span>Referans ou nan ranfòsman enstitisyonèl — 26 dawout 2026</span></div>
+      </div>
+
+      <div class="communique-body" data-clang="en">
+        <h2>Solidarity with the People of Kenscoff</h2>
+        <p>CAPRI — Centre d'Appui à la Performance et au Renforcement Institutionnel — learned with profound sorrow of the consequences of the armed attack carried out in Kenscoff during the night of August 23–24, 2026.</p>
+        <p>We extend our sincere condolences to the bereaved families and express our solidarity with those who were injured, abducted or forced to flee their homes. Our thoughts are also with the local authorities and all those providing assistance to the victims.</p>
+        <p>CAPRI firmly condemns the killings, abductions, sexual violence, destruction of homes and other acts of brutality committed against civilians. These crimes constitute an assault on human life, human dignity and the authority of the State throughout the national territory.</p>
+        <p>Unfortunately, the tragedy of August 23–24, 2026 is not an isolated event. It is part of a series of deadly attacks that have struck the commune of Kenscoff since January 2025, causing hundreds of deaths, massive population displacement and the destruction of numerous homes — including the burning, on April 6, 2025, of the Le Montcel hotel, a historic and touristic landmark of the commune. CAPRI believes that this recurrence reveals a structural failure requiring a permanent, coordinated and territorially grounded State response, beyond temporary security interventions.</p>
+        <p>The tragedy in Kenscoff directly affects CAPRI's institutional mission. It once again demonstrates the urgent need to strengthen public institutions in prevention, intelligence, territorial coordination, crisis management, civilian protection and rapid response to security threats.</p>
+        <p>CAPRI calls upon the Haitian State, through the competent institutions, to:</p>
+        <ul>
+          <li>provide immediate medical, psychological, food and logistical assistance to the victims;</li>
+          <li>protect the people of Kenscoff and secure threatened communities;</li>
+          <li>strengthen coordination among the MICT, the CSPN, the Haitian National Police, local authorities, civil protection services and judicial authorities;</li>
+          <li>mobilize the necessary resources to locate and free those who were abducted;</li>
+          <li>conduct thorough investigations to identify, arrest and prosecute those responsible;</li>
+          <li>establish territorial early-warning, prevention and response mechanisms capable of reducing the risk of similar attacks.</li>
+        </ul>
+        <p>CAPRI also calls upon the United Nations, regional organizations, Haiti's partner countries and other potential partners to provide rapid, coordinated and needs-based assistance in support of the Haitian authorities. Kenscoff requires immediate relief; Haiti requires sustainable means to restore security and the presence of the State throughout its territory.</p>
+        <p>In honor of the victims, CAPRI renews its commitment to supporting the strengthening of the institutions responsible for prevention, internal security, crisis management and the protection of the population.</p>
+        <div class="communique-sign">CAPRI<span>Your reference for institutional strengthening — August 26, 2026</span></div>
+      </div>
+    </article>
+
+    <div class="empty-more">D'autres communiqués seront publiés ici au fur et à mesure.</div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div>© CAPRI — Centre d'Appui à la Performance et au Renforcement Institutionnel.</div>
+    <div><a href="index.html">Retour au site CAPRI</a></div>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll(".communique").forEach(function (article) {
+  var tabs = article.querySelectorAll(".lang-tab");
+  var bodies = article.querySelectorAll(".communique-body");
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      var lang = tab.getAttribute("data-clang");
+      tabs.forEach(function (t) { t.classList.toggle("active", t === tab); });
+      bodies.forEach(function (b) { b.classList.toggle("active", b.getAttribute("data-clang") === lang); });
+    });
+  });
+});
+</script>
+</body>
+</html>

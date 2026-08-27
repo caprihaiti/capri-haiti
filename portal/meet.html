@@ -256,29 +256,18 @@ function renderMeetingCard(m) {
   var wrap = document.createElement("div");
   wrap.className = "meeting-card";
 
-  var head = document.createElement("div");
-  head.className = "meeting-card-head";
-  head.innerHTML = "<h3>" + escapeHtml(m.title) + "</h3><span class='pill " + m.meeting_type + "'>" + MEETING_TYPE_LABELS[m.meeting_type] + "</span>";
-  wrap.appendChild(head);
+  var detailsWrap = document.createElement("div");
+  detailsWrap.className = "meeting-details";
+  renderMeetingDetails(m, detailsWrap);
+  wrap.appendChild(detailsWrap);
 
-  var when = document.createElement("div");
-  when.className = "meeting-when";
-  when.textContent = "📅 " + new Date(m.scheduled_at).toLocaleString("fr-FR", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
-  wrap.appendChild(when);
-
-  if (m.location) {
-    var loc = document.createElement("div");
-    loc.className = "meeting-location";
-    if (/^https?:\/\//.test(m.location)) loc.innerHTML = "🔗 <a href='" + escapeHtml(m.location) + "' target='_blank' rel='noopener'>" + escapeHtml(m.location) + "</a>";
-    else loc.textContent = "📍 " + m.location;
-    wrap.appendChild(loc);
-  }
-
-  if (m.agenda) {
-    var ag = document.createElement("details");
-    ag.className = "meeting-agenda";
-    ag.innerHTML = "<summary>Ordre du jour</summary><div class='meeting-agenda-text'>" + escapeHtml(m.agenda) + "</div>";
-    wrap.appendChild(ag);
+  if (isBoard) {
+    var editBtn = document.createElement("button");
+    editBtn.type = "button"; editBtn.className = "btn secondary";
+    editBtn.style.cssText = "padding:5px 14px;font-size:.76rem;margin-bottom:10px";
+    editBtn.textContent = "Modifier la réunion";
+    editBtn.addEventListener("click", function () { renderMeetingEditForm(m, detailsWrap); });
+    wrap.appendChild(editBtn);
   }
 
   var myAttendance = (m.meeting_attendees || []).find(function (a) { return a.user_id === profileRef.id; });
@@ -306,6 +295,83 @@ function renderMeetingCard(m) {
   }
 
   return wrap;
+}
+
+function renderMeetingDetails(m, detailsWrap) {
+  detailsWrap.innerHTML = "";
+
+  var head = document.createElement("div");
+  head.className = "meeting-card-head";
+  head.innerHTML = "<h3>" + escapeHtml(m.title) + "</h3><span class='pill " + m.meeting_type + "'>" + MEETING_TYPE_LABELS[m.meeting_type] + "</span>";
+  detailsWrap.appendChild(head);
+
+  var when = document.createElement("div");
+  when.className = "meeting-when";
+  when.textContent = "📅 " + new Date(m.scheduled_at).toLocaleString("fr-FR", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  detailsWrap.appendChild(when);
+
+  if (m.location) {
+    var loc = document.createElement("div");
+    loc.className = "meeting-location";
+    if (/^https?:\/\//.test(m.location)) loc.innerHTML = "🔗 <a href='" + escapeHtml(m.location) + "' target='_blank' rel='noopener'>" + escapeHtml(m.location) + "</a>";
+    else loc.textContent = "📍 " + m.location;
+    detailsWrap.appendChild(loc);
+  }
+
+  if (m.agenda) {
+    var ag = document.createElement("details");
+    ag.className = "meeting-agenda";
+    ag.setAttribute("open", "");
+    ag.innerHTML = "<summary>Ordre du jour</summary><div class='meeting-agenda-text'>" + escapeHtml(m.agenda) + "</div>";
+    detailsWrap.appendChild(ag);
+  }
+}
+
+// Édition en place (titre, date, heure, lieu, ordre du jour) — nécessaire
+// dès qu'un point s'ajoute ou change après l'envoi de la convocation
+// initiale (l'ordre du jour évolue souvent jusqu'à la dernière minute).
+function renderMeetingEditForm(m, detailsWrap) {
+  var dt = new Date(m.scheduled_at);
+  var dateVal = dt.toLocaleDateString("sv-SE"); // YYYY-MM-DD, format natif de <input type=date>
+  var timeVal = dt.toTimeString().slice(0, 5); // HH:MM
+
+  detailsWrap.innerHTML = "";
+  var form = document.createElement("form");
+  form.innerHTML =
+    "<div class='form-field'><label>Titre</label><input type='text' class='editTitle' value=\"" + escapeHtml(m.title) + "\" required></div>" +
+    "<div class='grid-2'>" +
+    "<div class='form-field'><label>Date</label><input type='date' class='editDate' value='" + dateVal + "' required></div>" +
+    "<div class='form-field'><label>Heure</label><input type='time' class='editTime' value='" + timeVal + "' required></div>" +
+    "</div>" +
+    "<div class='form-field'><label>Lieu / lien</label><input type='text' class='editLocation' value=\"" + escapeHtml(m.location || "") + "\"></div>" +
+    "<div class='form-field'><label>Ordre du jour</label><textarea class='editAgenda' rows='6'>" + escapeHtml(m.agenda || "") + "</textarea></div>" +
+    "<div style='display:flex;gap:10px'><button type='submit' class='btn'>Enregistrer</button><button type='button' class='btn secondary cancelEditBtn'>Annuler</button></div>";
+  detailsWrap.appendChild(form);
+
+  form.querySelector(".cancelEditBtn").addEventListener("click", function () { renderMeetingDetails(m, detailsWrap); });
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    saveMeetingEdit(m, detailsWrap, {
+      title: form.querySelector(".editTitle").value.trim(),
+      date: form.querySelector(".editDate").value,
+      time: form.querySelector(".editTime").value,
+      location: form.querySelector(".editLocation").value.trim(),
+      agenda: form.querySelector(".editAgenda").value.trim(),
+    });
+  });
+}
+
+async function saveMeetingEdit(m, detailsWrap, values) {
+  var payload = {
+    title: values.title,
+    scheduled_at: new Date(values.date + "T" + values.time).toISOString(),
+    location: values.location || null,
+    agenda: values.agenda || null,
+  };
+  var { error } = await capriSupabase.from("meetings").update(payload).eq("id", m.id);
+  if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
+  CapriShell.toast("Réunion mise à jour.");
+  await loadUpcomingMeetings();
 }
 
 var RSVP_LABELS = { present: "Présent(e)", absent: "Absent(e)", incertain: "Incertain(e)" };

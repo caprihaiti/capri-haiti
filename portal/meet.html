@@ -220,14 +220,14 @@ var MEETING_TYPE_LABELS = { conseil: "Conseil d'administration", equipe: "Équip
 // messages, sans avoir à penser à ouvrir CAPRI Meet. Échec silencieux
 // volontaire : l'absence du canal de diffusion ne doit jamais empêcher la
 // planification de la réunion elle-même.
-async function postConvocationToMessenger(meeting, title, type, scheduledAt, location, agenda) {
+async function postConvocationToMessenger(meeting, title, type, scheduledAt, location, agenda, isUpdate) {
   try {
     var { data: broadcastChannel } = await capriSupabase.from("channels").select("id").eq("is_broadcast", true).limit(1).maybeSingle();
     if (!broadcastChannel) return;
 
     var when = new Date(scheduledAt).toLocaleString("fr-FR", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
     var lines = [
-      "📅 Convocation — " + title,
+      (isUpdate ? "📝 Mise à jour de la convocation — " : "📅 Convocation — ") + title,
       MEETING_TYPE_LABELS[type] + " · " + when,
     ];
     if (location) lines.push("🔗 " + location);
@@ -370,7 +370,10 @@ async function saveMeetingEdit(m, detailsWrap, values) {
   };
   var { error } = await capriSupabase.from("meetings").update(payload).eq("id", m.id);
   if (error) { CapriShell.toast("Erreur : " + error.message, true); return; }
-  CapriShell.toast("Réunion mise à jour.");
+
+  await postConvocationToMessenger(m, payload.title, m.meeting_type, payload.scheduled_at, payload.location, payload.agenda, true);
+
+  CapriShell.toast("Réunion mise à jour et publiée dans CAPRI Mail.");
   await loadUpcomingMeetings();
 }
 

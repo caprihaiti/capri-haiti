@@ -65,6 +65,14 @@ window.CAPRI_KB = [
     fr: "CAPRI n'est ni un parti politique, ni une structure électorale, ni une administration parallèle, ni une autorité de contrôle de l'État, ni une juridiction, ni une force de sécurité. C'est un centre d'expertise qui appuie les institutions sans se substituer aux autorités légalement compétentes.",
     ht: "CAPRI pa yon pati politik, ni yon estrikti elektoral, ni yon administrasyon paralèl, ni yon otorite kontwòl Leta, ni yon jiridiksyon, ni yon fòs sekirite. Se yon sant ekspètiz ki apiye enstitisyon yo san li pa ranplase otorite ki gen konpetans legal yo."
   },
+  {
+    id: "gouvernance_interne",
+    keywords: ["comment capri est dirige", "comment est dirigee capri", "comment est dirige capri", "qui dirige capri", "qui gere capri", "gouvernance de capri", "gouvernance interne",
+      "structure de gouvernance", "conseil d'administration de capri", "qui est le directeur general", "directeur general de capri", "president de capri", "president du conseil",
+      "kijan capri dirije", "kilès ki dirije capri", "kimoun ki dirije capri", "direktè jeneral capri", "kilès ki direktè jeneral", "gouvènans capri", "gouvènans entèn"],
+    fr: "La gouvernance interne de CAPRI (structure de direction, conseil d'administration, documents de gouvernance) fait l'objet d'un accès contrôlé et n'est pas détaillée publiquement. Pour toute question institutionnelle, écrivez à contact@capri-haiti.org, appelez CAPRI au +509 37 06 1335 ou consultez la page Contact.",
+    ht: "Gouvènans entèn CAPRI (estrikti direksyon, konsèy administrasyon, dokiman gouvènans) fè objè yon aksè kontwole e li pa detaye piblikman. Pou nenpòt kesyon enstitisyonèl, ekri nan contact@capri-haiti.org, rele CAPRI nan +509 37 06 1335 oswa konsilte paj Kontak la."
+  },
 
   // ---------- INSTITUTIONS ACCOMPAGNÉES ----------
   {

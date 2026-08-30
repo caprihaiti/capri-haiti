@@ -59,10 +59,13 @@ console.log("\n--- Menm kesyon yo an kreyòl ayisyen ---");
 check("Kisa CAPRI ye ?", "ht", "identite");
 check("Ki sèvis CAPRI ofri ?", "ht", "services");
 
+console.log("\n--- Gouvernance interne : réponse honnête dédiée (accès contrôlé), pas d'invention ---");
+check("Comment CAPRI est dirigée ?", "fr", "gouvernance_interne");
+check("Kilès ki direktè jeneral CAPRI kounye a ?", "ht", "gouvernance_interne");
+
 console.log("\n--- Questions volontairement hors base (doivent déclencher le repli honnête) ---");
 check("Quel est le prix d'un billet d'avion pour Miami ?", "fr", "NO_MATCH");
 check("Est-ce que CAPRI a signé un accord avec la Banque mondiale ?", "fr", "NO_MATCH");
-check("Kilès ki direktè jeneral CAPRI kounye a ?", "ht", "NO_MATCH");
 
 console.log(`\n=== Résultat : ${pass} test(s) réussi(s), ${fail} échec(s) ===`);
 if (fail > 0) process.exitCode = 1;

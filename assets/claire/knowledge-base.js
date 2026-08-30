@@ -21,7 +21,11 @@ window.CAPRI_KB = [
   // ---------- IDENTITÉ / MISSION / VISION ----------
   {
     id: "identite",
-    keywords: ["qu'est-ce que capri", "qu'est ce que capri", "qui etes vous", "qui est capri", "kisa capri ye", "c'est quoi capri", "kimoun capri ye", "sa se ki capri", "presentation de capri", "prezantasyon capri"],
+    keywords: ["qu'est-ce que capri", "qu'est ce que capri", "qui etes vous", "qui est capri", "kisa capri ye", "c'est quoi capri", "kimoun capri ye", "sa se ki capri", "presentation de capri", "prezantasyon capri",
+      "parle-moi de capri", "parlez-moi de capri", "parle moi de capri", "parlez moi de capri", "parle-moi de cpri", "parle moi de cpri",
+      "dis-moi ce qu'est capri", "dis moi ce qu'est capri", "explique-moi capri", "explique moi capri", "decris capri", "decris-moi capri",
+      "en savoir plus sur capri", "informations sur capri", "information sur capri", "info sur capri", "capri en bref", "resume capri", "presente capri", "presente-moi capri",
+      "pale m de capri", "pale m sou capri", "esplike m capri", "esplike m sou capri", "enfòmasyon sou capri", "enfomasyon sou capri", "plis enfo sou capri"],
     fr: "CAPRI — Centre d'Appui à la Performance et au Renforcement Institutionnel — est un organisme indépendant spécialisé dans l'appui, la modernisation et le renforcement des institutions publiques haïtiennes. Sa signature : « Renforcer les institutions. Accroître la capacité de l'État. »",
     ht: "CAPRI — Sant Apui pou Pèfòmans ak Ranfòsman Enstitisyonèl — se yon òganis endepandan ki espesyalize nan apiye, mòdènize ak ranfòse enstitisyon piblik ayisyen yo. Slogan li: « Ranfòse enstitisyon yo. Ogmante kapasite Leta a. »"
   },

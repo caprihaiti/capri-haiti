@@ -38,6 +38,9 @@ summary span{font-size:12px;color:var(--muted)}
 .eyebrow{font-size:11px;letter-spacing:.16em;color:var(--gold);font-weight:800}
 .pill{display:inline-block;border-radius:20px;padding:2px 9px;font-size:11px;background:#26374d}
 code{background:#0a1524;padding:1px 5px;border-radius:4px}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:40px}
+.pw-toggle{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px;padding:6px 8px}
 
 /* App shell / sidebar */
 .app-shell{display:flex;min-height:100vh}

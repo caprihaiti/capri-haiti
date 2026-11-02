@@ -20,6 +20,9 @@
   .login-msg.info{background:#113230;color:#8fe0cf}
   .login-footer{text-align:center;margin-top:16px;font-size:.74rem;color:var(--muted)}
   .forgot-link{display:block;text-align:right;font-size:.76rem;margin:-6px 0 14px}
+  .pw-wrap{position:relative}
+  .pw-wrap input{padding-right:40px}
+  .pw-toggle{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px;padding:6px 8px}
 </style>
 </head>
 <body>
@@ -44,7 +47,10 @@
     </div>
     <div class="form-field">
       <label for="siPass">Mot de passe</label>
-      <input type="password" id="siPass" required autocomplete="current-password">
+      <div class="pw-wrap">
+        <input type="password" id="siPass" required autocomplete="current-password">
+        <button type="button" class="pw-toggle" data-target="siPass" aria-label="Afficher le mot de passe">👁️</button>
+      </div>
     </div>
     <a href="#" class="forgot-link" id="forgotLink">Mot de passe oublié ?</a>
     <button type="submit" class="btn" style="width:100%;justify-content:center">Se connecter</button>
@@ -61,7 +67,10 @@
     </div>
     <div class="form-field">
       <label for="suPass">Mot de passe (8 caractères min.)</label>
-      <input type="password" id="suPass" required minlength="8" autocomplete="new-password">
+      <div class="pw-wrap">
+        <input type="password" id="suPass" required minlength="8" autocomplete="new-password">
+        <button type="button" class="pw-toggle" data-target="suPass" aria-label="Afficher le mot de passe">👁️</button>
+      </div>
     </div>
     <button type="submit" class="btn" style="width:100%;justify-content:center">Créer mon compte</button>
   </form>
@@ -121,6 +130,15 @@ signupForm.addEventListener("submit", async function (e) {
   if (error) { showMsg("Création impossible : " + error.message, "error"); return; }
   showMsg("Compte créé. Un administrateur doit maintenant vous attribuer un rôle avant que vous puissiez accéder à l'outil.", "info");
   signupForm.reset();
+});
+
+document.querySelectorAll(".pw-toggle").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var input = document.getElementById(btn.getAttribute("data-target"));
+    var showing = input.type === "text";
+    input.type = showing ? "password" : "text";
+    btn.textContent = showing ? "👁️" : "🙈";
+  });
 });
 
 document.getElementById("forgotLink").addEventListener("click", async function (e) {

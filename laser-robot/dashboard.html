@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registre des candidats — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <p class="eyebrow">LASER-ROBOT</p>
+      <h1>Registre des candidats</h1>
+      <p class="muted">Chaque candidat est évalué avec la même charte nationale (22 domaines, 78 critères). Aucun score global, classement ni recommandation de vote n'est calculé.</p>
+    </div>
+
+    <div class="card" id="newCandidateCard" hidden>
+      <h2>Nouveau candidat</h2>
+      <form id="newCandidateForm">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="cName">Nom complet</label>
+            <input type="text" id="cName" required>
+          </div>
+          <div class="form-field">
+            <label for="cGroup">Groupe politique</label>
+            <input type="text" id="cGroup">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="cCep">Statut CEP</label>
+            <input type="text" id="cCep" placeholder="Non vérifié">
+          </div>
+          <div class="form-field">
+            <label for="cPhoto">Lien photo (http(s):// uniquement)</label>
+            <input type="url" id="cPhoto" placeholder="https://…">
+          </div>
+        </div>
+        <button type="submit" class="btn">Créer la fiche (les 78 critères sont initialisés automatiquement)</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="sectionhead">
+        <h2>Candidats enregistrés</h2>
+      </div>
+      <div id="candidatesList"><div class="empty-state">Chargement…</div></div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var profileRef = null;
+
+LaserAuth.requireSession().then(async function (session) {
+  profileRef = session.profile;
+  LaserShell.renderSidebar(session.profile, "dashboard");
+  if (profileRef.role === "admin" || profileRef.role === "reviewer") {
+    document.getElementById("newCandidateCard").hidden = false;
+    document.getElementById("newCandidateForm").addEventListener("submit", createCandidate);
+  }
+  await loadCandidates();
+});
+
+async function createCandidate(e) {
+  e.preventDefault();
+  var photo = document.getElementById("cPhoto").value.trim();
+  if (photo && !/^https?:\/\//.test(photo)) {
+    LaserShell.toast("Le lien photo doit commencer par http:// ou https://.", true);
+    return;
+  }
+  var payload = {
+    full_name: document.getElementById("cName").value.trim(),
+    political_group: document.getElementById("cGroup").value.trim() || null,
+    cep_status: document.getElementById("cCep").value.trim() || "Non vérifié",
+    photo_url: photo || null,
+    created_by: profileRef.id
+  };
+  var { data, error } = await laserSupabase.from("candidates").insert(payload).select("id").single();
+  if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
+  window.location.href = "candidate.html?id=" + data.id;
+}
+
+async function loadCandidates() {
+  var { data, error } = await laserSupabase
+    .from("candidates")
+    .select("id, full_name, political_group, cep_status, created_at")
+    .order("created_at", { ascending: false });
+  var container = document.getElementById("candidatesList");
+  if (error) { container.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  if (!data.length) { container.innerHTML = '<div class="empty-state">Aucun candidat enregistré pour l\'instant.</div>'; return; }
+
+  container.innerHTML = '<table class="data-table"><thead><tr><th>Nom</th><th>Groupe politique</th><th>Statut CEP</th><th>Ajouté le</th></tr></thead><tbody>' +
+    data.map(function (c) {
+      return '<tr style="cursor:pointer" onclick="window.location.href=\'candidate.html?id=' + c.id + '\'">' +
+        "<td><b>" + escapeHtml(c.full_name) + "</b></td>" +
+        "<td>" + escapeHtml(c.political_group || "—") + "</td>" +
+        '<td><span class="status">' + escapeHtml(c.cep_status) + "</span></td>" +
+        "<td>" + new Date(c.created_at).toLocaleDateString("fr-FR") + "</td>" +
+        "</tr>";
+    }).join("") + "</tbody></table>";
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+</script>
+</body>
+</html>

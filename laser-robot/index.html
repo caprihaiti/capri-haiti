@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LASER-ROBOT — Connexion</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  body{display:flex;align-items:center;justify-content:center;padding:20px}
+  .login-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 20px 60px #0006;padding:36px;max-width:400px;width:100%}
+  .login-brand{text-align:center;margin-bottom:22px}
+  .login-brand .name{font-size:1.4rem;color:var(--accent);font-weight:900;letter-spacing:.06em}
+  .login-brand .sub{color:var(--muted);font-size:.8rem;margin-top:4px}
+  .login-tabs{display:flex;gap:4px;background:#0a1524;border-radius:50px;padding:4px;margin-bottom:20px}
+  .login-tabs button{flex:1;background:none;border:none;padding:9px;border-radius:50px;font-weight:700;font-size:.82rem;color:var(--muted);cursor:pointer}
+  .login-tabs button.active{background:var(--accent);color:#071a20}
+  .login-msg{font-size:.8rem;padding:10px 12px;border-radius:8px;margin-bottom:14px}
+  .login-msg.error{background:var(--danger-pale);color:#ffd9dd}
+  .login-msg.info{background:#113230;color:#8fe0cf}
+  .login-footer{text-align:center;margin-top:16px;font-size:.74rem;color:var(--muted)}
+  .forgot-link{display:block;text-align:right;font-size:.76rem;margin:-6px 0 14px}
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="login-brand">
+    <div class="name">LASER-ROBOT</div>
+    <div class="sub">Évaluation présidentielle impartiale — projet CAPRI</div>
+  </div>
+
+  <div class="login-tabs">
+    <button type="button" id="tabSignin" class="active">Connexion</button>
+    <button type="button" id="tabSignup">Créer un compte</button>
+  </div>
+
+  <div id="loginMsg"></div>
+
+  <form id="signinForm">
+    <div class="form-field">
+      <label for="siEmail">Adresse courriel</label>
+      <input type="email" id="siEmail" required autocomplete="email">
+    </div>
+    <div class="form-field">
+      <label for="siPass">Mot de passe</label>
+      <input type="password" id="siPass" required autocomplete="current-password">
+    </div>
+    <a href="#" class="forgot-link" id="forgotLink">Mot de passe oublié ?</a>
+    <button type="submit" class="btn" style="width:100%;justify-content:center">Se connecter</button>
+  </form>
+
+  <form id="signupForm" hidden>
+    <div class="form-field">
+      <label for="suName">Nom complet</label>
+      <input type="text" id="suName" required autocomplete="name">
+    </div>
+    <div class="form-field">
+      <label for="suEmail">Adresse courriel</label>
+      <input type="email" id="suEmail" required autocomplete="email">
+    </div>
+    <div class="form-field">
+      <label for="suPass">Mot de passe (8 caractères min.)</label>
+      <input type="password" id="suPass" required minlength="8" autocomplete="new-password">
+    </div>
+    <button type="submit" class="btn" style="width:100%;justify-content:center">Créer mon compte</button>
+  </form>
+
+  <div class="login-footer">Un compte nouvellement créé reste en attente jusqu'à ce qu'un administrateur lui attribue un rôle. Aucune donnée réelle sur un candidat n'est visible sans rôle attribué.</div>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script>
+var tabSignin = document.getElementById("tabSignin");
+var tabSignup = document.getElementById("tabSignup");
+var signinForm = document.getElementById("signinForm");
+var signupForm = document.getElementById("signupForm");
+var msgBox = document.getElementById("loginMsg");
+
+function showTab(which) {
+  var isSignin = which === "signin";
+  tabSignin.classList.toggle("active", isSignin);
+  tabSignup.classList.toggle("active", !isSignin);
+  signinForm.hidden = !isSignin;
+  signupForm.hidden = isSignin;
+  msgBox.innerHTML = "";
+}
+tabSignin.addEventListener("click", function () { showTab("signin"); });
+tabSignup.addEventListener("click", function () { showTab("signup"); });
+
+function showMsg(text, kind) {
+  msgBox.innerHTML = '<div class="login-msg ' + kind + '">' + text + "</div>";
+}
+
+async function redirectIfLoggedIn() {
+  var { data } = await window.laserSupabase.auth.getSession();
+  if (data && data.session) window.location.href = "dashboard.html";
+}
+redirectIfLoggedIn();
+
+signinForm.addEventListener("submit", async function (e) {
+  e.preventDefault();
+  var email = document.getElementById("siEmail").value.trim();
+  var password = document.getElementById("siPass").value;
+  var { error } = await window.laserSupabase.auth.signInWithPassword({ email: email, password: password });
+  if (error) { showMsg("Connexion impossible : " + error.message, "error"); return; }
+  window.location.href = "dashboard.html";
+});
+
+signupForm.addEventListener("submit", async function (e) {
+  e.preventDefault();
+  var fullName = document.getElementById("suName").value.trim();
+  var email = document.getElementById("suEmail").value.trim();
+  var password = document.getElementById("suPass").value;
+  var { error } = await window.laserSupabase.auth.signUp({
+    email: email, password: password,
+    options: { data: { full_name: fullName } }
+  });
+  if (error) { showMsg("Création impossible : " + error.message, "error"); return; }
+  showMsg("Compte créé. Un administrateur doit maintenant vous attribuer un rôle avant que vous puissiez accéder à l'outil.", "info");
+  signupForm.reset();
+});
+
+document.getElementById("forgotLink").addEventListener("click", async function (e) {
+  e.preventDefault();
+  var email = document.getElementById("siEmail").value.trim();
+  if (!email) { showMsg("Entrez d'abord votre adresse courriel ci-dessus.", "error"); return; }
+  var redirectTo = window.location.href.replace(/index\.html.*$/, "reset-password.html");
+  var { error } = await window.laserSupabase.auth.resetPasswordForEmail(email, { redirectTo: redirectTo });
+  if (error) { showMsg("Erreur : " + error.message, "error"); return; }
+  showMsg("Si ce compte existe, un courriel de réinitialisation vient d'être envoyé.", "info");
+});
+</script>
+</body>
+</html>

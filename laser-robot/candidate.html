@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche candidat — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <a href="dashboard.html">← Registre</a>
+    <div class="top candidatehead" style="margin-top:14px">
+      <div>
+        <p class="eyebrow" id="candEyebrow">FICHE CANDIDAT</p>
+        <h1 id="candName">…</h1>
+        <p class="muted" id="candSub"></p>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn" id="scanLink" href="#">🔦 Lancer le scanner</a>
+      </div>
+    </div>
+
+    <section class="card">
+      <h2>Identité et parcours public</h2>
+      <div class="facts">
+        <div><small>Date de naissance</small><b id="fBirthDate">Non vérifié</b></div>
+        <div><small>Lieu de naissance</small><b id="fBirthplace">Non vérifié</b></div>
+        <div><small>Nationalité</small><b id="fNationality">Non vérifié</b></div>
+      </div>
+      <p id="fBio" class="muted" style="margin-top:14px"></p>
+    </section>
+
+    <section class="card">
+      <div class="sectionhead">
+        <h2>Grille nationale — 78 critères</h2>
+        <a class="button secondary btn secondary" id="bulkLink" href="#">Mise à jour groupée</a>
+      </div>
+      <p class="muted small">La note est facultative et ne doit être saisie qu'après examen humain des éléments. Aucun score global ni classement n'est calculé. Échelle : 0 = absent · 1 = déclaration générale · 2 = proposition structurée · 3 = plan chiffré · 4 = plan chiffré avec calendrier et indicateurs · 5 = preuves solides de capacité et résultats vérifiables.</p>
+      <div id="criteriaGroups"><div class="empty-state">Chargement…</div></div>
+    </section>
+
+    <section class="card" id="evidenceSection">
+      <div class="sectionhead">
+        <h2>Registre des éléments documentaires</h2>
+      </div>
+      <form id="newEvidenceForm" style="margin-bottom:22px;border-bottom:1px solid var(--line);padding-bottom:20px">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="eTitle">Titre</label>
+            <input type="text" id="eTitle" required>
+          </div>
+          <div class="form-field">
+            <label for="eCriterion">Critère lié</label>
+            <select id="eCriterion"><option value="">Sans critère lié</option></select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="eType">Type de source</label>
+            <select id="eType"></select>
+          </div>
+          <div class="form-field">
+            <label for="eStatus">État de vérification</label>
+            <select id="eStatus"></select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="eSourceName">Nom de la source</label>
+            <input type="text" id="eSourceName">
+          </div>
+          <div class="form-field">
+            <label for="eSourceUrl">Lien (http(s):// uniquement)</label>
+            <input type="url" id="eSourceUrl">
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="eDate">Date de publication</label>
+          <input type="date" id="eDate">
+        </div>
+        <div class="form-field">
+          <label for="eSummary">Résumé</label>
+          <textarea id="eSummary" rows="2"></textarea>
+        </div>
+        <button type="submit" class="btn">＋ Ajouter l'élément</button>
+      </form>
+      <div id="evidenceList"><div class="empty-state">Chargement…</div></div>
+    </section>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var ASSESSMENT_STATUSES = ["À documenter", "À examiner", "Documenté", "Vérifié", "Contesté", "Non applicable"];
+var EVIDENCE_STATUSES = ["Non vérifié", "À examiner", "Vérifié", "Contesté", "Non vérifiable"];
+var EVIDENCE_TYPES = [
+  "Document officiel / source primaire", "Programme ou engagement public", "Déclaration du candidat",
+  "Fait documenté", "Allégation attribuée", "Sanction administrative", "Enquête en cours",
+  "Recommandation de poursuite", "Décision judiciaire définitive"
+];
+
+var candidateId = new URLSearchParams(window.location.search).get("id");
+var profileRef = null;
+var canWrite = false;
+var allCriteria = [];
+
+if (!candidateId) { document.body.innerHTML = "<p style='padding:30px'>Identifiant de candidat manquant.</p>"; }
+
+LaserAuth.requireSession().then(async function (session) {
+  profileRef = session.profile;
+  canWrite = profileRef.role === "admin" || profileRef.role === "reviewer";
+  LaserShell.renderSidebar(session.profile, "dashboard");
+
+  document.getElementById("scanLink").href = "scan.html?id=" + candidateId;
+  document.getElementById("bulkLink").href = "bulk.html?id=" + candidateId;
+  if (!canWrite) document.getElementById("bulkLink").style.display = "none";
+
+  populateSelect("eType", EVIDENCE_TYPES);
+  populateSelect("eStatus", EVIDENCE_STATUSES, "Non vérifié");
+  if (!canWrite) document.getElementById("newEvidenceForm").style.display = "none";
+
+  await loadCandidate();
+  await loadGrid();
+  await loadEvidence();
+
+  document.getElementById("newEvidenceForm").addEventListener("submit", addEvidence);
+});
+
+function populateSelect(id, options, selected) {
+  var sel = document.getElementById(id);
+  sel.innerHTML = options.map(function (o) {
+    return '<option' + (o === selected ? " selected" : "") + ">" + escapeHtml(o) + "</option>";
+  }).join("");
+}
+
+async function loadCandidate() {
+  var { data: c, error } = await laserSupabase.from("candidates").select("*").eq("id", candidateId).single();
+  if (error || !c) { document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; throw error; }
+  document.getElementById("candEyebrow").textContent = "FICHE CANDIDAT · ID " + c.id.slice(0, 8);
+  document.getElementById("candName").textContent = c.full_name;
+  document.getElementById("candSub").textContent = (c.political_group || "Groupe politique non renseigné") + " · Statut CEP : " + c.cep_status;
+  document.getElementById("fBirthDate").textContent = c.birth_date || "Non vérifié";
+  document.getElementById("fBirthplace").textContent = c.birthplace || "Non vérifié";
+  document.getElementById("fNationality").textContent = c.nationality || "Non vérifié";
+  document.getElementById("fBio").textContent = c.biography || "Aucune biographie documentaire enregistrée.";
+}
+
+async function loadGrid() {
+  var { data: domains } = await laserSupabase.from("domains").select("*").order("id");
+  var { data: criteria } = await laserSupabase.from("criteria").select("*").order("id");
+  var { data: assessments } = await laserSupabase.from("assessments").select("*").eq("candidate_id", candidateId);
+  var { data: evidenceRows } = await laserSupabase.from("evidence").select("criterion_id").eq("candidate_id", candidateId);
+  allCriteria = criteria || [];
+  populateSelect("eCriterion", ["Sans critère lié"].concat(allCriteria.map(function (c) { return c.id + " · " + c.title; })));
+  document.getElementById("eCriterion").options[0].value = "";
+  allCriteria.forEach(function (c, i) { document.getElementById("eCriterion").options[i + 1].value = c.id; });
+
+  var byId = {};
+  (assessments || []).forEach(function (a) { byId[a.criterion_id] = a; });
+  var evCountByCriterion = {};
+  (evidenceRows || []).forEach(function (e) {
+    if (e.criterion_id) evCountByCriterion[e.criterion_id] = (evCountByCriterion[e.criterion_id] || 0) + 1;
+  });
+
+  var html = (domains || []).map(function (d) {
+    var rows = (criteria || []).filter(function (c) { return c.domain_id === d.id; });
+    return "<details open><summary><b>" + escapeHtml(d.id + " · " + d.name) + "</b><span>" + rows.length + " critères</span></summary>" +
+      rows.map(function (r) {
+        var a = byId[r.id] || { status: "À documenter", score: null, analysis: "" };
+        var evCount = evCountByCriterion[r.id] || 0;
+        return '<article class="criterion" id="' + r.id + '">' +
+          '<div class="crithead"><div><b>' + escapeHtml(r.id + " · " + r.title) + "</b><p>" + escapeHtml(r.requirement) + "</p></div>" +
+          '<span class="status">' + escapeHtml(a.status) + "</span></div>" +
+          '<p class="small muted"><b>Indicateurs :</b> ' + escapeHtml(r.indicators || "") + "</p>" +
+          '<p class="small muted"><b>Preuves attendues :</b> ' + escapeHtml(r.evidence_expected || "") + "</p>" +
+          '<p class="small">Éléments liés : ' + evCount + "</p>" +
+          (canWrite ?
+            '<form class="inlineform assessForm" data-criterion="' + r.id + '">' +
+            '<div class="form-field"><select class="aStatus">' + ASSESSMENT_STATUSES.map(function (s) { return '<option' + (a.status === s ? " selected" : "") + ">" + s + "</option>"; }).join("") + "</select></div>" +
+            '<div class="form-field"><select class="aScore"><option value="">Sans note</option>' +
+            [0, 1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (a.score === n ? " selected" : "") + ">" + n + " / 5</option>"; }).join("") + "</select></div>" +
+            '<div class="form-field"><input class="aAnalysis" placeholder="Analyse et limites" value="' + escapeAttr(a.analysis || "") + '"></div>' +
+            '<button type="submit" class="smallbtn btn" style="padding:9px 12px;font-size:12px">Enregistrer</button>' +
+            "</form>" : "") +
+          "</article>";
+      }).join("") + "</details>";
+  }).join("");
+  document.getElementById("criteriaGroups").innerHTML = html;
+
+  document.querySelectorAll(".assessForm").forEach(function (form) {
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var criterionId = form.getAttribute("data-criterion");
+      var payload = {
+        status: form.querySelector(".aStatus").value,
+        score: form.querySelector(".aScore").value === "" ? null : parseInt(form.querySelector(".aScore").value, 10),
+        analysis: form.querySelector(".aAnalysis").value.trim() || null
+      };
+      var { error } = await laserSupabase.from("assessments").update(payload).eq("candidate_id", candidateId).eq("criterion_id", criterionId);
+      if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
+      LaserShell.toast("Critère " + criterionId + " enregistré.");
+      loadGrid();
+    });
+  });
+}
+
+async function addEvidence(e) {
+  e.preventDefault();
+  var url = document.getElementById("eSourceUrl").value.trim();
+  if (url && !/^https?:\/\//.test(url)) { LaserShell.toast("Le lien doit commencer par http:// ou https://.", true); return; }
+  var payload = {
+    candidate_id: candidateId,
+    criterion_id: document.getElementById("eCriterion").value || null,
+    title: document.getElementById("eTitle").value.trim(),
+    evidence_type: document.getElementById("eType").value,
+    verification_status: document.getElementById("eStatus").value,
+    source_name: document.getElementById("eSourceName").value.trim() || null,
+    source_url: url || null,
+    publication_date: document.getElementById("eDate").value || null,
+    summary: document.getElementById("eSummary").value.trim() || null,
+    created_by: profileRef.id
+  };
+  var { error } = await laserSupabase.from("evidence").insert(payload);
+  if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
+  LaserShell.toast("Élément ajouté.");
+  document.getElementById("newEvidenceForm").reset();
+  populateSelect("eType", EVIDENCE_TYPES);
+  populateSelect("eStatus", EVIDENCE_STATUSES, "Non vérifié");
+  loadEvidence();
+  loadGrid();
+}
+
+async function loadEvidence() {
+  var { data, error } = await laserSupabase
+    .from("evidence")
+    .select("*")
+    .eq("candidate_id", candidateId)
+    .order("created_at", { ascending: false });
+  var container = document.getElementById("evidenceList");
+  if (error) { container.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  if (!data.length) { container.innerHTML = '<div class="empty-state">Aucun élément documentaire enregistré.</div>'; return; }
+
+  container.innerHTML = data.map(function (ev) {
+    var showLink = ev.source_url && /^https?:\/\//.test(ev.source_url);
+    return '<article class="evidence">' +
+      '<div class="crithead"><div><b>' + escapeHtml(ev.title) + "</b><p class='small muted'>" +
+      escapeHtml((ev.criterion_id || "Sans critère lié")) + " · " + escapeHtml(ev.source_name || "Source non renseignée") + " · " + escapeHtml(ev.publication_date || "Date non renseignée") + "</p></div>" +
+      '<span class="status">' + escapeHtml(ev.verification_status) + "</span></div>" +
+      "<p>" + escapeHtml(ev.summary || "") + "</p>" +
+      (showLink ? '<a href="' + escapeAttr(ev.source_url) + '" target="_blank" rel="noopener noreferrer">Consulter la source ↗</a>' : "") +
+      (canWrite ?
+        '<form class="respForm" data-id="' + ev.id + '" style="margin-top:10px">' +
+        '<label class="small">Réponse du candidat / observation contradictoire<textarea class="eResp" rows="2" placeholder="Aucune réponse enregistrée">' + escapeHtml(ev.candidate_response || "") + "</textarea></label>" +
+        '<button type="submit" class="smallbtn btn secondary" style="padding:8px 12px;font-size:12px">Enregistrer la réponse</button>' +
+        "</form>" :
+        (ev.candidate_response ? '<p class="small muted" style="margin-top:8px">Réponse : ' + escapeHtml(ev.candidate_response) + "</p>" : "")) +
+      '<p class="small muted">Note du réviseur : ' + escapeHtml(ev.reviewer_notes || "Aucune") + "</p>" +
+      "</article>";
+  }).join("");
+
+  container.querySelectorAll(".respForm").forEach(function (form) {
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var { error } = await laserSupabase.from("evidence").update({ candidate_response: form.querySelector(".eResp").value.trim() || null }).eq("id", form.getAttribute("data-id"));
+      if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
+      LaserShell.toast("Réponse enregistrée.");
+    });
+  });
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+</script>
+</body>
+</html>

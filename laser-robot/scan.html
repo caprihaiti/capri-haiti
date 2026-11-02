@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scanner — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <a href="#" id="backLink">← Fiche du candidat</a>
+    <section class="card scancard" style="margin-top:14px">
+      <p class="eyebrow">SCANNER LASER-ROBOT</p>
+      <h1 id="candName">…</h1>
+      <div class="scan-photo-wrap" id="photoWrap">
+        <span class="scan-silhouette">👤</span>
+        <span class="scan-laser"></span>
+      </div>
+      <p class="scan-status-line">Lecture des 78 critères enregistrés…</p>
+      <div class="scan-legend">
+        <span><i class="dot ok"></i> Vérifié (<span id="countOk">0</span>)</span>
+        <span><i class="dot pending"></i> En cours de documentation (<span id="countPending">0</span>)</span>
+        <span><i class="dot ko"></i> Contesté (<span id="countKo">0</span>)</span>
+      </div>
+      <div class="scan-grid" id="scanGrid"></div>
+      <p class="notice" style="margin-top:22px">Cet écran affiche uniquement des états déjà renseignés par des réviseurs humains à partir de sources documentées. « En cours de documentation » n'est jamais une conclusion négative — seul un critère explicitement marqué « Contesté » après examen apparaît en rouge. Aucun score global, pourcentage, classement ni recommandation de vote n'est calculé ici.</p>
+    </section>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script>
+var candidateId = new URLSearchParams(window.location.search).get("id");
+document.getElementById("backLink").href = "candidate.html?id=" + candidateId;
+
+LaserAuth.requireSession().then(async function (session) {
+  var { data: c } = await laserSupabase.from("candidates").select("*").eq("id", candidateId).single();
+  if (!c) { document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; return; }
+  document.getElementById("candName").textContent = c.full_name;
+  if (c.photo_url && /^https?:\/\//.test(c.photo_url)) {
+    document.getElementById("photoWrap").innerHTML = '<img src="' + c.photo_url.replace(/"/g, "&quot;") + '" alt="Portrait de ' + escapeHtml(c.full_name) + '">' + '<span class="scan-laser"></span>';
+  }
+
+  var { data: criteria } = await laserSupabase.from("criteria").select("id, title").order("id");
+  var { data: assessments } = await laserSupabase.from("assessments").select("criterion_id, status").eq("candidate_id", candidateId);
+  var statusByCriterion = {};
+  (assessments || []).forEach(function (a) { statusByCriterion[a.criterion_id] = a.status; });
+
+  // Visualisation pure d'états déjà posés par un réviseur humain — ne calcule
+  // jamais de verdict. Vert = uniquement « Vérifié ». Rouge = uniquement
+  // « Contesté ». Tout le reste (y compris l'absence d'évaluation) = gris
+  // neutre, pour qu'un critère non encore examiné n'apparaisse jamais comme
+  // négatif par défaut.
+  var counts = { ok: 0, pending: 0, ko: 0 };
+  var cells = (criteria || []).map(function (crit, i) {
+    var status = statusByCriterion[crit.id] || "À documenter";
+    var cls = status === "Vérifié" ? "ok" : (status === "Contesté" ? "ko" : "pending");
+    counts[cls]++;
+    return '<div class="scan-cell ' + cls + ' sd' + (i % 78) + '"><b>' + escapeHtml(crit.id + " · " + crit.title) + '</b><span class="sc-status">' + escapeHtml(status) + "</span></div>";
+  });
+  document.getElementById("scanGrid").innerHTML = cells.join("");
+  document.getElementById("countOk").textContent = counts.ok;
+  document.getElementById("countPending").textContent = counts.pending;
+  document.getElementById("countKo").textContent = counts.ko;
+
+  laserSupabase.from("audit_log").insert({
+    actor_id: session.user.id, username: session.profile.full_name,
+    action: "consultation", entity_type: "scanner", entity_id: candidateId
+  });
+});
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+</script>
+</body>
+</html>

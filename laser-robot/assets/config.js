@@ -9,5 +9,5 @@
  * vient des politiques RLS définies dans schema.sql, pas du secret de ces
  * valeurs.
  */
-window.LASER_SUPABASE_URL = "REMPLACER_PAR_VOTRE_PROJECT_URL";
-window.LASER_SUPABASE_ANON_KEY = "REMPLACER_PAR_VOTRE_ANON_KEY";
+window.LASER_SUPABASE_URL = "https://uoarhkqfnqsdfckqubay.supabase.co";
+window.LASER_SUPABASE_ANON_KEY = "sb_publishable_7pvvUV0TtWhVqAonADe2Kg_oPmAx2iW";

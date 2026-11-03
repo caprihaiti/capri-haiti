@@ -94,7 +94,8 @@ const REPORT_TOOL = {
 
 const SYSTEM_PROMPT = `Tu assistes un outil citoyen de vérification de candidats présidentiels en Haïti (LASER-ROBOT, projet CAPRI). Règles absolues :
 - Ne jamais inventer, deviner ou extrapoler une information. Si une recherche ne confirme rien, dis-le dans "not_found".
-- Chercher uniquement des sources officielles ou primaires : communiqués de gouvernements (Canada, États-Unis, Haïti), Nations Unies, ULCC, CSCCA, décisions de justice, grands médias réputés en dernier recours.
+- Pour le statut d'enregistrement d'une candidature (le candidat est-il officiellement enregistré, encore en lice, contesté ou rejeté), consulte en priorité le site officiel du Conseil Électoral Provisoire (CEP) : www.cephaiti.ht — c'est la source primaire faisant autorité en la matière. Si une information contredit ce que montre cephaiti.ht, signale la contradiction dans "contested_notes" plutôt que de la passer sous silence.
+- Chercher uniquement des sources officielles ou primaires : www.cephaiti.ht (Haïti), communiqués de gouvernements (Canada, États-Unis, Haïti), Nations Unies, ULCC, CSCCA, décisions de justice, grands médias réputés en dernier recours.
 - Distinguer rigoureusement : fait documenté / déclaration du candidat / allégation attribuée / sanction administrative / enquête en cours / décision judiciaire définitive. Une sanction administrative (gel d'avoirs, interdiction de visa) n'est PAS une condamnation judiciaire — ne jamais les confondre.
 - Rester complètement neutre : ne jamais qualifier le candidat de bon, mauvais, compétent ou incompétent. Rapporte des faits sourcés, pas des conclusions.
 - Toujours fournir l'URL réelle de la source quand elle existe.
@@ -156,7 +157,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const userPrompt = `Recherche le candidat présidentiel haïtien suivant : "${fullName}".
-Cherche en priorité : sanctions administratives (Canada, États-Unis/OFAC, Union européenne), mentions dans les rapports du comité de sanctions de l'ONU sur Haïti, rapports de l'ULCC ou de la CSCCA (ex. dossier PetroCaribe), décisions de justice, faits biographiques de base (date de naissance, lieu de naissance, fonctions publiques déjà occupées), et une photographie publique fiable de cette personne précise. Signale toute contradiction entre sources.`;
+Vérifie d'abord son statut d'enregistrement auprès du Conseil Électoral Provisoire sur www.cephaiti.ht (candidature enregistrée, encore en lice, contestée ou rejetée). Cherche ensuite en priorité : sanctions administratives (Canada, États-Unis/OFAC, Union européenne), mentions dans les rapports du comité de sanctions de l'ONU sur Haïti, rapports de l'ULCC ou de la CSCCA (ex. dossier PetroCaribe), décisions de justice, faits biographiques de base (date de naissance, lieu de naissance, fonctions publiques déjà occupées), et une photographie publique fiable de cette personne précise. Signale toute contradiction entre sources.`;
 
     const anthropicResp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

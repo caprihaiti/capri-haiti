@@ -49,7 +49,7 @@
       <label for="siPass">Mot de passe</label>
       <div class="pw-wrap">
         <input type="password" id="siPass" required autocomplete="current-password">
-        <button type="button" class="pw-toggle" data-target="siPass" aria-label="Afficher le mot de passe">👁️</button>
+        <button type="button" class="pw-toggle" data-target="siPass" aria-label="Afficher le mot de passe"></button>
       </div>
     </div>
     <a href="#" class="forgot-link" id="forgotLink">Mot de passe oublié ?</a>
@@ -69,7 +69,7 @@
       <label for="suPass">Mot de passe (8 caractères min.)</label>
       <div class="pw-wrap">
         <input type="password" id="suPass" required minlength="8" autocomplete="new-password">
-        <button type="button" class="pw-toggle" data-target="suPass" aria-label="Afficher le mot de passe">👁️</button>
+        <button type="button" class="pw-toggle" data-target="suPass" aria-label="Afficher le mot de passe"></button>
       </div>
     </div>
     <button type="submit" class="btn" style="width:100%;justify-content:center">Créer mon compte</button>
@@ -81,6 +81,7 @@
 <script src="assets/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="assets/supabase-client.js"></script>
+<script src="assets/icons.js"></script>
 <script>
 var tabSignin = document.getElementById("tabSignin");
 var tabSignup = document.getElementById("tabSignup");
@@ -105,7 +106,7 @@ function showMsg(text, kind) {
 
 async function redirectIfLoggedIn() {
   var { data } = await window.laserSupabase.auth.getSession();
-  if (data && data.session) window.location.href = "dashboard.html";
+  if (data && data.session) window.location.href = "accueil.html";
 }
 redirectIfLoggedIn();
 
@@ -115,7 +116,7 @@ signinForm.addEventListener("submit", async function (e) {
   var password = document.getElementById("siPass").value;
   var { error } = await window.laserSupabase.auth.signInWithPassword({ email: email, password: password });
   if (error) { showMsg("Connexion impossible : " + error.message, "error"); return; }
-  window.location.href = "dashboard.html";
+  window.location.href = "accueil.html";
 });
 
 signupForm.addEventListener("submit", async function (e) {
@@ -133,11 +134,12 @@ signupForm.addEventListener("submit", async function (e) {
 });
 
 document.querySelectorAll(".pw-toggle").forEach(function (btn) {
+  btn.innerHTML = LaserIcons.svg("eye", 16);
   btn.addEventListener("click", function () {
     var input = document.getElementById(btn.getAttribute("data-target"));
     var showing = input.type === "text";
     input.type = showing ? "password" : "text";
-    btn.textContent = showing ? "👁️" : "🙈";
+    btn.innerHTML = LaserIcons.svg(showing ? "eye" : "eyeOff", 16);
   });
 });
 

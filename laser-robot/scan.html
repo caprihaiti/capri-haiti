@@ -12,49 +12,75 @@
 <div class="app-shell" id="appShell">
   <main class="app-main">
     <a href="#" id="backLink">← Fiche du candidat</a>
-    <section class="card scancard" style="margin-top:14px">
+    <section class="card" style="margin-top:14px">
       <div class="top" style="align-items:center">
         <p class="eyebrow" style="margin:0">SCANNER LASER-ROBOT</p>
         <div class="sound-controls">
-          <button type="button" class="btn secondary" style="padding:8px 11px;font-size:13px" id="muteBtn" aria-label="Couper le son">🔊</button>
+          <button type="button" class="btn secondary" style="padding:8px 11px;font-size:13px" id="muteBtn" aria-label="Couper le son"></button>
           <input type="range" id="volumeRange" min="0" max="100" value="70" aria-label="Volume">
         </div>
       </div>
-      <h1 id="candName" class="scan-name-reveal">…</h1>
+      <h1 id="candName" class="scan-name-reveal" style="text-align:center">…</h1>
       <div class="card" id="notDocumented" style="display:none;text-align:center;background:#0d1828">
         <p style="font-size:1.1em;margin:0 0 6px"><b>Ce candidat n'a pas encore été documenté.</b></p>
         <p class="muted small" style="margin:0 0 16px">Il n'y a rien à scanner pour l'instant — aucune recherche n'a encore été faite sur ce candidat. Lancez la recherche pour obtenir sa biographie et ses premiers éléments documentaires.</p>
-        <button type="button" class="btn" id="notDocResearchBtn">🔍 Lancer la recherche</button>
+        <button type="button" class="btn icon-btn" id="notDocResearchBtn"></button>
         <p class="small muted" id="notDocStatus" style="display:none;margin-top:12px"></p>
       </div>
-      <div class="scan-photo-wrap" id="photoWrap">
-        <div class="scan-photo-inner" id="photoInner">
-          <span class="scan-silhouette">👤</span>
-          <span class="scan-laser"></span>
+
+      <div class="scan-layout" id="scanLayout">
+        <div class="scan-main scancard">
+          <div class="hero-badge" style="margin:0 auto 16px" aria-hidden="true"><span id="scanRobotIcon"></span></div>
+          <div class="scan-photo-wrap" id="photoWrap">
+            <div class="scan-photo-inner" id="photoInner">
+              <span class="scan-silhouette">👤</span>
+              <span class="scan-laser"></span>
+            </div>
+            <div class="scan-summary" id="scanSummary"></div>
+          </div>
+          <audio id="scanAudioStart" src="assets/scan-start.mp3" preload="auto"></audio>
+          <audio id="scanAudio" src="assets/scan-sound.mp3" loop preload="auto"></audio>
+          <audio id="scanAudioEnd" src="assets/scan-end.mp3" preload="auto"></audio>
+          <audio id="scanAudioNotify" src="assets/scan-notify.mp3" preload="auto"></audio>
+          <audio id="scanAudioError" src="assets/scan-error.mp3" preload="auto"></audio>
+          <div class="scan-readout" id="scanReadout"></div>
+          <p class="scan-status-line" id="scanStatusLine">Lecture des 78 critères enregistrés…</p>
+          <div class="scan-legend">
+            <span><i class="dot ok"></i> Vérifié / Verifye (<span id="countOk">0</span>)</span>
+            <span><i class="dot documented"></i> Documenté / Dokimante (<span id="countDoc">0</span>)</span>
+            <span><i class="dot pending"></i> À documenter / Pa dokimante ankò (<span id="countPending">0</span>)</span>
+            <span><i class="dot ko"></i> Allégation grave documentée / Gwo akizasyon dokimante (<span id="countKo">0</span>)</span>
+          </div>
+          <div class="scan-grid" id="scanGrid"></div>
         </div>
-        <div class="scan-summary" id="scanSummary"></div>
+
+        <div class="scan-side">
+          <div class="card" style="margin:0">
+            <h2 style="font-size:14px;margin-bottom:8px">Étapes du scan</h2>
+            <div class="scan-steps" id="scanSteps"></div>
+          </div>
+          <div class="card" style="margin:0" id="scanStatsCard">
+            <h2 style="font-size:14px;margin-bottom:8px">Analyse en cours</h2>
+            <div class="scan-stats" id="scanStats"></div>
+          </div>
+        </div>
       </div>
-      <audio id="scanAudioStart" src="assets/scan-start.mp3" preload="auto"></audio>
-      <audio id="scanAudio" src="assets/scan-sound.mp3" loop preload="auto"></audio>
-      <audio id="scanAudioEnd" src="assets/scan-end.mp3" preload="auto"></audio>
-      <audio id="scanAudioNotify" src="assets/scan-notify.mp3" preload="auto"></audio>
-      <audio id="scanAudioError" src="assets/scan-error.mp3" preload="auto"></audio>
-      <div class="scan-readout" id="scanReadout"></div>
-      <p class="scan-status-line" id="scanStatusLine">Lecture des 78 critères enregistrés…</p>
-      <div class="scan-legend">
-        <span><i class="dot ok"></i> Vérifié / Verifye (<span id="countOk">0</span>)</span>
-        <span><i class="dot documented"></i> Documenté / Dokimante (<span id="countDoc">0</span>)</span>
-        <span><i class="dot pending"></i> À documenter / Pa dokimante ankò (<span id="countPending">0</span>)</span>
-        <span><i class="dot ko"></i> Allégation grave documentée / Gwo akizasyon dokimante (<span id="countKo">0</span>)</span>
+
+      <div class="scan-transport no-print" id="scanTransport" style="display:none">
+        <button type="button" class="transport-btn" id="playBtn" aria-label="Lecture"></button>
+        <button type="button" class="transport-btn" id="pauseBtn" aria-label="Pause"></button>
+        <button type="button" class="transport-btn" id="stopBtn" aria-label="Arrêter"></button>
+        <span class="transport-status" id="transportStatus">EN PRÉPARATION…</span>
+        <a class="btn secondary icon-btn" id="autoReportBtn" href="#"></a>
       </div>
-      <div class="scan-grid" id="scanGrid"></div>
+
       <div class="card" id="citizenSummary" style="display:none;margin-top:22px;background:linear-gradient(150deg,#1a2438,#121a2b);border-color:#3a4f6e">
         <h2 style="margin-top:0">Pou ou, elektè a</h2>
         <p class="muted small">Rezime sa a jis ba ou kote enfòmasyon an ye — li pa yon konklizyon, li pa di w vote pou oswa kont pyès moun.</p>
         <div id="citizenSummaryBody"></div>
       </div>
-      <p class="notice" style="margin-top:22px"><b>« Allégation grave documentée »</b> signifie qu'un fait documenté et sourcé (sanction administrative, rapport officiel, allégation attribuée à une personne ou institution précise) met en question ce critère — <b>jamais</b> une culpabilité, ni une condamnation judiciaire. Lisez toujours la source citée et, quand elle existe, la réponse du candidat avant de vous forger une opinion. <b>« À documenter »</b> (gris) signifie simplement qu'aucune recherche n'a encore établi quoi que ce soit sur ce point précis — ce n'est ni positif ni négatif, c'est inconnu à ce jour. Cet écran affiche uniquement des états déjà renseignés à partir de sources documentées. Aucun score global, pourcentage, classement ni recommandation de vote n'est calculé ici.</p>
-      <p class="notice" style="margin-top:10px"><b>« Gwo akizasyon dokimante »</b> vle di gen yon fè dokimante ak sous (sanksyon administratif, rapò ofisyèl, akizasyon ki atribye a yon moun oswa yon enstitisyon presi) ki mete kritè sa a an kesyon — li <b>pa janm</b> vle di koupabilite, ni yon kondanasyon jistis. Toujou li sous la, e repons kandida a si li genyen, anvan w fè pwòp lide w. <b>« Pa dokimante ankò »</b> (gri) vle di tou senpleman pa gen okenn rechèch ki etabli anyen sou pwen sa a — se pa ni pozitif ni negatif, se enkoni jiska jodi a. Ekran sa a montre sèlman eta ki deja anrejistre apati sous dokimante. Pa gen okenn nòt global, pousantaj, klasman, ni rekòmandasyon vòt ki kalkile isit la.</p>
+      <p class="notice" style="margin-top:22px"><b>« Allégation grave documentée »</b> signifie qu'un fait documenté et sourcé (sanction administrative, rapport officiel, allégation attribuée à une personne ou institution précise) met en question ce critère — <b>jamais</b> une culpabilité, ni une condamnation judiciaire. Lisez toujours la source citée et, quand elle existe, la réponse du candidat avant de vous forger une opinion. <b>« À documenter »</b> (gris) signifie simplement qu'aucune recherche n'a encore établi quoi que ce soit sur ce point précis — ce n'est ni positif ni négatif, c'est inconnu à ce jour. Cet écran affiche uniquement des états déjà renseignés à partir de sources documentées. Le balayage du portrait est un simple effet visuel : aucune caractéristique physique du visage n'est utilisée pour évaluer le candidat. Aucun score global, pourcentage, classement ni recommandation de vote n'est calculé ici.</p>
+      <p class="notice" style="margin-top:10px"><b>« Gwo akizasyon dokimante »</b> vle di gen yon fè dokimante ak sous (sanksyon administratif, rapò ofisyèl, akizasyon ki atribye a yon moun oswa yon enstitisyon presi) ki mete kritè sa a an kesyon — li <b>pa janm</b> vle di koupabilite, ni yon kondanasyon jistis. Toujou li sous la, e repons kandida a si li genyen, anvan w fè pwòp lide w. <b>« Pa dokimante ankò »</b> (gri) vle di tou senpleman pa gen okenn rechèch ki etabli anyen sou pwen sa a — se pa ni pozitif ni negatif, se enkoni jiska jodi a. Eskanaj figi a se jis yon efè vizyèl : pa gen okenn karakteristik fizik ki sèvi pou evalye kandida a. Pa gen okenn nòt global, pousantaj, klasman, ni rekòmandasyon vòt ki kalkile isit la.</p>
     </section>
   </main>
 </div>
@@ -63,6 +89,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="assets/supabase-client.js"></script>
 <script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
 <script>
 var candidateId = new URLSearchParams(window.location.search).get("id");
 document.getElementById("backLink").href = "candidate.html?id=" + candidateId;
@@ -84,7 +111,7 @@ function applyAudioSettings() {
     el.volume = vol;
     el.muted = savedMuted;
   });
-  document.getElementById("muteBtn").textContent = savedMuted ? "🔇" : "🔊";
+  document.getElementById("muteBtn").innerHTML = LaserIcons.svg(savedMuted ? "mute" : "volume", 16);
 }
 
 document.getElementById("muteBtn").addEventListener("click", function () {
@@ -99,10 +126,49 @@ document.getElementById("volumeRange").addEventListener("input", function () {
 
 function safePlay(el) { el.currentTime = 0; return el.play().catch(function () { /* lecture automatique bloquée — pas grave */ }); }
 
+var STEPS = [
+  { key: "identification", label: "Identification du candidat" },
+  { key: "collecte", label: "Collecte des documents" },
+  { key: "verification", label: "Vérification des sources" },
+  { key: "domaines", label: "Analyse des 22 domaines", progress: true },
+  { key: "criteres", label: "Évaluation des 78 critères", progress: true },
+  { key: "consolidation", label: "Consolidation des résultats" },
+  { key: "rapport", label: "Génération du rapport" },
+];
+var stepState = {};
+STEPS.forEach(function (s) { stepState[s.key] = { status: "pending", pct: 0 }; });
+
+function renderSteps() {
+  document.getElementById("scanSteps").innerHTML = STEPS.map(function (s) {
+    var st = stepState[s.key];
+    var icon = st.status === "done" ? LaserIcons.svg("check", 12) : (st.status === "active" ? LaserIcons.svg("spinner", 12) : LaserIcons.svg("circle", 10));
+    var extra = s.progress ?
+      '<span class="scan-step-bar"><i style="width:' + Math.round(st.pct) + '%"></i></span><span class="scan-step-pct">' + Math.round(st.pct) + '%</span>' :
+      '<span style="flex:1"></span>';
+    return '<div class="scan-step ' + st.status + '"><span class="step-icon">' + icon + '</span><span>' + escapeHtml(s.label) + '</span>' + extra + '</div>';
+  }).join("");
+}
+function setStep(key, status, pct) {
+  stepState[key].status = status;
+  if (pct !== undefined) stepState[key].pct = pct;
+  renderSteps();
+}
+renderSteps();
+
+function formatMs(ms) {
+  var s = Math.max(0, Math.round(ms / 1000));
+  var m = Math.floor(s / 60);
+  var r = s % 60;
+  return (m < 10 ? "0" : "") + m + " min " + (r < 10 ? "0" : "") + r + " s";
+}
+
 LaserAuth.requireSession().then(async function (session) {
   var { data: c } = await laserSupabase.from("candidates").select("*").eq("id", candidateId).single();
   if (!c) { safePlay(document.getElementById("scanAudioError")); document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; return; }
   document.getElementById("candName").textContent = formatDisplayName(c.full_name, c.last_name);
+  document.getElementById("scanRobotIcon").innerHTML = LaserIcons.svg("scan", 48);
+  document.getElementById("autoReportBtn").href = "rapport.html?id=" + candidateId;
+  document.getElementById("autoReportBtn").innerHTML = LaserIcons.svg("report", 15) + " Rapport automatique";
 
   // Rien à scanner tant qu'aucune recherche n'a été faite — inutile (et
   // trompeur) de faire tourner toute l'animation pour aboutir à 78 cases
@@ -116,6 +182,7 @@ LaserAuth.requireSession().then(async function (session) {
     document.querySelector(".notice").style.display = "none";
     document.getElementById("scanStatusLine").style.display = "none";
     document.getElementById("notDocumented").style.display = "block";
+    document.getElementById("notDocResearchBtn").innerHTML = LaserIcons.svg("search", 16) + " Lancer la recherche";
     document.getElementById("notDocResearchBtn").addEventListener("click", async function () {
       var btn = this;
       var statusEl = document.getElementById("notDocStatus");
@@ -161,12 +228,16 @@ LaserAuth.requireSession().then(async function (session) {
     return '<div class="scan-readout-line sd' + i + '"><b>' + escapeHtml(l[0]) + ' :</b> ' + escapeHtml(l[1]) + '</div>';
   }).join("");
 
+  setStep("identification", "done");
+
   var { data: domains } = await laserSupabase.from("domains").select("id, name").order("id");
   var { data: criteria } = await laserSupabase.from("criteria").select("id, title, domain_id").order("id");
   var { data: assessments } = await laserSupabase.from("assessments").select("criterion_id, status").eq("candidate_id", candidateId);
   var { data: evidenceRows } = await laserSupabase.from("evidence").select("id").eq("candidate_id", candidateId);
   var statusByCriterion = {};
   (assessments || []).forEach(function (a) { statusByCriterion[a.criterion_id] = a.status; });
+  setStep("collecte", "done");
+  setStep("verification", "done");
 
   var total = (criteria || []).length;
 
@@ -198,34 +269,68 @@ LaserAuth.requireSession().then(async function (session) {
     var delayMs = Math.round(i * perCellDelayMs);
     return '<div class="scan-cell ' + cls + '" style="animation-delay:' + delayMs + 'ms"><b>' + escapeHtml(crit.id + " · " + crit.title) + '</b><span class="sc-status">' + escapeHtml(status) + "</span></div>";
   });
-  document.getElementById("scanGrid").innerHTML = cells.join("");
   document.getElementById("countOk").textContent = counts.ok;
   document.getElementById("countDoc").textContent = counts.documented;
   document.getElementById("countPending").textContent = counts.pending;
   document.getElementById("countKo").textContent = counts.ko;
 
-  // La photo tourne en 3D (rotateY) pendant toute la durée calculée du scan.
-  document.getElementById("photoInner").style.animationDuration = (totalDurationMs / 1000) + "s";
-
-  // Identité sonore : un signal de démarrage électronique, puis le
-  // balayage en boucle pendant toute la durée du scan. Si la lecture
-  // automatique est bloquée par le navigateur, le scan continue
-  // normalement, juste sans son.
   var scanAudio = document.getElementById("scanAudio");
   var scanAudioStart = document.getElementById("scanAudioStart");
   var scanAudioEnd = document.getElementById("scanAudioEnd");
   var scanAudioNotify = document.getElementById("scanAudioNotify");
-  safePlay(scanAudioStart);
-  setTimeout(function () { safePlay(scanAudio); }, 1300);
+  var photoWrap = document.getElementById("photoWrap");
+  var photoInner = document.getElementById("photoInner");
 
-  // Le balayage visuel dure le temps calculé ci-dessus, puis s'arrête : le
-  // scan a une fin, il ne tourne pas indéfiniment. Un signal de fin distinct
-  // se joue, suivi d'une notification quand le rapport est affiché.
-  setTimeout(function () {
-    scanAudio.pause();
-    scanAudio.currentTime = 0;
+  // Machine à états du scan : play/pause/stop pilotent à la fois le son, les
+  // animations CSS (mises en pause via la classe .scan-paused plutôt que
+  // recalculées) et le minuteur qui dérive la progression réelle affichée
+  // (domaine en traitement, critères analysés, temps restant) — tout est
+  // calculé depuis les opérations déjà effectuées (la recherche documentaire
+  // a eu lieu avant l'affichage), jamais simulé au hasard.
+  var scanState = "idle"; // idle | running | paused | finished
+  var startedAt = 0, elapsedBeforePause = 0, ticker = null, finished = false;
+
+  function updateTransport() {
+    document.getElementById("playBtn").disabled = scanState === "running";
+    document.getElementById("pauseBtn").disabled = scanState !== "running";
+    document.getElementById("stopBtn").disabled = scanState === "idle";
+    var label = { idle: "PRÊT — CLIQUEZ LECTURE", running: "SCAN EN COURS…", paused: "EN PAUSE", finished: "ANALYSE TERMINÉE" }[scanState];
+    document.getElementById("transportStatus").textContent = label;
+  }
+
+  function renderStats(elapsed) {
+    var fraction = Math.min(1, elapsed / totalDurationMs);
+    var domainIdx = (domains && domains.length) ? Math.min(domains.length - 1, Math.floor(fraction * domains.length)) : 0;
+    var examined = Math.min(total, Math.floor(elapsed / (perCellDelayMs || 1)));
+    document.getElementById("scanStats").innerHTML =
+      '<div><span>Domaine en traitement</span><b>' + escapeHtml((domains || [])[domainIdx] ? domains[domainIdx].name : "—") + '</b></div>' +
+      '<div><span>Critères analysés</span><b>' + examined + ' / ' + total + '</b></div>' +
+      '<div><span>Sources vérifiées</span><b>' + evidenceCount + '</b></div>' +
+      '<div><span>Temps estimé restant</span><b>' + formatMs(totalDurationMs - elapsed) + '</b></div>';
+    setStep("domaines", fraction >= 1 ? "done" : "active", fraction * 100);
+    setStep("criteres", fraction >= 1 ? "done" : "active", examined / total * 100);
+  }
+
+  function resetVisuals() {
+    photoWrap.classList.remove("finished", "scan-paused");
+    document.getElementById("scanGrid").innerHTML = cells.join("");
+    photoInner.style.animation = "none";
+    void photoInner.offsetWidth; // force le recalcul de style pour relancer l'animation depuis 0
+    photoInner.style.animation = "";
+    photoInner.style.animationDuration = (totalDurationMs / 1000) + "s";
+    document.getElementById("scanSummary").innerHTML = "";
+    document.getElementById("citizenSummary").style.display = "none";
+    document.getElementById("scanStatusLine").textContent = "Lecture des 78 critères enregistrés…";
+    renderStats(0);
+  }
+
+  function finish() {
+    if (finished) return;
+    finished = true;
+    clearInterval(ticker);
+    scanAudio.pause(); scanAudio.currentTime = 0;
     safePlay(scanAudioEnd);
-    document.getElementById("photoWrap").classList.add("finished");
+    photoWrap.classList.add("finished");
     document.getElementById("scanStatusLine").textContent = "Analyse terminée / Analiz fini — " + new Date().toLocaleString("fr-FR");
     document.getElementById("scanSummary").innerHTML =
       '<span class="scan-summary-check">✓</span>' +
@@ -237,14 +342,81 @@ LaserAuth.requireSession().then(async function (session) {
       '<span class="dko">' + counts.ko + ' allégation' + (counts.ko > 1 ? 's' : '') + ' grave' + (counts.ko > 1 ? 's' : '') + ' documentée' + (counts.ko > 1 ? 's' : '') + '</span>' +
       '<span class="dpending">' + counts.pending + ' à documenter</span>' +
       '</div>';
-
+    renderStats(totalDurationMs);
+    setStep("consolidation", "done");
     document.getElementById("citizenSummary").style.display = "block";
     document.getElementById("citizenSummaryBody").innerHTML = buildCitizenSummary(domains || [], criteria || [], statusByCriterion);
-
-    // Notification distincte quand le rapport est effectivement affiché —
-    // après le signal de fin, pour ne pas se superposer à lui.
+    setStep("rapport", "done");
+    scanState = "finished";
+    updateTransport();
     setTimeout(function () { safePlay(scanAudioNotify); }, 2300);
-  }, totalDurationMs);
+  }
+
+  function tick() {
+    var elapsed = Date.now() - startedAt + elapsedBeforePause;
+    if (elapsed >= totalDurationMs) { finish(); return; }
+    renderStats(elapsed);
+  }
+
+  function play() {
+    if (scanState === "running") return;
+    if (scanState === "idle" || scanState === "finished") {
+      finished = false;
+      elapsedBeforePause = 0;
+      resetVisuals();
+      setStep("domaines", "active", 0);
+      setStep("criteres", "active", 0);
+      setStep("consolidation", "pending");
+      setStep("rapport", "pending");
+      safePlay(scanAudioStart);
+      setTimeout(function () { if (scanState === "running") safePlay(scanAudio); }, 1300);
+    } else if (scanState === "paused") {
+      photoWrap.classList.remove("scan-paused");
+      safePlay(scanAudio);
+    }
+    startedAt = Date.now();
+    scanState = "running";
+    updateTransport();
+    clearInterval(ticker);
+    ticker = setInterval(tick, 250);
+  }
+
+  function pause() {
+    if (scanState !== "running") return;
+    elapsedBeforePause += Date.now() - startedAt;
+    clearInterval(ticker);
+    scanAudio.pause();
+    photoWrap.classList.add("scan-paused");
+    scanState = "paused";
+    updateTransport();
+  }
+
+  function stop() {
+    if (scanState === "idle") return;
+    clearInterval(ticker);
+    scanAudio.pause(); scanAudio.currentTime = 0;
+    elapsedBeforePause = 0;
+    finished = false;
+    resetVisuals();
+    setStep("domaines", "pending", 0);
+    setStep("criteres", "pending", 0);
+    setStep("consolidation", "pending");
+    setStep("rapport", "pending");
+    scanState = "idle";
+    updateTransport();
+  }
+
+  document.getElementById("playBtn").innerHTML = LaserIcons.svg("play", 16);
+  document.getElementById("pauseBtn").innerHTML = LaserIcons.svg("pause", 16);
+  document.getElementById("stopBtn").innerHTML = LaserIcons.svg("stop", 14);
+  document.getElementById("playBtn").addEventListener("click", play);
+  document.getElementById("pauseBtn").addEventListener("click", pause);
+  document.getElementById("stopBtn").addEventListener("click", stop);
+  document.getElementById("scanTransport").style.display = "flex";
+
+  resetVisuals();
+  updateTransport();
+  play();
 
   laserSupabase.from("audit_log").insert({
     actor_id: session.user.id, username: session.profile.full_name,

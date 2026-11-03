@@ -21,21 +21,21 @@
           <label for="curPass">Mot de passe actuel</label>
           <div class="pw-wrap">
             <input type="password" id="curPass" required autocomplete="current-password">
-            <button type="button" class="pw-toggle" data-target="curPass" aria-label="Afficher le mot de passe">👁️</button>
+            <button type="button" class="pw-toggle" data-target="curPass" aria-label="Afficher le mot de passe"></button>
           </div>
         </div>
         <div class="form-field">
           <label for="newPass">Nouveau mot de passe (8 caractères min.)</label>
           <div class="pw-wrap">
             <input type="password" id="newPass" required minlength="8" autocomplete="new-password">
-            <button type="button" class="pw-toggle" data-target="newPass" aria-label="Afficher le mot de passe">👁️</button>
+            <button type="button" class="pw-toggle" data-target="newPass" aria-label="Afficher le mot de passe"></button>
           </div>
         </div>
         <div class="form-field">
           <label for="confPass">Confirmer le nouveau mot de passe</label>
           <div class="pw-wrap">
             <input type="password" id="confPass" required minlength="8" autocomplete="new-password">
-            <button type="button" class="pw-toggle" data-target="confPass" aria-label="Afficher le mot de passe">👁️</button>
+            <button type="button" class="pw-toggle" data-target="confPass" aria-label="Afficher le mot de passe"></button>
           </div>
         </div>
         <button type="submit" class="btn">Changer le mot de passe</button>
@@ -56,11 +56,12 @@ var sessionProfile = null;
 var sessionEmail = null;
 
 document.querySelectorAll(".pw-toggle").forEach(function (btn) {
+  btn.innerHTML = LaserIcons.svg("eye", 16);
   btn.addEventListener("click", function () {
     var input = document.getElementById(btn.getAttribute("data-target"));
     var showing = input.type === "text";
     input.type = showing ? "password" : "text";
-    btn.textContent = showing ? "👁️" : "🙈";
+    btn.innerHTML = LaserIcons.svg(showing ? "eye" : "eyeOff", 16);
   });
 });
 

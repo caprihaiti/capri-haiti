@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accueil — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="card hero-card">
+      <div class="hero-badge" aria-hidden="true">
+        <span id="heroIcon"></span>
+      </div>
+      <div>
+        <p class="eyebrow">CAPRI-HAÏTI · LASER-ROBOT™</p>
+        <h1 class="hero-title">Système indépendant de vérification documentaire et d'analyse des candidatures présidentielles en Haïti</h1>
+        <p class="hero-tagline">Évaluer · Vérifier · Comparer · Informer · Éclairer le choix du peuple — à partir des mêmes 22 domaines et 78 critères pour chaque candidat, sans score global, sans classement, sans recommandation de vote.</p>
+        <div class="feature-chips" id="featureChips"></div>
+        <a class="btn" href="dashboard.html" id="ctaBtn"></a>
+      </div>
+    </div>
+
+    <div class="kpi-grid" id="kpiGrid"><div class="empty-state">Chargement des indicateurs…</div></div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h2>Notre mission</h2>
+        <p class="muted">Fournir à la population haïtienne une analyse objective, documentée et transparente des candidatures à la présidence, selon 22 domaines et 78 critères d'évaluation identiques pour tous, afin de permettre un choix libre, éclairé et responsable — jamais un verdict à sa place.</p>
+      </div>
+      <div class="card">
+        <h2>Nos principes</h2>
+        <ul class="small" style="margin:0;padding-left:18px;line-height:1.9">
+          <li>Indépendance et neutralité</li>
+          <li>Équité envers tous les candidats — même méthode, même exigence</li>
+          <li>Transparence et traçabilité de chaque source</li>
+          <li>Preuves et sources documentées, jamais d'information inventée</li>
+          <li>Présomption d'innocence et distinction stricte entre allégation et condamnation</li>
+          <li>Information claire pour les électeurs, aucune recommandation de vote</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sectionhead"><h2>Dernières activités du système</h2></div>
+      <div id="activityList"><div class="empty-state">Chargement…</div></div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+LaserAuth.requireSession().then(async function (session) {
+  LaserShell.renderSidebar(session.profile, "accueil");
+  document.getElementById("heroIcon").innerHTML = LaserIcons.svg("scan", 56);
+  document.getElementById("ctaBtn").innerHTML = LaserIcons.svg("search", 16) + " Analyser un candidat maintenant";
+
+  var FEATURES = [
+    ["search", "Vérification documentaire"],
+    ["book", "Analyse des 22 domaines"],
+    ["scan", "Évaluation des 78 critères"],
+    ["compare", "Comparaison des candidats"],
+    ["report", "Rapport détaillé et synthèse"],
+    ["shield", "Aide à la décision pour les électeurs"],
+  ];
+  document.getElementById("featureChips").innerHTML = FEATURES.map(function (f) {
+    return '<span class="feature-chip">' + LaserIcons.svg(f[0], 15) + escapeHtml(f[1]) + '</span>';
+  }).join("");
+
+  loadStats();
+  loadActivity();
+});
+
+async function loadStats() {
+  var results = await Promise.all([
+    laserSupabase.from("candidates").select("*", { count: "exact", head: true }),
+    laserSupabase.from("candidates").select("*", { count: "exact", head: true }).not("biography", "is", null),
+    laserSupabase.from("criteria").select("*", { count: "exact", head: true }),
+    laserSupabase.from("evidence").select("*", { count: "exact", head: true }).eq("verification_status", "Vérifié"),
+    laserSupabase.from("evidence").select("*", { count: "exact", head: true }).eq("verification_status", "Non vérifié"),
+  ]);
+  document.getElementById("kpiGrid").innerHTML =
+    kpiCard("folder", results[0].count || 0, "Candidatures enregistrées") +
+    kpiCard("search", results[1].count || 0, "Dossiers analysés") +
+    kpiCard("scan", results[2].count || 0, "Critères évalués (référentiel national)") +
+    kpiCard("shield", results[3].count || 0, "Preuves vérifiées") +
+    kpiCard("warning", results[4].count || 0, "Éléments en attente de vérification humaine", true);
+}
+
+function kpiCard(icon, value, label, warn) {
+  return '<div class="kpi-card' + (warn ? ' warn' : '') + '"><span class="kpi-icon">' + LaserIcons.svg(icon, 26) + '</span>' +
+    '<div class="kpi-value">' + value + '</div><div class="kpi-label">' + escapeHtml(label) + '</div></div>';
+}
+
+async function loadActivity() {
+  var { data, error } = await laserSupabase.from("audit_log").select("*").order("at", { ascending: false }).limit(6);
+  var box = document.getElementById("activityList");
+  if (error || !data || !data.length) { box.innerHTML = '<div class="empty-state">Aucune activité enregistrée pour l\'instant.</div>'; return; }
+  var ACTION_LABELS = { insert: "Création", update: "Mise à jour", consultation: "Consultation", recherche_automatique: "Recherche automatique" };
+  var ENTITY_LABELS = { candidates: "candidat", assessments: "critère", evidence: "élément documentaire", scanner: "scanner", rapport: "rapport électeur" };
+  box.innerHTML = '<div class="timeline">' + data.map(function (row) {
+    return '<div class="timeline-row"><span class="timeline-dot"></span><div>' +
+      '<div class="timeline-text"><b>' + escapeHtml(row.username || "Système") + '</b> — ' +
+      escapeHtml(ACTION_LABELS[row.action] || row.action) + ' (' + escapeHtml(ENTITY_LABELS[row.entity_type] || row.entity_type) + ')' +
+      (row.details ? ' : ' + escapeHtml(row.details) : '') + '</div>' +
+      '<div class="timeline-time">' + new Date(row.at).toLocaleString("fr-FR") + '</div></div></div>';
+  }).join('') + '</div>';
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+</script>
+</body>
+</html>

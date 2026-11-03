@@ -24,6 +24,15 @@
       <p class="small muted" id="pickerHint" style="margin-top:10px">Sélectionnez au moins deux candidats (cinq maximum).</p>
     </div>
 
+    <div class="card">
+      <h2>Filtres de comparaison</h2>
+      <div class="form-field">
+        <label for="domainFilter">Domaines à inclure dans le tableau détaillé</label>
+        <select id="domainFilter" multiple size="6"></select>
+        <p class="small muted" style="margin-top:6px">Aucune sélection = tous les domaines. Ctrl/Cmd-clic pour sélectionner plusieurs domaines.</p>
+      </div>
+    </div>
+
     <div id="compareResult"></div>
   </main>
 </div>
@@ -36,13 +45,20 @@
 <script src="assets/shell.js"></script>
 <script>
 var MAX_COMPARE = 5;
-var allCandidates = [], selectedIds = [];
+var allCandidates = [], selectedIds = [], allDomains = [];
 
 LaserAuth.requireSession().then(async function (session) {
   LaserShell.renderSidebar(session.profile, "comparateur");
-  var { data } = await laserSupabase.from("candidates").select("id, full_name, last_name").order("last_name").order("full_name");
-  allCandidates = data || [];
+  var [{ data: candData }, { data: domainData }] = await Promise.all([
+    laserSupabase.from("candidates").select("id, full_name, last_name").order("last_name").order("full_name"),
+    laserSupabase.from("domains").select("*").order("id"),
+  ]);
+  allCandidates = candData || [];
+  allDomains = domainData || [];
   renderPicker();
+  document.getElementById("domainFilter").innerHTML = allDomains.map(function (d) {
+    return '<option value="' + d.id + '">' + escapeHtml(d.id + " · " + d.name) + '</option>';
+  }).join("");
 
   var presetIds = (new URLSearchParams(window.location.search).get("ids") || "").split(",").filter(Boolean);
   if (presetIds.length >= 2) {
@@ -86,20 +102,60 @@ async function runCompare() {
   var resultBox = document.getElementById("compareResult");
 
   var candidates = allCandidates.filter(function (c) { return selectedIds.indexOf(c.id) !== -1; });
-  var { data: domains } = await laserSupabase.from("domains").select("*").order("id");
   var { data: criteria } = await laserSupabase.from("criteria").select("*").order("id");
   var { data: assessments } = await laserSupabase.from("assessments").select("candidate_id, criterion_id, status").in("candidate_id", selectedIds);
+  var { data: evidence } = await laserSupabase.from("evidence").select("candidate_id, verification_status").in("candidate_id", selectedIds);
 
   var statusByCandCrit = {};
   (assessments || []).forEach(function (a) {
     statusByCandCrit[a.candidate_id + "|" + a.criterion_id] = a.status;
   });
 
-  resultBox.innerHTML = renderOverview(candidates, domains || [], criteria || [], statusByCandCrit) +
-    renderDetailTable(candidates, domains || [], criteria || [], statusByCandCrit);
+  var selectedDomainOpts = Array.prototype.filter.call(document.getElementById("domainFilter").options, function (o) { return o.selected; }).map(function (o) { return o.value; });
+  var domains = selectedDomainOpts.length ? allDomains.filter(function (d) { return selectedDomainOpts.indexOf(d.id) !== -1; }) : allDomains;
+
+  resultBox.innerHTML =
+    renderOverview(candidates, allDomains, criteria || [], statusByCandCrit, evidence || []) +
+    renderProgressChart(candidates, criteria || [], statusByCandCrit) +
+    renderSynthesis(candidates, allDomains, criteria || [], statusByCandCrit) +
+    renderDetailTable(candidates, domains, criteria || [], statusByCandCrit) +
+    '<div class="card no-print" style="text-align:center"><button type="button" class="btn icon-btn" id="exportPdfBtn">' + LaserIcons.svg("print", 16) + ' Exporter le rapport comparatif (PDF)</button>' +
+    '<p class="small muted" style="margin-top:8px">Utilise l\'impression du navigateur — choisissez « Enregistrer en PDF » comme destination.</p></div>';
+  document.getElementById("exportPdfBtn").addEventListener("click", function () { window.print(); });
 
   btn.disabled = selectedIds.length < 2;
   btn.textContent = "Comparer";
+}
+
+function renderProgressChart(candidates, criteria, statusByCandCrit) {
+  var total = criteria.length || 1;
+  var bars = candidates.map(function (cand) {
+    var examined = criteria.filter(function (r) { return (statusByCandCrit[cand.id + "|" + r.id] || "À documenter") !== "À documenter"; }).length;
+    var pct = Math.round(examined / total * 100);
+    return '<div class="progress-row"><span class="pr-label">' + escapeHtml(formatDisplayName(cand.full_name, cand.last_name)) + '</span>' +
+      '<span class="pr-bar"><i style="width:' + pct + '%"></i></span><span class="pr-pct">' + examined + '/' + total + '</span></div>';
+  }).join("");
+  return '<div class="card"><h2>Avancement documentaire comparé</h2>' +
+    '<p class="muted small">Part des 78 critères déjà examinés pour chaque candidat — une mesure de l\'avancement de la recherche, pas une note de qualité ni un classement.</p>' +
+    bars + '</div>';
+}
+
+function renderSynthesis(candidates, domains, criteria, statusByCandCrit) {
+  var common = [], different = [];
+  domains.forEach(function (d) {
+    var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
+    var allEmpty = candidates.every(function (cand) { return rows.every(function (r) { return (statusByCandCrit[cand.id + "|" + r.id] || "À documenter") === "À documenter"; }); });
+    var anyContested = candidates.some(function (cand) { return rows.some(function (r) { return statusByCandCrit[cand.id + "|" + r.id] === "Allégation grave documentée"; }); });
+    var contestedCandidates = candidates.filter(function (cand) { return rows.some(function (r) { return statusByCandCrit[cand.id + "|" + r.id] === "Allégation grave documentée"; }); }).length;
+    if (allEmpty) common.push(d.name + " — aucune recherche aboutie pour aucun candidat sélectionné");
+    else if (anyContested && contestedCandidates < candidates.length) different.push(d.name + " — allégation grave documentée pour certains candidats seulement, pas tous");
+  });
+  return '<div class="card"><h2>Synthèse — différences et points communs</h2>' +
+    '<p class="muted small">Observations factuelles tirées des données déjà enregistrées, jamais une recommandation.</p>' +
+    (different.length ? '<p class="small"><b>Principales différences :</b></p><ul class="small">' + different.map(function (s) { return "<li>" + escapeHtml(s) + "</li>"; }).join("") + "</ul>" : "") +
+    (common.length ? '<p class="small muted"><b>Lacunes communes (aucune information pour personne) :</b></p><ul class="small muted">' + common.map(function (s) { return "<li>" + escapeHtml(s) + "</li>"; }).join("") + "</ul>" : "") +
+    (!different.length && !common.length ? '<p class="small muted">Pas assez de données encore enregistrées pour dégager des différences ou points communs clairs.</p>' : '') +
+    '</div>';
 }
 
 function statusClass(status) {
@@ -109,10 +165,14 @@ function statusClass(status) {
   return "pending";
 }
 
-function renderOverview(candidates, domains, criteria, statusByCandCrit) {
+function renderOverview(candidates, domains, criteria, statusByCandCrit, evidence) {
   var html = '<div class="card"><h2>Vue d\'ensemble par candidat et par domaine</h2>' +
     '<p class="muted small">Même décompte, même méthode, pour chaque candidat sélectionné — pas un score, pas un classement.</p>';
   html += candidates.map(function (cand) {
+    var ev = evidence.filter(function (e) { return e.candidate_id === cand.id; });
+    var evVerified = ev.filter(function (e) { return e.verification_status === "Vérifié"; }).length;
+    var evUnverified = ev.filter(function (e) { return e.verification_status === "Non vérifié" || e.verification_status === "À examiner"; }).length;
+    var evLine = '<p class="small muted" style="margin:6px 0 10px">' + ev.length + ' élément(s) documentaire(s) — ' + evVerified + ' vérifié(s), ' + evUnverified + ' non vérifié(s)/à examiner.</p>';
     var tiles = domains.map(function (d) {
       var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
       var counts = { ok: 0, ko: 0, pending: 0, documented: 0 };
@@ -128,8 +188,8 @@ function renderOverview(candidates, domains, criteria, statusByCandCrit) {
         '<span class="dpending">' + counts.pending + '</span>' +
         '</div></div>';
     }).join("");
-    return '<h3 style="margin:18px 0 8px">' + escapeHtml(formatDisplayName(cand.full_name, cand.last_name)) + '</h3>' +
-      '<div class="domain-overview">' + tiles + '</div>';
+    return '<h3 style="margin:18px 0 4px">' + escapeHtml(formatDisplayName(cand.full_name, cand.last_name)) + '</h3>' +
+      evLine + '<div class="domain-overview">' + tiles + '</div>';
   }).join("");
   html += '</div>';
   return html;

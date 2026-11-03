@@ -83,7 +83,7 @@ window.LaserAuth = (function () {
       '<div class="laser-gate"><div class="laser-gate-card">' +
       "<h1>Accès réservé</h1>" +
       "<p>Votre rôle ne permet pas d'accéder à cette page.</p>" +
-      '<a href="dashboard.html">← Retour au tableau de bord</a>' +
+      '<a href="accueil.html">← Retour à l\'accueil</a>' +
       "</div></div>";
   }
 

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableau de bord général — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="top" style="align-items:center">
+      <div>
+        <p class="eyebrow">LASER-ROBOT · ANALYSE SYSTÈME</p>
+        <h1 style="margin-bottom:2px">Tableau de bord général</h1>
+        <p class="muted small" id="updatedAt">Chargement…</p>
+      </div>
+    </div>
+
+    <div class="kpi-grid" id="kpiGrid"><div class="empty-state">Chargement des indicateurs…</div></div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h2>Progression globale des analyses</h2>
+        <p class="muted small">Part des 78 critères déjà examinés, tous candidats confondus — un décompte de l'avancement documentaire du registre, jamais une note attribuée à un candidat.</p>
+        <div id="globalDonut"></div>
+      </div>
+      <div class="card">
+        <h2>Candidatures par statut (CEP)</h2>
+        <p class="muted small">Répartition des candidatures enregistrées selon le statut constaté auprès du Conseil Électoral Provisoire.</p>
+        <div id="statusDonut"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>État d'avancement par domaine (22)</h2>
+      <p class="muted small">Pour chaque domaine de la charte, part des critères déjà examinés (tous candidats confondus).</p>
+      <div class="progress-list" id="domainProgress"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h2>Synthèse générale</h2>
+        <p id="synthText" class="muted">Chargement…</p>
+      </div>
+      <div class="card">
+        <div class="sectionhead"><h2>Activités récentes</h2></div>
+        <div id="activityList"><div class="empty-state">Chargement…</div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var COL = { ok: "#5fc489", gold: "#e8bd70", danger: "#ef7b86", pending: "#53647b", accent: "#4fd2e8", deep: "#1f9fb8" };
+
+LaserAuth.requireSession().then(async function (session) {
+  LaserShell.renderSidebar(session.profile, "tableaudebord");
+  document.getElementById("updatedAt").textContent = "Mise à jour : " + new Date().toLocaleString("fr-FR");
+  await loadAll();
+});
+
+async function loadAll() {
+  var [{ data: domains }, { data: criteria }, { data: candidates }, { data: assessments }, countCandidates, countDocumented, countEvidenceVerified, countEvidencePending] = await Promise.all([
+    laserSupabase.from("domains").select("*").order("id"),
+    laserSupabase.from("criteria").select("id, domain_id"),
+    laserSupabase.from("candidates").select("id, cep_status"),
+    laserSupabase.from("assessments").select("criterion_id, status"),
+    laserSupabase.from("candidates").select("*", { count: "exact", head: true }),
+    laserSupabase.from("candidates").select("*", { count: "exact", head: true }).not("biography", "is", null),
+    laserSupabase.from("evidence").select("*", { count: "exact", head: true }).eq("verification_status", "Vérifié"),
+    laserSupabase.from("evidence").select("*", { count: "exact", head: true }).eq("verification_status", "Non vérifié"),
+  ]);
+  domains = domains || []; criteria = criteria || []; candidates = candidates || []; assessments = assessments || [];
+
+  var totalCandidates = countCandidates.count || 0;
+  var documented = countDocumented.count || 0;
+  var evidenceVerified = countEvidenceVerified.count || 0;
+  var evidencePending = countEvidencePending.count || 0;
+
+  document.getElementById("kpiGrid").innerHTML =
+    kpiCard("folder", totalCandidates, "Candidats enregistrés") +
+    kpiCard("search", documented, "Dossiers analysés") +
+    kpiCard("scan", criteria.length, "Critères totaux") +
+    kpiCard("book", domains.length, "Domaines d'évaluation") +
+    kpiCard("shield", evidenceVerified, "Preuves vérifiées") +
+    kpiCard("warning", evidencePending, "Éléments en attente", true);
+
+  // Progression globale : répartition des N = candidats × 78 états
+  // d'évaluation déjà posés, tous candidats confondus.
+  var counts = { ok: 0, documented: 0, ko: 0, pending: 0 };
+  assessments.forEach(function (a) {
+    if (a.status === "Vérifié") counts.ok++;
+    else if (a.status === "Allégation grave documentée") counts.ko++;
+    else if (a.status === "Documenté" || a.status === "À examiner") counts.documented++;
+    else counts.pending++;
+  });
+  var totalAssessments = assessments.length || 1;
+  var examined = counts.ok + counts.documented + counts.ko;
+  renderDonut("globalDonut", [
+    { label: "Vérifié", value: counts.ok, color: COL.ok },
+    { label: "Documenté / à examiner", value: counts.documented, color: COL.gold },
+    { label: "Allégation grave documentée", value: counts.ko, color: COL.danger },
+    { label: "À documenter", value: counts.pending, color: COL.pending },
+  ], Math.round(examined / totalAssessments * 100) + "%", "déjà examiné");
+
+  // Candidatures par statut CEP (texte libre, regroupé tel quel)
+  var byStatus = {};
+  candidates.forEach(function (c) { var s = c.cep_status || "Non renseigné"; byStatus[s] = (byStatus[s] || 0) + 1; });
+  var palette = [COL.ok, COL.gold, COL.accent, COL.danger, COL.pending, COL.deep];
+  var statusSegments = Object.keys(byStatus).map(function (s, i) { return { label: s, value: byStatus[s], color: palette[i % palette.length] }; });
+  renderDonut("statusDonut", statusSegments, totalCandidates, "candidat" + (totalCandidates > 1 ? "s" : ""));
+
+  // Avancement par domaine
+  var byDomainTotal = {}, byDomainExamined = {};
+  var statusByCriterion = {};
+  assessments.forEach(function (a) {
+    statusByCriterion[a.criterion_id] = statusByCriterion[a.criterion_id] || [];
+    statusByCriterion[a.criterion_id].push(a.status);
+  });
+  criteria.forEach(function (c) {
+    byDomainTotal[c.domain_id] = (byDomainTotal[c.domain_id] || 0) + (statusByCriterion[c.id] || []).length;
+    byDomainExamined[c.domain_id] = (byDomainExamined[c.domain_id] || 0) +
+      (statusByCriterion[c.id] || []).filter(function (s) { return s !== "À documenter" && s !== "Non applicable"; }).length;
+  });
+  document.getElementById("domainProgress").innerHTML = domains.map(function (d) {
+    var total = byDomainTotal[d.id] || 0;
+    var ex = byDomainExamined[d.id] || 0;
+    var pct = total ? Math.round(ex / total * 100) : 0;
+    return '<div class="progress-row"><span class="pr-label" title="' + escapeHtml(d.name) + '">' + escapeHtml(d.id + " · " + d.name) + '</span>' +
+      '<span class="pr-bar"><i style="width:' + pct + '%"></i></span><span class="pr-pct">' + pct + '%</span></div>';
+  }).join("");
+
+  document.getElementById("synthText").textContent =
+    totalCandidates + " candidature(s) enregistrée(s), dont " + documented + " avec une recherche initiale documentée, selon les " +
+    domains.length + " domaines et " + criteria.length + " critères de la charte nationale. " +
+    examined + " état(s) de critère sur " + totalAssessments + " ont déjà été examinés (tous candidats confondus), et " +
+    evidencePending + " élément(s) documentaire(s) restent en attente de vérification par un réviseur humain CAPRI.";
+
+  loadActivity();
+}
+
+function kpiCard(icon, value, label, warn) {
+  return '<div class="kpi-card' + (warn ? ' warn' : '') + '"><span class="kpi-icon">' + LaserIcons.svg(icon, 26) + '</span>' +
+    '<div class="kpi-value">' + value + '</div><div class="kpi-label">' + escapeHtml(label) + '</div></div>';
+}
+
+function renderDonut(containerId, segments, centerValue, centerLabel) {
+  var total = segments.reduce(function (s, x) { return s + x.value; }, 0);
+  var el = document.getElementById(containerId);
+  if (!total) { el.innerHTML = '<div class="empty-state">Pas encore de données à afficher.</div>'; return; }
+  var cum = 0;
+  var stops = segments.filter(function (s) { return s.value > 0; }).map(function (seg) {
+    var start = cum / total * 100, end = (cum + seg.value) / total * 100;
+    cum += seg.value;
+    return seg.color + " " + start.toFixed(2) + "% " + end.toFixed(2) + "%";
+  }).join(", ");
+  var legend = segments.map(function (seg) {
+    var pct = Math.round(seg.value / total * 100);
+    return '<span><i style="background:' + seg.color + '"></i>' + escapeHtml(seg.label) + ' — ' + seg.value + ' (' + pct + '%)</span>';
+  }).join("");
+  el.innerHTML = '<div class="donut-wrap"><div class="donut" style="background:conic-gradient(' + stops + ')">' +
+    '<div class="donut-center"><b>' + centerValue + '</b><small>' + escapeHtml(centerLabel) + '</small></div></div>' +
+    '<div class="donut-legend">' + legend + '</div></div>';
+}
+
+async function loadActivity() {
+  var { data, error } = await laserSupabase.from("audit_log").select("*").order("at", { ascending: false }).limit(8);
+  var box = document.getElementById("activityList");
+  if (error || !data || !data.length) { box.innerHTML = '<div class="empty-state">Aucune activité enregistrée pour l\'instant.</div>'; return; }
+  var ACTION_LABELS = { insert: "Création", update: "Mise à jour", consultation: "Consultation", recherche_automatique: "Recherche automatique" };
+  var ENTITY_LABELS = { candidates: "candidat", assessments: "critère", evidence: "élément documentaire", scanner: "scanner", rapport: "rapport électeur" };
+  box.innerHTML = '<div class="timeline">' + data.map(function (row) {
+    return '<div class="timeline-row"><span class="timeline-dot"></span><div>' +
+      '<div class="timeline-text"><b>' + escapeHtml(row.username || "Système") + '</b> — ' +
+      escapeHtml(ACTION_LABELS[row.action] || row.action) + ' (' + escapeHtml(ENTITY_LABELS[row.entity_type] || row.entity_type) + ')' +
+      (row.details ? ' : ' + escapeHtml(row.details) : '') + '</div>' +
+      '<div class="timeline-time">' + new Date(row.at).toLocaleString("fr-FR") + '</div></div></div>';
+  }).join('') + '</div>';
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+</script>
+</body>
+</html>

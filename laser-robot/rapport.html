@@ -20,7 +20,11 @@
         <p class="muted" id="candSub"></p>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap" class="no-print">
+        <a class="btn secondary icon-btn" id="domainLink" href="#"></a>
+        <a class="btn secondary icon-btn" id="compareLink" href="#"></a>
         <button type="button" class="btn secondary icon-btn" id="printBtn"></button>
+        <button type="button" class="btn secondary icon-btn" id="docBtn"></button>
+        <button type="button" class="btn secondary icon-btn" id="xlsxBtn"></button>
       </div>
     </div>
 
@@ -39,6 +43,7 @@
 <script src="assets/supabase-client.js"></script>
 <script src="assets/auth.js"></script>
 <script src="assets/icons.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 var candidateId = new URLSearchParams(window.location.search).get("id");
 document.getElementById("backLink").href = "candidate.html?id=" + candidateId;
@@ -47,9 +52,19 @@ var POSITIVE_TYPES = ["Fait documenté", "Document officiel / source primaire"];
 var PROGRAM_TYPES = ["Programme ou engagement public", "Déclaration du candidat"];
 var CONCERNING_TYPES = ["Allégation attribuée", "Sanction administrative", "Enquête en cours", "Recommandation de poursuite", "Décision judiciaire définitive"];
 
+var reportData = null;
+
 LaserAuth.requireSession().then(async function (session) {
-  document.getElementById("printBtn").innerHTML = LaserIcons.svg("print", 16) + " Imprimer / Partager";
+  document.getElementById("domainLink").href = "analyses.html?id=" + candidateId;
+  document.getElementById("domainLink").innerHTML = LaserIcons.svg("book", 16) + " Analyse par domaine";
+  document.getElementById("compareLink").href = "comparateur.html?ids=" + candidateId;
+  document.getElementById("compareLink").innerHTML = LaserIcons.svg("compare", 16) + " Comparer";
+  document.getElementById("printBtn").innerHTML = LaserIcons.svg("print", 16) + " Imprimer / PDF";
   document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+  document.getElementById("docBtn").innerHTML = LaserIcons.svg("report", 16) + " Exporter (Word)";
+  document.getElementById("docBtn").addEventListener("click", exportDoc);
+  document.getElementById("xlsxBtn").innerHTML = LaserIcons.svg("folder", 16) + " Exporter (Excel)";
+  document.getElementById("xlsxBtn").addEventListener("click", exportXlsx);
 
   var { data: c } = await laserSupabase.from("candidates").select("*").eq("id", candidateId).single();
   if (!c) { document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; return; }
@@ -64,6 +79,7 @@ LaserAuth.requireSession().then(async function (session) {
   domains = domains || []; criteria = criteria || []; assessments = assessments || []; evidence = evidence || [];
   var byId = {};
   assessments.forEach(function (a) { byId[a.criterion_id] = a; });
+  reportData = { c: c, domains: domains, criteria: criteria, byId: byId, evidence: evidence };
 
   renderSynth(c, domains, criteria, byId, evidence);
   renderDetail(domains, criteria, byId);
@@ -76,6 +92,58 @@ LaserAuth.requireSession().then(async function (session) {
     action: "consultation", entity_type: "rapport", entity_id: candidateId
   });
 });
+
+// Export Word : un document HTML servi avec une extension .doc — Word
+// l'ouvre nativement comme un traitement de texte. Alternative légère à la
+// génération d'un vrai .docx (OOXML), suffisante pour un rapport en lecture
+// seule destiné à être relu, imprimé ou partagé tel quel.
+function exportDoc() {
+  if (!reportData) return;
+  var name = formatDisplayName(reportData.c.full_name, reportData.c.last_name);
+  var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="utf-8"><title>Rapport — ' + escapeHtml(name) + '</title>' +
+    '<style>body{font-family:Calibri,Arial,sans-serif;color:#111;font-size:12pt}h1{color:#8a6d2e}h3{color:#8a6d2e;border-bottom:1px solid #ccc}' +
+    '.status{border:1px solid #888;border-radius:10px;padding:1px 7px;font-size:10pt}.muted{color:#555}.small{font-size:10pt}' +
+    'article{border-top:1px solid #ccc;padding-top:8px;margin-top:8px}</style></head><body>' +
+    '<h1>LASER-ROBOT — Rapport électeur : ' + escapeHtml(name) + '</h1>' +
+    document.getElementById("reportSynth").innerHTML +
+    '</body></html>';
+  var blob = new Blob(['﻿', html], { type: "application/msword" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "rapport-" + name.replace(/[^a-z0-9]+/gi, "-").toLowerCase() + ".doc";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+// Export Excel : tableau des 78 critères (statut, note, analyse, éléments
+// liés) pour ce candidat — données brutes pour analystes, mêmes valeurs que
+// la version détaillée du rapport, rien de recalculé.
+function exportXlsx() {
+  if (!reportData) return;
+  var d = reportData;
+  var evCountByCriterion = {};
+  d.evidence.forEach(function (e) { if (e.criterion_id) evCountByCriterion[e.criterion_id] = (evCountByCriterion[e.criterion_id] || 0) + 1; });
+  var rows = d.criteria.map(function (r) {
+    var a = d.byId[r.id] || { status: "À documenter", score: null, analysis: "" };
+    var domain = d.domains.find(function (x) { return x.id === r.domain_id; });
+    return {
+      "Domaine": domain ? domain.id + " · " + domain.name : r.domain_id,
+      "Critère": r.id,
+      "Intitulé": r.title,
+      "Statut": a.status,
+      "Note (0-5)": a.score === null || a.score === undefined ? "" : a.score,
+      "Justification": a.analysis || "",
+      "Éléments documentaires liés": evCountByCriterion[r.id] || 0,
+    };
+  });
+  var ws = XLSX.utils.json_to_sheet(rows);
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "78 critères");
+  var name = formatDisplayName(d.c.full_name, d.c.last_name);
+  XLSX.writeFile(wb, "rapport-" + name.replace(/[^a-z0-9]+/gi, "-").toLowerCase() + ".xlsx");
+}
 
 function showTab(which) {
   var isSynth = which === "synth";

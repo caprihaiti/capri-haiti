@@ -26,7 +26,16 @@ window.LaserIcons = (function () {
     close: '<path d="M5 5l14 14M19 5 5 19"/>',
     menu: '<path d="M4 6.5h16M4 12h16M4 17.5h16"/>',
     print: '<path d="M6 8.5V4h12v4.5"/><path d="M6 17.5H4.8A1.8 1.8 0 0 1 3 15.7v-4.4A1.8 1.8 0 0 1 4.8 9.5h14.4A1.8 1.8 0 0 1 21 11.3v4.4a1.8 1.8 0 0 1-1.8 1.8H18"/><path d="M6 14h12v6.5H6z"/>',
-    shield: '<path d="M12 3.5 19 6v6c0 5-3.2 7.7-7 8.5-3.8-.8-7-3.5-7-8.5V6Z"/><path d="m9 12 2.3 2.3L15.5 10"/>'
+    shield: '<path d="M12 3.5 19 6v6c0 5-3.2 7.7-7 8.5-3.8-.8-7-3.5-7-8.5V6Z"/><path d="m9 12 2.3 2.3L15.5 10"/>',
+    chart: '<path d="M4 20V4M4 20h16"/><rect x="7" y="13" width="3" height="5"/><rect x="12" y="9" width="3" height="9"/><rect x="17" y="6" width="3" height="12"/>',
+    play: '<path d="M7 5.5v13l11-6.5Z"/>',
+    pause: '<rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/>',
+    stop: '<rect x="6" y="6" width="12" height="12" rx="1.5"/>',
+    spinner: '<circle cx="12" cy="12" r="8.5" stroke-dasharray="40 14"/>',
+    circle: '<circle cx="12" cy="12" r="8.5"/>',
+    chevronLeft: '<path d="m14.5 5-7 7 7 7"/>',
+    chevronRight: '<path d="m9.5 5 7 7-7 7"/>',
+    settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 13.5a7.9 7.9 0 0 0 0-3l1.9-1.3-1.8-3.1-2.2.6a7.8 7.8 0 0 0-2.6-1.5L14.3 3h-4.6l-.4 2.2a7.8 7.8 0 0 0-2.6 1.5l-2.2-.6-1.8 3.1 1.9 1.3a7.9 7.9 0 0 0 0 3l-1.9 1.3 1.8 3.1 2.2-.6a7.8 7.8 0 0 0 2.6 1.5l.4 2.2h4.6l.4-2.2a7.8 7.8 0 0 0 2.6-1.5l2.2.6 1.8-3.1Z"/>'
   };
 
   function svg(name, size) {

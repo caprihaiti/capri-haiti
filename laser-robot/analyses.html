@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analyse détaillée — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="top" style="align-items:center">
+      <div>
+        <p class="eyebrow">LASER-ROBOT · ANALYSES</p>
+        <h1 id="pageTitle" style="margin-bottom:2px">Analyse détaillée</h1>
+        <p class="muted small" id="candSummary">Chargement…</p>
+      </div>
+      <div style="display:flex;gap:8px" class="no-print">
+        <button type="button" class="btn secondary icon-btn" id="prevDomainBtn"></button>
+        <button type="button" class="btn secondary icon-btn" id="nextDomainBtn"></button>
+      </div>
+    </div>
+
+    <div class="fiche-layout">
+      <nav class="subnav" id="domainNav"><div class="empty-state">Chargement…</div></nav>
+
+      <div>
+        <section class="card" id="domainHeaderCard">
+          <div class="sectionhead">
+            <h2 id="domainTitle">…</h2>
+            <span class="status" id="domainCounter"></span>
+          </div>
+          <div id="domainSynthesis"></div>
+        </section>
+
+        <section class="card">
+          <div class="sectionhead"><h2>Critères de ce domaine</h2></div>
+          <p class="muted small">Note facultative (0–5), saisie uniquement par un réviseur humain après examen — l'absence de donnée n'est jamais assimilée à une note de 0. Aucune moyenne ni note globale n'est calculée ici.</p>
+          <div id="criteriaDetail"><div class="empty-state">Chargement…</div></div>
+        </section>
+
+        <section class="card">
+          <h2>Progression de l'analyse (ce candidat)</h2>
+          <div class="kpi-grid" id="progressStats"><div class="empty-state">Chargement…</div></div>
+        </section>
+
+        <div class="card no-print" style="text-align:center">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+            <a class="btn secondary icon-btn" id="allEvidenceBtn" href="#"></a>
+            <a class="btn secondary icon-btn" id="compareBtn" href="#"></a>
+            <button type="button" class="btn secondary icon-btn" id="exportBtn"></button>
+            <a class="btn icon-btn" id="fullReportBtn" href="#"></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var params = new URLSearchParams(window.location.search);
+var candidateId = params.get("id");
+if (!candidateId) { document.body.innerHTML = "<p style='padding:30px'>Identifiant de candidat manquant — ouvrez cette page depuis la fiche d'un candidat.</p>"; }
+
+var candidate = null, domains = [], criteria = [], assessments = [], evidence = [];
+var currentDomainId = params.get("domain") || null;
+
+LaserAuth.requireSession().then(async function (session) {
+  LaserShell.renderSidebar(session.profile, "referentiel");
+
+  document.getElementById("prevDomainBtn").innerHTML = LaserIcons.svg("chevronLeft", 15) + " Domaine précédent";
+  document.getElementById("nextDomainBtn").innerHTML = "Domaine suivant " + LaserIcons.svg("chevronRight", 15);
+  document.getElementById("allEvidenceBtn").innerHTML = LaserIcons.svg("folder", 15) + " Voir toutes les preuves";
+  document.getElementById("compareBtn").innerHTML = LaserIcons.svg("compare", 15) + " Comparer ce candidat";
+  document.getElementById("exportBtn").innerHTML = LaserIcons.svg("print", 15) + " Exporter en PDF";
+  document.getElementById("fullReportBtn").innerHTML = LaserIcons.svg("report", 15) + " Rapport complet du candidat";
+  document.getElementById("allEvidenceBtn").href = "candidate.html?id=" + candidateId + "#section-documents";
+  document.getElementById("compareBtn").href = "comparateur.html?ids=" + candidateId;
+  document.getElementById("fullReportBtn").href = "rapport.html?id=" + candidateId;
+  document.getElementById("exportBtn").addEventListener("click", function () { window.print(); });
+
+  var results = await Promise.all([
+    laserSupabase.from("candidates").select("*").eq("id", candidateId).single(),
+    laserSupabase.from("domains").select("*").order("id"),
+    laserSupabase.from("criteria").select("*").order("id"),
+    laserSupabase.from("assessments").select("*").eq("candidate_id", candidateId),
+    laserSupabase.from("evidence").select("*").eq("candidate_id", candidateId),
+  ]);
+  candidate = results[0].data;
+  domains = results[1].data || [];
+  criteria = results[2].data || [];
+  assessments = results[3].data || [];
+  evidence = results[4].data || [];
+
+  if (!candidate) { document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; return; }
+  if (!currentDomainId && domains.length) currentDomainId = domains[0].id;
+
+  document.getElementById("candSummary").textContent =
+    "Candidat : " + formatDisplayName(candidate.full_name, candidate.last_name) + " · Dossier #" + candidate.id.slice(0, 8).toUpperCase() +
+    (candidate.biography ? " · Dossier documenté" : " · Pas encore documenté");
+
+  document.getElementById("prevDomainBtn").addEventListener("click", function () { shiftDomain(-1); });
+  document.getElementById("nextDomainBtn").addEventListener("click", function () { shiftDomain(1); });
+
+  renderDomainNav();
+  renderDomain();
+  renderProgressStats();
+});
+
+function statusByCriterionId() {
+  var byId = {};
+  assessments.forEach(function (a) { byId[a.criterion_id] = a; });
+  return byId;
+}
+function statusClass(status) {
+  if (status === "Vérifié") return "ok";
+  if (status === "Allégation grave documentée") return "ko";
+  if (status === "Documenté" || status === "À examiner") return "documented";
+  return "pending";
+}
+
+function shiftDomain(delta) {
+  var idx = domains.findIndex(function (d) { return d.id === currentDomainId; });
+  var next = domains[idx + delta];
+  if (!next) return;
+  currentDomainId = next.id;
+  var url = new URL(window.location.href);
+  url.searchParams.set("domain", currentDomainId);
+  window.history.replaceState({}, "", url);
+  renderDomainNav();
+  renderDomain();
+}
+
+function renderDomainNav() {
+  var byId = statusByCriterionId();
+  document.getElementById("domainNav").innerHTML = domains.map(function (d) {
+    var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
+    var complete = rows.length > 0 && rows.every(function (r) { return (byId[r.id] || {}).status && byId[r.id].status !== "À documenter"; });
+    return '<a href="#" data-domain="' + d.id + '" class="' + (d.id === currentDomainId ? "active" : "") + '">' +
+      icon(complete ? "check" : "circle", 14) + '<span>' + escapeHtml(d.id + " · " + d.name) + '</span></a>';
+  }).join("");
+  document.querySelectorAll("#domainNav a").forEach(function (a) {
+    a.addEventListener("click", function (e) {
+      e.preventDefault();
+      currentDomainId = a.getAttribute("data-domain");
+      var url = new URL(window.location.href);
+      url.searchParams.set("domain", currentDomainId);
+      window.history.replaceState({}, "", url);
+      renderDomainNav();
+      renderDomain();
+    });
+  });
+}
+function icon(name, size) { return LaserIcons.svg(name, size); }
+
+function renderDomain() {
+  var d = domains.find(function (x) { return x.id === currentDomainId; });
+  if (!d) return;
+  var idx = domains.findIndex(function (x) { return x.id === currentDomainId; });
+  document.getElementById("prevDomainBtn").disabled = idx <= 0;
+  document.getElementById("nextDomainBtn").disabled = idx >= domains.length - 1;
+  document.getElementById("domainTitle").textContent = d.id + " · " + d.name;
+  document.getElementById("domainCounter").textContent = "Domaine " + (idx + 1) + " / " + domains.length;
+
+  var byId = statusByCriterionId();
+  var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
+
+  // Synthèse du domaine — entièrement dérivée des statuts déjà posés, jamais
+  // une note : une lacune documentaire reste une lacune, pas un zéro.
+  var forts = rows.filter(function (r) { var s = (byId[r.id] || {}).status; return s === "Documenté" || s === "Vérifié"; });
+  var lacunes = rows.filter(function (r) { return !byId[r.id] || byId[r.id].status === "À documenter"; });
+  var risques = rows.filter(function (r) { return (byId[r.id] || {}).status === "Allégation grave documentée"; });
+  var evidenceIds = rows.map(function (r) { return r.id; });
+  var toConfirm = evidence.filter(function (e) { return evidenceIds.indexOf(e.criterion_id) !== -1 && (e.verification_status === "Non vérifié" || e.verification_status === "À examiner"); });
+
+  document.getElementById("domainSynthesis").innerHTML =
+    '<p class="small"><b>' + icon("check", 13) + ' Points forts documentés :</b> ' + (forts.length ? forts.length + " critère(s) déjà documenté(s) ou vérifié(s)" : "aucun à ce jour") + '</p>' +
+    '<p class="small"><b>' + icon("warning", 13) + ' Lacunes documentaires :</b> ' + (lacunes.length ? lacunes.length + " critère(s) encore à documenter (inconnu, pas négatif)" : "aucune — tous les critères ont été examinés") + '</p>' +
+    (risques.length ? '<p class="small"><b>' + icon("warning", 13) + ' Allégations graves documentées :</b> ' + risques.length + " critère(s) — voir le détail et la réponse du candidat ci-dessous</p>" : '') +
+    '<p class="small"><b>' + icon("search", 13) + ' Informations à confirmer :</b> ' + (toConfirm.length ? toConfirm.length + " élément(s) encore non vérifié(s) par un réviseur" : "aucune") + '</p>';
+
+  document.getElementById("criteriaDetail").innerHTML = rows.map(function (r) {
+    var a = byId[r.id] || { status: "À documenter", score: null, analysis: null };
+    var relatedEvidence = evidence.filter(function (e) { return e.criterion_id === r.id; });
+    var responses = relatedEvidence.filter(function (e) { return e.candidate_response; });
+    var cls = statusClass(a.status);
+    return '<article class="criterion">' +
+      '<div class="crithead"><div><b>' + escapeHtml(r.id + " · " + r.title) + '</b><p>' + escapeHtml(r.requirement) + '</p></div>' +
+      '<span class="status"><i class="dot ' + cls + '" style="margin-right:5px"></i>' + escapeHtml(a.status) + '</span></div>' +
+      '<p class="small muted"><b>Indicateurs :</b> ' + escapeHtml(r.indicators || "—") + '</p>' +
+      '<p class="small muted"><b>Preuves attendues :</b> ' + escapeHtml(r.evidence_expected || "—") + '</p>' +
+      '<p class="small"><b>Évaluation (0–5) :</b> ' + (a.score !== null && a.score !== undefined ? a.score + " / 5" : "Sans note") +
+      (a.analysis ? ' — <span class="muted">' + escapeHtml(a.analysis) + '</span>' : '') + '</p>' +
+      '<p class="small"><b>Preuves et sources (' + relatedEvidence.length + ') :</b></p>' +
+      (relatedEvidence.length ? '<ul class="small" style="margin:4px 0 8px">' + relatedEvidence.map(function (e) {
+        var showLink = e.source_url && /^https?:\/\//.test(e.source_url);
+        return '<li>' + escapeHtml(e.title) + ' — ' + escapeHtml(e.source_name || "source non renseignée") +
+          (showLink ? ' (<a href="' + escapeAttr(e.source_url) + '" target="_blank" rel="noopener noreferrer">voir ↗</a>)' : '') +
+          ' <span class="doc-type-chip">' + escapeHtml(e.verification_status) + '</span></li>';
+      }).join("") + '</ul>' : '<p class="small muted" style="margin:4px 0 8px">Aucune preuve liée à ce jour.</p>') +
+      (responses.length ? '<p class="small"><b>Réponse du candidat :</b> ' + responses.map(function (e) { return escapeHtml(e.candidate_response); }).join(" · ") + '</p>' : '') +
+      '</article>';
+  }).join("");
+}
+
+function renderProgressStats() {
+  var examined = assessments.filter(function (a) { return a.status !== "À documenter"; }).length;
+  var evVerified = evidence.filter(function (e) { return e.verification_status === "Vérifié"; }).length;
+  var byId = statusByCriterionId();
+  var completeDomains = domains.filter(function (d) {
+    var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
+    return rows.length > 0 && rows.every(function (r) { return (byId[r.id] || {}).status && byId[r.id].status !== "À documenter"; });
+  }).length;
+  document.getElementById("progressStats").innerHTML =
+    kpiCard("scan", examined + " / " + criteria.length, "Critères déjà examinés") +
+    kpiCard("shield", evVerified, "Preuves vérifiées") +
+    kpiCard("book", completeDomains + " / " + domains.length, "Domaines entièrement examinés");
+}
+function kpiCard(iconName, value, label) {
+  return '<div class="kpi-card"><span class="kpi-icon">' + LaserIcons.svg(iconName, 24) + '</span>' +
+    '<div class="kpi-value">' + value + '</div><div class="kpi-label">' + escapeHtml(label) + '</div></div>';
+}
+
+function formatDisplayName(fullName, lastName) {
+  if (!lastName || !fullName) return fullName || "";
+  var prenom = fullName;
+  if (fullName.toLowerCase().indexOf(lastName.toLowerCase()) !== -1) {
+    var idx = fullName.toLowerCase().lastIndexOf(lastName.toLowerCase());
+    prenom = (fullName.slice(0, idx) + fullName.slice(idx + lastName.length)).trim();
+  }
+  return lastName.toUpperCase() + (prenom ? ", " + prenom : "");
+}
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+</script>
+</body>
+</html>

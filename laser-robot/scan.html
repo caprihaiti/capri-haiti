@@ -15,6 +15,12 @@
     <section class="card scancard" style="margin-top:14px">
       <p class="eyebrow">SCANNER LASER-ROBOT</p>
       <h1 id="candName" class="scan-name-reveal">…</h1>
+      <div class="card" id="notDocumented" style="display:none;text-align:center;background:#0d1828">
+        <p style="font-size:1.1em;margin:0 0 6px"><b>Ce candidat n'a pas encore été documenté.</b></p>
+        <p class="muted small" style="margin:0 0 16px">Il n'y a rien à scanner pour l'instant — aucune recherche n'a encore été faite sur ce candidat. Lancez la recherche pour obtenir sa biographie et ses premiers éléments documentaires.</p>
+        <button type="button" class="btn" id="notDocResearchBtn">🔍 Lancer la recherche</button>
+        <p class="small muted" id="notDocStatus" style="display:none;margin-top:12px"></p>
+      </div>
       <div class="scan-photo-wrap" id="photoWrap">
         <div class="scan-photo-inner" id="photoInner">
           <span class="scan-silhouette">👤</span>
@@ -48,6 +54,46 @@ LaserAuth.requireSession().then(async function (session) {
   var { data: c } = await laserSupabase.from("candidates").select("*").eq("id", candidateId).single();
   if (!c) { document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; return; }
   document.getElementById("candName").textContent = c.full_name;
+
+  // Rien à scanner tant qu'aucune recherche n'a été faite — inutile (et
+  // trompeur) de faire tourner toute l'animation pour aboutir à 78 cases
+  // vides : on le dit clairement et on propose directement la recherche,
+  // ouverte à tout compte actif, lecteur compris.
+  if (!c.biography) {
+    document.getElementById("photoWrap").style.display = "none";
+    document.getElementById("scanReadout").style.display = "none";
+    document.querySelector(".scan-legend").style.display = "none";
+    document.getElementById("scanGrid").style.display = "none";
+    document.querySelector(".notice").style.display = "none";
+    document.getElementById("scanStatusLine").style.display = "none";
+    document.getElementById("notDocumented").style.display = "block";
+    document.getElementById("notDocResearchBtn").addEventListener("click", async function () {
+      var btn = this;
+      var statusEl = document.getElementById("notDocStatus");
+      btn.disabled = true;
+      statusEl.style.display = "block";
+      statusEl.textContent = "Recherche en cours… cela peut prendre une minute.";
+      var { data, error } = await laserSupabase.functions.invoke("research-candidate", {
+        body: { candidate_id: candidateId, full_name: c.full_name }
+      });
+      if (error || !data || data.error) {
+        var detail = data && data.error ? data.error : (error ? error.message : "inconnue");
+        if (error && error.context && typeof error.context.json === "function") {
+          try {
+            var body = await error.context.clone().json();
+            if (body && body.error) detail = body.error;
+          } catch (_e) { /* corps non lisible, on garde le message par défaut */ }
+        }
+        statusEl.textContent = "Erreur : " + detail;
+        btn.disabled = false;
+        return;
+      }
+      statusEl.textContent = "Recherche terminée — affichage du scan…";
+      window.location.reload();
+    });
+    return;
+  }
+
   if (c.photo_url && /^https?:\/\//.test(c.photo_url)) {
     document.getElementById("photoInner").innerHTML = '<img src="' + c.photo_url.replace(/"/g, "&quot;") + '" alt="Portrait de ' + escapeHtml(c.full_name) + '">' + '<span class="scan-laser"></span>';
   }

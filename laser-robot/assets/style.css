@@ -96,6 +96,8 @@ code{background:#0a1524;padding:1px 5px;border-radius:4px}
 .scan-summary-counts span{padding:2px 7px;border-radius:20px;background:#0008}
 .scan-summary-counts .dok{color:#5fc489}.scan-summary-counts .dko{color:#ef7b86}.scan-summary-counts .ddoc{color:var(--gold)}.scan-summary-counts .dpending{color:var(--muted)}
 .scan-status-line{color:var(--accent);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin:6px 0 20px}
+.sound-controls{display:flex;align-items:center;gap:8px}
+.sound-controls input[type=range]{width:90px;accent-color:var(--accent)}
 .scan-legend{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-bottom:18px;font-size:12px;color:var(--muted)}
 .scan-legend span{display:inline-flex;align-items:center;gap:6px}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block}

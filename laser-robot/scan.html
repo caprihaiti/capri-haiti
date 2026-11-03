@@ -13,7 +13,13 @@
   <main class="app-main">
     <a href="#" id="backLink">← Fiche du candidat</a>
     <section class="card scancard" style="margin-top:14px">
-      <p class="eyebrow">SCANNER LASER-ROBOT</p>
+      <div class="top" style="align-items:center">
+        <p class="eyebrow" style="margin:0">SCANNER LASER-ROBOT</p>
+        <div class="sound-controls">
+          <button type="button" class="btn secondary" style="padding:8px 11px;font-size:13px" id="muteBtn" aria-label="Couper le son">🔊</button>
+          <input type="range" id="volumeRange" min="0" max="100" value="70" aria-label="Volume">
+        </div>
+      </div>
       <h1 id="candName" class="scan-name-reveal">…</h1>
       <div class="card" id="notDocumented" style="display:none;text-align:center;background:#0d1828">
         <p style="font-size:1.1em;margin:0 0 6px"><b>Ce candidat n'a pas encore été documenté.</b></p>
@@ -28,7 +34,10 @@
         </div>
         <div class="scan-summary" id="scanSummary"></div>
       </div>
+      <audio id="scanAudioStart" src="assets/scan-start.mp3" preload="auto"></audio>
       <audio id="scanAudio" src="assets/scan-sound.mp3" loop preload="auto"></audio>
+      <audio id="scanAudioEnd" src="assets/scan-end.mp3" preload="auto"></audio>
+      <audio id="scanAudioNotify" src="assets/scan-notify.mp3" preload="auto"></audio>
       <div class="scan-readout" id="scanReadout"></div>
       <p class="scan-status-line" id="scanStatusLine">Lecture des 78 critères enregistrés…</p>
       <div class="scan-legend">
@@ -56,6 +65,36 @@
 <script>
 var candidateId = new URLSearchParams(window.location.search).get("id");
 document.getElementById("backLink").href = "candidate.html?id=" + candidateId;
+
+// Identité sonore du scanner : démarrage, balayage en boucle, fin, et
+// notification quand le rapport est prêt — réglables (volume, silence),
+// préférence mémorisée d'une visite à l'autre sur cet appareil.
+var SCAN_AUDIO_IDS = ["scanAudioStart", "scanAudio", "scanAudioEnd", "scanAudioNotify"];
+var savedVolume = parseInt(localStorage.getItem("laserScanVolume"), 10);
+var savedMuted = localStorage.getItem("laserScanMuted") === "1";
+if (isNaN(savedVolume)) savedVolume = 70;
+document.getElementById("volumeRange").value = savedVolume;
+applyAudioSettings();
+
+function applyAudioSettings() {
+  var vol = document.getElementById("volumeRange").value / 100;
+  SCAN_AUDIO_IDS.forEach(function (id) {
+    var el = document.getElementById(id);
+    el.volume = vol;
+    el.muted = savedMuted;
+  });
+  document.getElementById("muteBtn").textContent = savedMuted ? "🔇" : "🔊";
+}
+
+document.getElementById("muteBtn").addEventListener("click", function () {
+  savedMuted = !savedMuted;
+  localStorage.setItem("laserScanMuted", savedMuted ? "1" : "0");
+  applyAudioSettings();
+});
+document.getElementById("volumeRange").addEventListener("input", function () {
+  localStorage.setItem("laserScanVolume", this.value);
+  applyAudioSettings();
+});
 
 LaserAuth.requireSession().then(async function (session) {
   var { data: c } = await laserSupabase.from("candidates").select("*").eq("id", candidateId).single();
@@ -164,18 +203,25 @@ LaserAuth.requireSession().then(async function (session) {
   // La photo tourne en 3D (rotateY) pendant toute la durée calculée du scan.
   document.getElementById("photoInner").style.animationDuration = (totalDurationMs / 1000) + "s";
 
-  // Le son du scanner tourne en boucle pendant toute la durée — s'il est
-  // bloqué par la politique de lecture automatique du navigateur, le scan
-  // continue normalement, juste sans son.
+  // Identité sonore : un signal de démarrage électronique, puis le
+  // balayage en boucle pendant toute la durée du scan. Si la lecture
+  // automatique est bloquée par le navigateur, le scan continue
+  // normalement, juste sans son.
   var scanAudio = document.getElementById("scanAudio");
-  scanAudio.currentTime = 0;
-  scanAudio.play().catch(function () { /* lecture automatique bloquée par le navigateur — pas grave */ });
+  var scanAudioStart = document.getElementById("scanAudioStart");
+  var scanAudioEnd = document.getElementById("scanAudioEnd");
+  var scanAudioNotify = document.getElementById("scanAudioNotify");
+  function safePlay(el) { el.currentTime = 0; return el.play().catch(function () { /* lecture automatique bloquée — pas grave */ }); }
+  safePlay(scanAudioStart);
+  setTimeout(function () { safePlay(scanAudio); }, 500);
 
   // Le balayage visuel dure le temps calculé ci-dessus, puis s'arrête : le
-  // scan a une fin, il ne tourne pas indéfiniment.
+  // scan a une fin, il ne tourne pas indéfiniment. Un signal de fin distinct
+  // se joue, suivi d'une notification quand le rapport est affiché.
   setTimeout(function () {
     scanAudio.pause();
     scanAudio.currentTime = 0;
+    safePlay(scanAudioEnd);
     document.getElementById("photoWrap").classList.add("finished");
     document.getElementById("scanStatusLine").textContent = "Analyse terminée / Analiz fini — " + new Date().toLocaleString("fr-FR");
     document.getElementById("scanSummary").innerHTML =
@@ -191,6 +237,13 @@ LaserAuth.requireSession().then(async function (session) {
 
     document.getElementById("citizenSummary").style.display = "block";
     document.getElementById("citizenSummaryBody").innerHTML = buildCitizenSummary(domains || [], criteria || [], statusByCriterion);
+
+    // Notification distincte quand le rapport est effectivement affiché —
+    // après le signal de fin, pour ne pas se superposer à lui.
+    setTimeout(function () {
+      safePlay(scanAudioNotify);
+      setTimeout(function () { safePlay(scanAudioNotify); }, 180);
+    }, 1600);
   }, totalDurationMs);
 
   laserSupabase.from("audit_log").insert({

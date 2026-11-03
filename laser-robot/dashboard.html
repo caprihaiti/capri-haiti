@@ -26,19 +26,23 @@
             <input type="text" id="cName" required>
           </div>
           <div class="form-field">
-            <label for="cGroup">Groupe politique</label>
-            <input type="text" id="cGroup">
+            <label for="cLastName">Nom de famille (pour le tri alphabétique, ex. « Jeudy » pour Wilson Jeudy)</label>
+            <input type="text" id="cLastName">
           </div>
         </div>
         <div class="grid-2">
           <div class="form-field">
+            <label for="cGroup">Groupe politique</label>
+            <input type="text" id="cGroup">
+          </div>
+          <div class="form-field">
             <label for="cCep">Statut CEP</label>
             <input type="text" id="cCep" placeholder="Enregistré, À l'étude, Rejeté…">
           </div>
-          <div class="form-field">
-            <label for="cPhoto">Lien photo (http(s):// uniquement)</label>
-            <input type="url" id="cPhoto" placeholder="https://…">
-          </div>
+        </div>
+        <div class="form-field">
+          <label for="cPhoto">Lien photo (http(s):// uniquement)</label>
+          <input type="url" id="cPhoto" placeholder="https://…">
         </div>
         <div class="grid-2">
           <div class="form-field">
@@ -113,6 +117,7 @@ async function createCandidate(e) {
   }
   var payload = {
     full_name: document.getElementById("cName").value.trim(),
+    last_name: document.getElementById("cLastName").value.trim() || null,
     political_group: document.getElementById("cGroup").value.trim() || null,
     cep_status: document.getElementById("cCep").value.trim() || "Enregistré",
     photo_url: photo || null,
@@ -130,7 +135,8 @@ async function createCandidate(e) {
 async function loadCandidates() {
   var { data, error } = await laserSupabase
     .from("candidates")
-    .select("id, full_name, political_group, cep_status, created_at")
+    .select("id, full_name, last_name, political_group, cep_status, created_at")
+    .order("last_name", { ascending: true })
     .order("full_name", { ascending: true });
   if (error) { document.getElementById("candidatesList").innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
   allCandidates = data || [];

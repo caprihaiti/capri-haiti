@@ -138,6 +138,10 @@ create index if not exists idx_criteria_domain on criteria(domain_id);
 create table if not exists candidates (
   id uuid primary key default gen_random_uuid(),
   full_name text not null,
+  -- Nom de famille seul, pour trier la liste à l'ordre alphabétique
+  -- haïtien/administratif (NOM DE FAMILLE d'abord, ex. « JEUDY Wilson »),
+  -- qui ne correspond pas forcément au premier mot de full_name.
+  last_name text,
   political_group text,
   cep_status text not null default 'Non vérifié',
   birth_date date,
@@ -150,6 +154,9 @@ create table if not exists candidates (
   updated_at timestamptz not null default now(),
   constraint candidates_photo_url_scheme check (photo_url is null or photo_url ~ '^https?://')
 );
+-- Ajoute last_name si la table existait déjà avant ce champ (exécution de
+-- schema.sql sur une base déjà en production).
+alter table candidates add column if not exists last_name text;
 
 create or replace function set_updated_at()
 returns trigger as $$

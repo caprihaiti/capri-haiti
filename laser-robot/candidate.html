@@ -47,6 +47,10 @@
           <input type="text" id="iFullName" required>
         </div>
         <div class="form-field">
+          <label for="iLastName">Nom de famille (pour le tri alphabétique, ex. « Jeudy » pour Wilson Jeudy)</label>
+          <input type="text" id="iLastName">
+        </div>
+        <div class="form-field">
           <label for="iPhotoUrl">Lien photo (http(s):// uniquement)</label>
           <input type="url" id="iPhotoUrl" placeholder="https://…">
         </div>
@@ -272,6 +276,7 @@ var currentCandidate = null;
 
 function openIdentityEdit() {
   document.getElementById("iFullName").value = currentCandidate.full_name || "";
+  document.getElementById("iLastName").value = currentCandidate.last_name || "";
   document.getElementById("iPhotoUrl").value = currentCandidate.photo_url || "";
   document.getElementById("iBirthDate").value = currentCandidate.birth_date || "";
   document.getElementById("iBirthplace").value = currentCandidate.birthplace || "";
@@ -297,6 +302,7 @@ async function saveIdentity(e) {
   }
   var payload = {
     full_name: fullName,
+    last_name: document.getElementById("iLastName").value.trim() || null,
     photo_url: photoUrl || null,
     birth_date: document.getElementById("iBirthDate").value || null,
     birthplace: document.getElementById("iBirthplace").value.trim() || null,

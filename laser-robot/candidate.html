@@ -42,6 +42,10 @@
         <p id="fBio" class="muted" style="margin-top:14px"></p>
       </div>
       <form id="identityForm" hidden>
+        <div class="form-field">
+          <label for="iFullName">Nom complet (corriger l'orthographe si besoin)</label>
+          <input type="text" id="iFullName" required>
+        </div>
         <div class="grid-2">
           <div class="form-field">
             <label for="iBirthDate">Date de naissance</label>
@@ -275,6 +279,7 @@ function renderResearchResults(f) {
 var currentCandidate = null;
 
 function openIdentityEdit() {
+  document.getElementById("iFullName").value = currentCandidate.full_name || "";
   document.getElementById("iBirthDate").value = currentCandidate.birth_date || "";
   document.getElementById("iBirthplace").value = currentCandidate.birthplace || "";
   document.getElementById("iNationality").value = currentCandidate.nationality || "";
@@ -290,7 +295,10 @@ function closeIdentityEdit() {
 
 async function saveIdentity(e) {
   e.preventDefault();
+  var fullName = document.getElementById("iFullName").value.trim();
+  if (!fullName) { LaserShell.toast("Le nom complet est obligatoire.", true); return; }
   var payload = {
+    full_name: fullName,
     birth_date: document.getElementById("iBirthDate").value || null,
     birthplace: document.getElementById("iBirthplace").value.trim() || null,
     nationality: document.getElementById("iNationality").value.trim() || null,

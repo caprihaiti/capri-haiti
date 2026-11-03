@@ -38,6 +38,7 @@
       <audio id="scanAudio" src="assets/scan-sound.mp3" loop preload="auto"></audio>
       <audio id="scanAudioEnd" src="assets/scan-end.mp3" preload="auto"></audio>
       <audio id="scanAudioNotify" src="assets/scan-notify.mp3" preload="auto"></audio>
+      <audio id="scanAudioError" src="assets/scan-error.mp3" preload="auto"></audio>
       <div class="scan-readout" id="scanReadout"></div>
       <p class="scan-status-line" id="scanStatusLine">Lecture des 78 critères enregistrés…</p>
       <div class="scan-legend">
@@ -69,7 +70,7 @@ document.getElementById("backLink").href = "candidate.html?id=" + candidateId;
 // Identité sonore du scanner : démarrage, balayage en boucle, fin, et
 // notification quand le rapport est prêt — réglables (volume, silence),
 // préférence mémorisée d'une visite à l'autre sur cet appareil.
-var SCAN_AUDIO_IDS = ["scanAudioStart", "scanAudio", "scanAudioEnd", "scanAudioNotify"];
+var SCAN_AUDIO_IDS = ["scanAudioStart", "scanAudio", "scanAudioEnd", "scanAudioNotify", "scanAudioError"];
 var savedVolume = parseInt(localStorage.getItem("laserScanVolume"), 10);
 var savedMuted = localStorage.getItem("laserScanMuted") === "1";
 if (isNaN(savedVolume)) savedVolume = 70;
@@ -96,9 +97,11 @@ document.getElementById("volumeRange").addEventListener("input", function () {
   applyAudioSettings();
 });
 
+function safePlay(el) { el.currentTime = 0; return el.play().catch(function () { /* lecture automatique bloquée — pas grave */ }); }
+
 LaserAuth.requireSession().then(async function (session) {
   var { data: c } = await laserSupabase.from("candidates").select("*").eq("id", candidateId).single();
-  if (!c) { document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; return; }
+  if (!c) { safePlay(document.getElementById("scanAudioError")); document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; return; }
   document.getElementById("candName").textContent = c.full_name;
 
   // Rien à scanner tant qu'aucune recherche n'a été faite — inutile (et
@@ -130,6 +133,7 @@ LaserAuth.requireSession().then(async function (session) {
             if (body && body.error) detail = body.error;
           } catch (_e) { /* corps non lisible, on garde le message par défaut */ }
         }
+        safePlay(document.getElementById("scanAudioError"));
         statusEl.textContent = "Erreur : " + detail;
         btn.disabled = false;
         return;
@@ -211,9 +215,8 @@ LaserAuth.requireSession().then(async function (session) {
   var scanAudioStart = document.getElementById("scanAudioStart");
   var scanAudioEnd = document.getElementById("scanAudioEnd");
   var scanAudioNotify = document.getElementById("scanAudioNotify");
-  function safePlay(el) { el.currentTime = 0; return el.play().catch(function () { /* lecture automatique bloquée — pas grave */ }); }
   safePlay(scanAudioStart);
-  setTimeout(function () { safePlay(scanAudio); }, 500);
+  setTimeout(function () { safePlay(scanAudio); }, 1300);
 
   // Le balayage visuel dure le temps calculé ci-dessus, puis s'arrête : le
   // scan a une fin, il ne tourne pas indéfiniment. Un signal de fin distinct
@@ -240,10 +243,7 @@ LaserAuth.requireSession().then(async function (session) {
 
     // Notification distincte quand le rapport est effectivement affiché —
     // après le signal de fin, pour ne pas se superposer à lui.
-    setTimeout(function () {
-      safePlay(scanAudioNotify);
-      setTimeout(function () { safePlay(scanAudioNotify); }, 180);
-    }, 1600);
+    setTimeout(function () { safePlay(scanAudioNotify); }, 2300);
   }, totalDurationMs);
 
   laserSupabase.from("audit_log").insert({

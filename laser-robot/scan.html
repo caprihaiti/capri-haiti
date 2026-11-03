@@ -37,6 +37,11 @@
         <span><i class="dot ko"></i> Contesté (<span id="countKo">0</span>)</span>
       </div>
       <div class="scan-grid" id="scanGrid"></div>
+      <div class="card" id="citizenSummary" style="display:none;margin-top:22px;background:linear-gradient(150deg,#1a2438,#121a2b);border-color:#3a4f6e">
+        <h2 style="margin-top:0">Pou ou, elektè a</h2>
+        <p class="muted small">Rezime sa a jis ba ou kote enfòmasyon an ye — li pa yon konklizyon, li pa di w vote pou oswa kont pyès moun.</p>
+        <div id="citizenSummaryBody"></div>
+      </div>
       <p class="notice" style="margin-top:22px"><b>« Contesté »</b> signifie qu'un fait documenté et sourcé (sanction administrative, rapport officiel, allégation attribuée à une personne ou institution précise) met en question ce critère — <b>jamais</b> une culpabilité, ni une condamnation judiciaire. Lisez toujours la source citée et, quand elle existe, la réponse du candidat avant de vous forger une opinion. <b>« À documenter »</b> (gris) signifie simplement qu'aucune recherche n'a encore établi quoi que ce soit sur ce point précis — ce n'est ni positif ni négatif, c'est inconnu à ce jour. Cet écran affiche uniquement des états déjà renseignés à partir de sources documentées. Aucun score global, pourcentage, classement ni recommandation de vote n'est calculé ici.</p>
     </section>
   </main>
@@ -111,7 +116,8 @@ LaserAuth.requireSession().then(async function (session) {
     return '<div class="scan-readout-line sd' + i + '"><b>' + escapeHtml(l[0]) + ' :</b> ' + escapeHtml(l[1]) + '</div>';
   }).join("");
 
-  var { data: criteria } = await laserSupabase.from("criteria").select("id, title").order("id");
+  var { data: domains } = await laserSupabase.from("domains").select("id, name").order("id");
+  var { data: criteria } = await laserSupabase.from("criteria").select("id, title, domain_id").order("id");
   var { data: assessments } = await laserSupabase.from("assessments").select("criterion_id, status").eq("candidate_id", candidateId);
   var statusByCriterion = {};
   (assessments || []).forEach(function (a) { statusByCriterion[a.criterion_id] = a.status; });
@@ -151,6 +157,9 @@ LaserAuth.requireSession().then(async function (session) {
       '<span class="dko">' + counts.ko + ' contesté' + (counts.ko > 1 ? 's' : '') + '</span>' +
       '<span class="dpending">' + counts.pending + ' à documenter</span>' +
       '</div>';
+
+    document.getElementById("citizenSummary").style.display = "block";
+    document.getElementById("citizenSummaryBody").innerHTML = buildCitizenSummary(domains || [], criteria || [], statusByCriterion);
   }, 3300);
 
   laserSupabase.from("audit_log").insert({
@@ -158,6 +167,47 @@ LaserAuth.requireSession().then(async function (session) {
     action: "consultation", entity_type: "scanner", entity_id: candidateId
   });
 });
+
+function buildCitizenSummary(domains, criteria, statusByCriterion) {
+  // Rezime an Kreyòl, revele sèlman apre scan lan fini — pa yon verdict,
+  // jis yon kat ki di kote gen enfo reyèl (kontwovèse oswa dokimante) ak
+  // kote pa gen anyen jwenn ankò. Yon domèn antre nan "gen rapò/alegasyon"
+  // depi gen au mwen yon kritè Contesté ladan ; otreman "gen enfo" si gen
+  // au mwen yon kritè Vérifié/Documenté/À examiner ; otreman li rete
+  // "poko gen enfo".
+  var contested = [], documented = [], empty = [];
+  domains.forEach(function (d) {
+    var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
+    var hasContested = rows.some(function (r) { return statusByCriterion[r.id] === "Contesté"; });
+    var hasDocumented = rows.some(function (r) {
+      var s = statusByCriterion[r.id];
+      return s === "Vérifié" || s === "Documenté" || s === "À examiner";
+    });
+    if (hasContested) contested.push(d.name);
+    else if (hasDocumented) documented.push(d.name);
+    else empty.push(d.name);
+  });
+
+  var html = "";
+  if (contested.length) {
+    html += '<div style="margin-bottom:14px"><p><b>⚠ Gen rapò ofisyèl oswa alegasyon dokimante sou kandida sa a nan domèn sa yo :</b></p>' +
+      '<ul class="small">' + contested.map(function (n) { return "<li>" + escapeHtml(n) + "</li>"; }).join("") + '</ul>' +
+      '<p class="small muted">Sa pa vle di kandida a koupab — li vle di gen yon fè ak sous ou dwe li ou menm pi ba a, nan « Registre des éléments documentaires » sou fich kandida a, avèk repons kandida a si li genyen.</p></div>';
+  }
+  if (documented.length) {
+    html += '<div style="margin-bottom:14px"><p><b>✓ Gen enfo dokimante (san kontwovès) sou :</b></p>' +
+      '<ul class="small">' + documented.map(function (n) { return "<li>" + escapeHtml(n) + "</li>"; }).join("") + '</ul></div>';
+  }
+  if (empty.length) {
+    html += '<div><p><b>○ Poko gen okenn enfo jwenn sou :</b></p>' +
+      '<ul class="small muted">' + empty.map(function (n) { return "<li>" + escapeHtml(n) + "</li>"; }).join("") + '</ul>' +
+      '<p class="small muted">Sa vle di : pa gen rechèch ki fèt ankò la a — se pa yon bon oswa yon move siy, se enkoni pou kounye a.</p></div>';
+  }
+  if (!contested.length && !documented.length && !empty.length) {
+    html = '<p class="small muted">Pa gen done pou kounye a.</p>';
+  }
+  return html;
+}
 
 function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
 </script>

@@ -28,6 +28,7 @@
         </div>
         <div class="scan-summary" id="scanSummary"></div>
       </div>
+      <audio id="scanAudio" src="assets/scan-sound.mp3" loop preload="auto"></audio>
       <div class="scan-readout" id="scanReadout"></div>
       <p class="scan-status-line" id="scanStatusLine">Lecture des 78 critères enregistrés…</p>
       <div class="scan-legend">
@@ -120,8 +121,11 @@ LaserAuth.requireSession().then(async function (session) {
   var { data: domains } = await laserSupabase.from("domains").select("id, name").order("id");
   var { data: criteria } = await laserSupabase.from("criteria").select("id, title, domain_id").order("id");
   var { data: assessments } = await laserSupabase.from("assessments").select("criterion_id, status").eq("candidate_id", candidateId);
+  var { data: evidenceRows } = await laserSupabase.from("evidence").select("id").eq("candidate_id", candidateId);
   var statusByCriterion = {};
   (assessments || []).forEach(function (a) { statusByCriterion[a.criterion_id] = a.status; });
+
+  var total = (criteria || []).length;
 
   // Visualisation pure d'états déjà posés par un réviseur humain — ne calcule
   // jamais de verdict. Vert = uniquement « Vérifié ». Rouge = uniquement
@@ -129,11 +133,27 @@ LaserAuth.requireSession().then(async function (session) {
   // d'évaluation) = gris neutre, pour qu'un critère non encore examiné
   // n'apparaisse jamais comme négatif par défaut.
   var counts = { ok: 0, pending: 0, ko: 0, documented: 0 };
-  var cells = (criteria || []).map(function (crit, i) {
-    var status = statusByCriterion[crit.id] || "À documenter";
+  var statuses = (criteria || []).map(function (crit) { return statusByCriterion[crit.id] || "À documenter"; });
+  statuses.forEach(function (status) {
     var cls = status === "Vérifié" ? "ok" : (status === "Allégation grave documentée" ? "ko" : (status === "Documenté" || status === "À examiner" ? "documented" : "pending"));
     counts[cls]++;
-    return '<div class="scan-cell ' + cls + ' sd' + (i % 78) + '"><b>' + escapeHtml(crit.id + " · " + crit.title) + '</b><span class="sc-status">' + escapeHtml(status) + "</span></div>";
+  });
+
+  // Durée du scan : plus un candidat a de matière documentée (éléments de
+  // preuve, critères déjà examinés), plus le scan prend du temps à se
+  // dérouler — entre 30s (fiche à peine documentée) et 90s (dossier très
+  // fourni), au lieu d'une durée fixe identique pour tout le monde.
+  var evidenceCount = (evidenceRows || []).length;
+  var documentedCount = counts.ok + counts.documented + counts.ko;
+  var totalDurationMs = Math.min(90000, Math.max(30000, 30000 + evidenceCount * 1000 + documentedCount * 300));
+  var cellAnimMs = 450; // doit correspondre à la durée de l'animation CSS cellIn sur .scan-cell
+  var perCellDelayMs = total > 0 ? Math.max(0, (totalDurationMs - cellAnimMs) / total) : 0;
+
+  var cells = (criteria || []).map(function (crit, i) {
+    var status = statuses[i];
+    var cls = status === "Vérifié" ? "ok" : (status === "Allégation grave documentée" ? "ko" : (status === "Documenté" || status === "À examiner" ? "documented" : "pending"));
+    var delayMs = Math.round(i * perCellDelayMs);
+    return '<div class="scan-cell ' + cls + '" style="animation-delay:' + delayMs + 'ms"><b>' + escapeHtml(crit.id + " · " + crit.title) + '</b><span class="sc-status">' + escapeHtml(status) + "</span></div>";
   });
   document.getElementById("scanGrid").innerHTML = cells.join("");
   document.getElementById("countOk").textContent = counts.ok;
@@ -141,11 +161,21 @@ LaserAuth.requireSession().then(async function (session) {
   document.getElementById("countPending").textContent = counts.pending;
   document.getElementById("countKo").textContent = counts.ko;
 
-  // Le balayage visuel dure le temps que les 78 cases finissent de
-  // s'afficher (dernier délai sd77 = 2.695s + 0.45s d'animation), puis
-  // s'arrête : le scan a une fin, il ne tourne pas indéfiniment.
-  var total = (criteria || []).length;
+  // La photo tourne en 3D (rotateY) pendant toute la durée calculée du scan.
+  document.getElementById("photoInner").style.animationDuration = (totalDurationMs / 1000) + "s";
+
+  // Le son du scanner tourne en boucle pendant toute la durée — s'il est
+  // bloqué par la politique de lecture automatique du navigateur, le scan
+  // continue normalement, juste sans son.
+  var scanAudio = document.getElementById("scanAudio");
+  scanAudio.currentTime = 0;
+  scanAudio.play().catch(function () { /* lecture automatique bloquée par le navigateur — pas grave */ });
+
+  // Le balayage visuel dure le temps calculé ci-dessus, puis s'arrête : le
+  // scan a une fin, il ne tourne pas indéfiniment.
   setTimeout(function () {
+    scanAudio.pause();
+    scanAudio.currentTime = 0;
     document.getElementById("photoWrap").classList.add("finished");
     document.getElementById("scanStatusLine").textContent = "Analyse terminée / Analiz fini — " + new Date().toLocaleString("fr-FR");
     document.getElementById("scanSummary").innerHTML =
@@ -161,7 +191,7 @@ LaserAuth.requireSession().then(async function (session) {
 
     document.getElementById("citizenSummary").style.display = "block";
     document.getElementById("citizenSummaryBody").innerHTML = buildCitizenSummary(domains || [], criteria || [], statusByCriterion);
-  }, 3300);
+  }, totalDurationMs);
 
   laserSupabase.from("audit_log").insert({
     actor_id: session.user.id, username: session.profile.full_name,

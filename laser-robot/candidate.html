@@ -24,13 +24,42 @@
     </div>
 
     <section class="card">
-      <h2>Identité et parcours public</h2>
-      <div class="facts">
-        <div><small>Date de naissance</small><b id="fBirthDate">Non vérifié</b></div>
-        <div><small>Lieu de naissance</small><b id="fBirthplace">Non vérifié</b></div>
-        <div><small>Nationalité</small><b id="fNationality">Non vérifié</b></div>
+      <div class="sectionhead">
+        <h2>Identité et parcours public</h2>
+        <button type="button" class="btn secondary" id="toggleIdentityEdit" style="display:none">Modifier</button>
       </div>
-      <p id="fBio" class="muted" style="margin-top:14px"></p>
+      <div id="identityView">
+        <div class="facts">
+          <div><small>Date de naissance</small><b id="fBirthDate">Non vérifié</b></div>
+          <div><small>Lieu de naissance</small><b id="fBirthplace">Non vérifié</b></div>
+          <div><small>Nationalité</small><b id="fNationality">Non vérifié</b></div>
+        </div>
+        <p id="fBio" class="muted" style="margin-top:14px"></p>
+      </div>
+      <form id="identityForm" hidden>
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="iBirthDate">Date de naissance</label>
+            <input type="date" id="iBirthDate">
+          </div>
+          <div class="form-field">
+            <label for="iBirthplace">Lieu de naissance</label>
+            <input type="text" id="iBirthplace">
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="iNationality">Nationalité</label>
+          <input type="text" id="iNationality">
+        </div>
+        <div class="form-field">
+          <label for="iBio">Biographie / fonctions déjà occupées (si documenté)</label>
+          <textarea id="iBio" rows="3"></textarea>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button type="submit" class="btn">Enregistrer</button>
+          <button type="button" class="btn secondary" id="cancelIdentityEdit">Annuler</button>
+        </div>
+      </form>
     </section>
 
     <section class="card">
@@ -131,7 +160,44 @@ LaserAuth.requireSession().then(async function (session) {
   await loadEvidence();
 
   document.getElementById("newEvidenceForm").addEventListener("submit", addEvidence);
+  if (canWrite) {
+    document.getElementById("toggleIdentityEdit").style.display = "inline-flex";
+    document.getElementById("toggleIdentityEdit").addEventListener("click", openIdentityEdit);
+    document.getElementById("cancelIdentityEdit").addEventListener("click", closeIdentityEdit);
+    document.getElementById("identityForm").addEventListener("submit", saveIdentity);
+  }
 });
+
+var currentCandidate = null;
+
+function openIdentityEdit() {
+  document.getElementById("iBirthDate").value = currentCandidate.birth_date || "";
+  document.getElementById("iBirthplace").value = currentCandidate.birthplace || "";
+  document.getElementById("iNationality").value = currentCandidate.nationality || "";
+  document.getElementById("iBio").value = currentCandidate.biography || "";
+  document.getElementById("identityView").hidden = true;
+  document.getElementById("identityForm").hidden = false;
+}
+
+function closeIdentityEdit() {
+  document.getElementById("identityForm").hidden = true;
+  document.getElementById("identityView").hidden = false;
+}
+
+async function saveIdentity(e) {
+  e.preventDefault();
+  var payload = {
+    birth_date: document.getElementById("iBirthDate").value || null,
+    birthplace: document.getElementById("iBirthplace").value.trim() || null,
+    nationality: document.getElementById("iNationality").value.trim() || null,
+    biography: document.getElementById("iBio").value.trim() || null
+  };
+  var { error } = await laserSupabase.from("candidates").update(payload).eq("id", candidateId);
+  if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
+  LaserShell.toast("Identité mise à jour.");
+  closeIdentityEdit();
+  await loadCandidate();
+}
 
 function populateSelect(id, options, selected) {
   var sel = document.getElementById(id);
@@ -143,6 +209,7 @@ function populateSelect(id, options, selected) {
 async function loadCandidate() {
   var { data: c, error } = await laserSupabase.from("candidates").select("*").eq("id", candidateId).single();
   if (error || !c) { document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; throw error; }
+  currentCandidate = c;
   document.getElementById("candEyebrow").textContent = "FICHE CANDIDAT · ID " + c.id.slice(0, 8);
   document.getElementById("candName").textContent = c.full_name;
   document.getElementById("candSub").textContent = (c.political_group || "Groupe politique non renseigné") + " · Statut CEP : " + c.cep_status;

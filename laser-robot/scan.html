@@ -14,11 +14,12 @@
     <a href="#" id="backLink">← Fiche du candidat</a>
     <section class="card scancard" style="margin-top:14px">
       <p class="eyebrow">SCANNER LASER-ROBOT</p>
-      <h1 id="candName">…</h1>
+      <h1 id="candName" class="scan-name-reveal">…</h1>
       <div class="scan-photo-wrap" id="photoWrap">
         <span class="scan-silhouette">👤</span>
         <span class="scan-laser"></span>
       </div>
+      <div class="scan-readout" id="scanReadout"></div>
       <p class="scan-status-line">Lecture des 78 critères enregistrés…</p>
       <div class="scan-legend">
         <span><i class="dot ok"></i> Vérifié (<span id="countOk">0</span>)</span>
@@ -46,6 +47,19 @@ LaserAuth.requireSession().then(async function (session) {
   if (c.photo_url && /^https?:\/\//.test(c.photo_url)) {
     document.getElementById("photoWrap").innerHTML = '<img src="' + c.photo_url.replace(/"/g, "&quot;") + '" alt="Portrait de ' + escapeHtml(c.full_name) + '">' + '<span class="scan-laser"></span>';
   }
+
+  // Lecture progressive des faits d'identité déjà documentés — purement
+  // informatif, aucune donnée inventée : une ligne vide si rien n'est encore
+  // renseigné pour ce champ.
+  var readoutLines = [
+    ["Date de naissance", c.birth_date],
+    ["Lieu de naissance", c.birthplace],
+    ["Nationalité", c.nationality],
+    ["Biographie / fonctions antérieures", c.biography]
+  ].filter(function (l) { return l[1]; });
+  document.getElementById("scanReadout").innerHTML = readoutLines.map(function (l, i) {
+    return '<div class="scan-readout-line sd' + i + '"><b>' + escapeHtml(l[0]) + ' :</b> ' + escapeHtml(l[1]) + '</div>';
+  }).join("");
 
   var { data: criteria } = await laserSupabase.from("criteria").select("id, title").order("id");
   var { data: assessments } = await laserSupabase.from("assessments").select("criterion_id, status").eq("candidate_id", candidateId);

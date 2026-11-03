@@ -40,6 +40,24 @@
             <input type="url" id="cPhoto" placeholder="https://…">
           </div>
         </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="cBirthDate">Date de naissance</label>
+            <input type="date" id="cBirthDate">
+          </div>
+          <div class="form-field">
+            <label for="cBirthplace">Lieu de naissance</label>
+            <input type="text" id="cBirthplace">
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="cNationality">Nationalité</label>
+          <input type="text" id="cNationality">
+        </div>
+        <div class="form-field">
+          <label for="cBio">Biographie / fonctions déjà occupées (si documenté)</label>
+          <textarea id="cBio" rows="2" placeholder="Ex. : fonctions publiques antérieures, mandat(s), date(s)…"></textarea>
+        </div>
         <button type="submit" class="btn">Créer la fiche (les 78 critères sont initialisés automatiquement)</button>
       </form>
     </div>
@@ -83,6 +101,10 @@ async function createCandidate(e) {
     political_group: document.getElementById("cGroup").value.trim() || null,
     cep_status: document.getElementById("cCep").value.trim() || "Non vérifié",
     photo_url: photo || null,
+    birth_date: document.getElementById("cBirthDate").value || null,
+    birthplace: document.getElementById("cBirthplace").value.trim() || null,
+    nationality: document.getElementById("cNationality").value.trim() || null,
+    biography: document.getElementById("cBio").value.trim() || null,
     created_by: profileRef.id
   };
   var { data, error } = await laserSupabase.from("candidates").insert(payload).select("id").single();

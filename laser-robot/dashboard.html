@@ -66,6 +66,10 @@
       <div class="sectionhead">
         <h2>Candidats enregistrés</h2>
       </div>
+      <div class="form-field" style="margin-bottom:16px">
+        <label for="candidateSearch">Rechercher un candidat par nom</label>
+        <input type="text" id="candidateSearch" placeholder="Ex. : Jean Ernst Muscadin">
+      </div>
       <div id="candidatesList"><div class="empty-state">Chargement…</div></div>
     </div>
   </main>
@@ -87,7 +91,18 @@ LaserAuth.requireSession().then(async function (session) {
     document.getElementById("newCandidateForm").addEventListener("submit", createCandidate);
   }
   await loadCandidates();
+  document.getElementById("candidateSearch").addEventListener("input", function () {
+    renderCandidates(filterCandidates(allCandidates, this.value));
+  });
 });
+
+var allCandidates = [];
+
+function filterCandidates(list, query) {
+  var q = (query || "").trim().toLowerCase();
+  if (!q) return list;
+  return list.filter(function (c) { return (c.full_name || "").toLowerCase().indexOf(q) !== -1; });
+}
 
 async function createCandidate(e) {
   e.preventDefault();
@@ -117,9 +132,18 @@ async function loadCandidates() {
     .from("candidates")
     .select("id, full_name, political_group, cep_status, created_at")
     .order("created_at", { ascending: false });
+  if (error) { document.getElementById("candidatesList").innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  allCandidates = data || [];
+  renderCandidates(allCandidates);
+}
+
+function renderCandidates(data) {
   var container = document.getElementById("candidatesList");
-  if (error) { container.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
-  if (!data.length) { container.innerHTML = '<div class="empty-state">Aucun candidat enregistré pour l\'instant.</div>'; return; }
+  var hasQuery = document.getElementById("candidateSearch").value.trim() !== "";
+  if (!data.length) {
+    container.innerHTML = '<div class="empty-state">' + (hasQuery ? "Aucun candidat ne correspond à cette recherche." : "Aucun candidat enregistré pour l'instant.") + '</div>';
+    return;
+  }
 
   container.innerHTML = '<table class="data-table"><thead><tr><th>Nom</th><th>Groupe politique</th><th>Statut CEP</th><th>Ajouté le</th></tr></thead><tbody>' +
     data.map(function (c) {

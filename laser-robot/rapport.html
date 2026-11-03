@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rapport électeur — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <a href="#" id="backLink" class="no-print">← Fiche du candidat</a>
+
+    <div class="top" style="margin-top:14px">
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <img src="assets/avatar-laser-robot-icon.webp" alt="" class="no-print" style="width:44px;height:44px;border-radius:10px;object-fit:cover;border:1px solid var(--line);flex:0 0 auto">
+        <div>
+          <p class="eyebrow">RAPPORT ÉLECTEUR</p>
+          <h1 id="candName">…</h1>
+          <p class="muted" id="candSub"></p>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap" class="no-print">
+        <a class="btn secondary icon-btn" id="domainLink" href="#"></a>
+        <a class="btn secondary icon-btn" id="compareLink" href="#"></a>
+        <button type="button" class="btn secondary icon-btn" id="printBtn"></button>
+        <button type="button" class="btn secondary icon-btn" id="docBtn"></button>
+        <button type="button" class="btn secondary icon-btn" id="xlsxBtn"></button>
+      </div>
+    </div>
+
+    <div class="report-toggle no-print">
+      <button type="button" class="btn" id="tabSynth">Version synthétique</button>
+      <button type="button" class="btn secondary" id="tabDetail">Version détaillée</button>
+    </div>
+
+    <div id="reportSynth"></div>
+    <div id="reportDetail" hidden></div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+var candidateId = new URLSearchParams(window.location.search).get("id");
+document.getElementById("backLink").href = "candidate.html?id=" + candidateId;
+
+var POSITIVE_TYPES = ["Fait documenté", "Document officiel / source primaire"];
+var PROGRAM_TYPES = ["Programme ou engagement public", "Déclaration du candidat"];
+var CONCERNING_TYPES = ["Allégation attribuée", "Sanction administrative", "Enquête en cours", "Recommandation de poursuite", "Décision judiciaire définitive"];
+
+var reportData = null;
+
+LaserAuth.requireSession().then(async function (session) {
+  document.getElementById("domainLink").href = "analyses.html?id=" + candidateId;
+  document.getElementById("domainLink").innerHTML = LaserIcons.svg("book", 16) + " Analyse par domaine";
+  document.getElementById("compareLink").href = "comparateur.html?ids=" + candidateId;
+  document.getElementById("compareLink").innerHTML = LaserIcons.svg("compare", 16) + " Comparer";
+  document.getElementById("printBtn").innerHTML = LaserIcons.svg("print", 16) + " Imprimer / PDF";
+  document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+  document.getElementById("docBtn").innerHTML = LaserIcons.svg("report", 16) + " Exporter (Word)";
+  document.getElementById("docBtn").addEventListener("click", exportDoc);
+  document.getElementById("xlsxBtn").innerHTML = LaserIcons.svg("folder", 16) + " Exporter (Excel)";
+  document.getElementById("xlsxBtn").addEventListener("click", exportXlsx);
+
+  var { data: c } = await laserSupabase.from("candidates").select("*").eq("id", candidateId).single();
+  if (!c) { document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; return; }
+  document.getElementById("candName").textContent = formatDisplayName(c.full_name, c.last_name);
+  document.getElementById("candSub").textContent = (c.political_group || "Groupe politique non renseigné") + " · Statut CEP : " + c.cep_status;
+
+  var { data: domains } = await laserSupabase.from("domains").select("*").order("id");
+  var { data: criteria } = await laserSupabase.from("criteria").select("*").order("id");
+  var { data: assessments } = await laserSupabase.from("assessments").select("*").eq("candidate_id", candidateId);
+  var { data: evidence } = await laserSupabase.from("evidence").select("*").eq("candidate_id", candidateId).order("created_at", { ascending: false });
+
+  domains = domains || []; criteria = criteria || []; assessments = assessments || []; evidence = evidence || [];
+  var byId = {};
+  assessments.forEach(function (a) { byId[a.criterion_id] = a; });
+  reportData = { c: c, domains: domains, criteria: criteria, byId: byId, evidence: evidence };
+
+  renderSynth(c, domains, criteria, byId, evidence);
+  renderDetail(domains, criteria, byId);
+
+  document.getElementById("tabSynth").addEventListener("click", function () { showTab("synth"); });
+  document.getElementById("tabDetail").addEventListener("click", function () { showTab("detail"); });
+
+  laserSupabase.from("audit_log").insert({
+    actor_id: session.user.id, username: session.profile.full_name,
+    action: "consultation", entity_type: "rapport", entity_id: candidateId
+  });
+});
+
+// Export Word : un document HTML servi avec une extension .doc — Word
+// l'ouvre nativement comme un traitement de texte. Alternative légère à la
+// génération d'un vrai .docx (OOXML), suffisante pour un rapport en lecture
+// seule destiné à être relu, imprimé ou partagé tel quel.
+function exportDoc() {
+  if (!reportData) return;
+  var name = formatDisplayName(reportData.c.full_name, reportData.c.last_name);
+  var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="utf-8"><title>Rapport — ' + escapeHtml(name) + '</title>' +
+    '<style>body{font-family:Calibri,Arial,sans-serif;color:#111;font-size:12pt}h1{color:#8a6d2e}h3{color:#8a6d2e;border-bottom:1px solid #ccc}' +
+    '.status{border:1px solid #888;border-radius:10px;padding:1px 7px;font-size:10pt}.muted{color:#555}.small{font-size:10pt}' +
+    'article{border-top:1px solid #ccc;padding-top:8px;margin-top:8px}</style></head><body>' +
+    '<h1>LASER-ROBOT — Rapport électeur : ' + escapeHtml(name) + '</h1>' +
+    document.getElementById("reportSynth").innerHTML +
+    '</body></html>';
+  var blob = new Blob(['﻿', html], { type: "application/msword" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "rapport-" + name.replace(/[^a-z0-9]+/gi, "-").toLowerCase() + ".doc";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+// Export Excel : tableau des 78 critères (statut, note, analyse, éléments
+// liés) pour ce candidat — données brutes pour analystes, mêmes valeurs que
+// la version détaillée du rapport, rien de recalculé.
+function exportXlsx() {
+  if (!reportData) return;
+  var d = reportData;
+  var evCountByCriterion = {};
+  d.evidence.forEach(function (e) { if (e.criterion_id) evCountByCriterion[e.criterion_id] = (evCountByCriterion[e.criterion_id] || 0) + 1; });
+  var rows = d.criteria.map(function (r) {
+    var a = d.byId[r.id] || { status: "À documenter", score: null, analysis: "" };
+    var domain = d.domains.find(function (x) { return x.id === r.domain_id; });
+    return {
+      "Domaine": domain ? domain.id + " · " + domain.name : r.domain_id,
+      "Critère": r.id,
+      "Intitulé": r.title,
+      "Statut": a.status,
+      "Note (0-5)": a.score === null || a.score === undefined ? "" : a.score,
+      "Justification": a.analysis || "",
+      "Éléments documentaires liés": evCountByCriterion[r.id] || 0,
+    };
+  });
+  var ws = XLSX.utils.json_to_sheet(rows);
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "78 critères");
+  var name = formatDisplayName(d.c.full_name, d.c.last_name);
+  XLSX.writeFile(wb, "rapport-" + name.replace(/[^a-z0-9]+/gi, "-").toLowerCase() + ".xlsx");
+}
+
+function showTab(which) {
+  var isSynth = which === "synth";
+  document.getElementById("reportSynth").hidden = !isSynth;
+  document.getElementById("reportDetail").hidden = isSynth;
+  document.getElementById("tabSynth").className = "btn" + (isSynth ? "" : " secondary");
+  document.getElementById("tabDetail").className = "btn" + (isSynth ? " secondary" : "");
+}
+
+function renderSynth(c, domains, criteria, byId, evidence) {
+  var strengths = evidence.filter(function (e) { return POSITIVE_TYPES.indexOf(e.evidence_type) !== -1; });
+  var programs = evidence.filter(function (e) { return PROGRAM_TYPES.indexOf(e.evidence_type) !== -1; });
+  var risks = evidence.filter(function (e) { return CONCERNING_TYPES.indexOf(e.evidence_type) !== -1; });
+  var unconfirmed = evidence.filter(function (e) { return e.verification_status === "Non vérifié" || e.verification_status === "À examiner"; });
+  var responses = evidence.filter(function (e) { return e.candidate_response; });
+
+  var gapsByDomain = domains.map(function (d) {
+    var rows = criteria.filter(function (cr) { return cr.domain_id === d.id; });
+    var undocumented = rows.filter(function (r) { return !byId[r.id] || byId[r.id].status === "À documenter"; });
+    return { domain: d, total: rows.length, undocumented: undocumented.length };
+  }).filter(function (g) { return g.undocumented > 0; });
+
+  var lastUpdate = [].concat(evidence.map(function (e) { return e.created_at; }), assessmentsDates(byId))
+    .filter(Boolean).sort().slice(-1)[0];
+
+  var html = '';
+
+  html += '<div class="card note-card report-section" id="noteGlobaleBlock"></div>';
+
+  html += '<div class="card report-section"><h3>Profil du candidat</h3>' +
+    (c.photo_url ? '<img src="' + escapeAttr(c.photo_url) + '" alt="" style="width:110px;height:110px;object-fit:cover;border-radius:10px;float:right;margin-left:16px;border:1px solid var(--line)">' : '') +
+    '<p><b>Nom :</b> ' + escapeHtml(formatDisplayName(c.full_name, c.last_name)) + '</p>' +
+    '<p><b>Groupe politique :</b> ' + escapeHtml(c.political_group || "Non renseigné") + '</p>' +
+    '<p><b>Statut CEP :</b> ' + escapeHtml(c.cep_status) + '</p>' +
+    '<p><b>Date de naissance :</b> ' + escapeHtml(c.birth_date || "Non vérifié") + ' · <b>Lieu :</b> ' + escapeHtml(c.birthplace || "Non vérifié") + ' · <b>Nationalité :</b> ' + escapeHtml(c.nationality || "Non vérifié") + '</p>' +
+    '<p class="muted">' + escapeHtml(c.biography || "Aucune biographie documentaire enregistrée à ce jour.") + '</p></div>';
+
+  html += evidenceSection("Points forts documentés", strengths, "Faits et documents officiels établis par une source identifiée — un parcours constaté, pas une appréciation de qualité.");
+  html += evidenceSection("Engagements et propositions", programs, "Ce que le candidat déclare ou propose publiquement, rapporté sans jugement de valeur sur sa faisabilité.");
+
+  html += '<div class="card report-section"><h3>Lacunes documentaires</h3>' +
+    (gapsByDomain.length ?
+      '<p class="muted small">Domaines où une partie des critères n\'ont fait l\'objet d\'aucune recherche aboutie à ce jour — une lacune documentaire n\'est ni positive ni négative pour le candidat, c\'est une information manquante.</p><ul class="small">' +
+      gapsByDomain.map(function (g) { return "<li>" + escapeHtml(g.domain.id + " · " + g.domain.name) + " — " + g.undocumented + " / " + g.total + " critère(s) encore à documenter</li>"; }).join("") + '</ul>' :
+      '<p class="muted small">Tous les domaines comportent au moins un élément documenté à ce jour.</p>') +
+    '</div>';
+
+  html += '<div class="card report-section"><h3>Risques étayés par des éléments vérifiables</h3>' +
+    '<p class="muted small">Ces éléments rapportent des faits sourcés (sanction administrative, allégation attribuée, enquête en cours, décision de justice) qui mettent en question un critère précis — <b>ils ne constituent jamais une preuve de culpabilité</b>, et l\'absence de condamnation judiciaire en Haïti ne doit jamais être lue comme une preuve d\'innocence (le système judiciaire haïtien reste marqué par l\'impunité). Lisez la source et, si elle existe, la réponse du candidat avant de vous forger une opinion.</p>' +
+    (risks.length ? risks.map(evidenceCard).join("") : '<p class="muted small">Aucun élément de ce type n\'a été documenté à ce jour pour ce candidat — ce qui ne permet de conclure ni à son intégrité ni au contraire.</p>') +
+    '</div>';
+
+  html += evidenceSection("Informations restant à confirmer", unconfirmed, "Éléments déjà enregistrés mais pas encore relus et confirmés par un réviseur humain CAPRI.");
+
+  html += '<div class="card report-section"><h3>Réponses du candidat</h3>' +
+    (responses.length ? responses.map(function (e) {
+      return '<div style="margin-bottom:12px"><p class="small"><b>' + escapeHtml(e.title) + '</b></p><p class="small muted">' + escapeHtml(e.candidate_response) + '</p></div>';
+    }).join("") : '<p class="muted small">Aucune réponse du candidat enregistrée à ce jour pour les éléments documentaires de ce dossier.</p>') +
+    '</div>';
+
+  html += '<div class="report-meta">' +
+    '<p><b>Méthodologie :</b> charte nationale de 22 domaines et 78 critères, appliquée à l\'identique à chaque candidat. Chaque élément documentaire est d\'abord enregistré au statut « Non vérifié », puis relu par un réviseur humain CAPRI avant tout changement de statut vers « Vérifié ». La note globale mesure la qualité des éléments déjà documentés (moyenne à pondération égale des seuls critères notés) — ce n\'est ni une prédiction de capacité à gouverner ni un conseil de vote. Aucun classement entre candidats n\'est calculé par LASER-ROBOT.</p>' +
+    '<p><b>Dernière mise à jour du dossier :</b> ' + (lastUpdate ? new Date(lastUpdate).toLocaleString("fr-FR") : "Non disponible") + ' · <b>Rapport généré le :</b> ' + new Date().toLocaleString("fr-FR") + '</p>' +
+    '</div>';
+
+  document.getElementById("reportSynth").innerHTML = html;
+  var allAssessments = Object.keys(byId).map(function (k) { return byId[k]; });
+  renderNoteGlobale(document.getElementById("noteGlobaleBlock"), allAssessments, criteria.length, "Note globale (documentation) — 22 domaines, 78 critères");
+}
+
+function assessmentsDates(byId) {
+  return Object.keys(byId).map(function (k) { return byId[k].reviewed_at; });
+}
+
+function evidenceSection(title, items, help) {
+  return '<div class="card report-section"><h3>' + escapeHtml(title) + '</h3>' +
+    '<p class="muted small">' + escapeHtml(help) + '</p>' +
+    (items.length ? items.map(evidenceCard).join("") : '<p class="muted small">Aucun élément de ce type documenté à ce jour.</p>') +
+    '</div>';
+}
+
+function evidenceCard(e) {
+  var showLink = e.source_url && /^https?:\/\//.test(e.source_url);
+  return '<article class="evidence">' +
+    '<div class="crithead"><div><b>' + escapeHtml(e.title) + '</b><p class="small muted">' +
+    '<span class="doc-type-chip">' + escapeHtml(e.evidence_type) + '</span> · ' + escapeHtml(e.source_name || "Source non renseignée") +
+    (e.publication_date ? ' · ' + escapeHtml(e.publication_date) : '') + '</p></div>' +
+    '<span class="status">' + escapeHtml(e.verification_status) + '</span></div>' +
+    '<p class="small">' + escapeHtml(e.summary || '') + '</p>' +
+    (showLink ? '<a href="' + escapeAttr(e.source_url) + '" target="_blank" rel="noopener noreferrer">Voir la source ↗</a>' : '') +
+    '</article>';
+}
+
+function renderDetail(domains, criteria, byId) {
+  var html = domains.map(function (d) {
+    var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
+    var domainAssessments = rows.map(function (r) { return byId[r.id]; }).filter(Boolean);
+    var n = computeGlobalNote(domainAssessments, rows.length);
+    return '<div class="card"><details open><summary><b>' + escapeHtml(d.id + " · " + d.name) + '</b><span>' + rows.length + ' critères · Note domaine : ' + (n.avg === null ? "—" : n.avg.toFixed(1) + " / 5 (" + n.coveragePct + "% couverture)") + '</span></summary>' +
+      rows.map(function (r) {
+        var a = byId[r.id] || { status: "À documenter", score: null, analysis: "" };
+        return '<article class="criterion">' +
+          '<div class="crithead"><div><b>' + escapeHtml(r.id + " · " + r.title) + '</b><p>' + escapeHtml(r.requirement) + '</p></div>' +
+          '<span class="status">' + escapeHtml(a.status) + '</span></div>' +
+          (a.score !== null && a.score !== undefined ? '<p class="small">Niveau : ' + a.score + ' / 5</p>' : '') +
+          (a.analysis ? '<p class="small muted">' + escapeHtml(a.analysis) + '</p>' : '') +
+          '</article>';
+      }).join("") + '</details></div>';
+  }).join("");
+  document.getElementById("reportDetail").innerHTML = html;
+}
+
+function computeGlobalNote(assessmentsList, totalCriteria) {
+  var scored = (assessmentsList || []).filter(function (a) { return a.score !== null && a.score !== undefined; });
+  var coverage = totalCriteria ? scored.length / totalCriteria : 0;
+  var avg = scored.length ? scored.reduce(function (s, a) { return s + a.score; }, 0) / scored.length : null;
+  var confidence = coverage >= 0.7 ? "Élevé" : coverage >= 0.3 ? "Modéré" : coverage > 0 ? "Faible" : "Insuffisant";
+  return { avg: avg, scoredCount: scored.length, total: totalCriteria, coveragePct: Math.round(coverage * 100), confidence: confidence };
+}
+function renderNoteGlobale(container, assessmentsList, totalCriteria, title) {
+  if (!container) return;
+  var n = computeGlobalNote(assessmentsList, totalCriteria);
+  var confClass = { "Élevé": "eleve", "Modéré": "modere", "Faible": "faible", "Insuffisant": "insuffisant" }[n.confidence];
+  container.innerHTML =
+    '<h3>' + escapeHtml(title || "Note globale (documentation)") + '</h3>' +
+    '<div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">' +
+    '<div class="note-big">' + (n.avg === null ? "—" : n.avg.toFixed(1)) + ' <small>/ 5</small></div>' +
+    '<div style="flex:1;min-width:220px">' +
+    '<p class="small">' + n.scoredCount + ' / ' + n.total + ' critères notés (' + n.coveragePct + ' %)' +
+    '<span class="note-confidence ' + confClass + '">Confiance : ' + n.confidence + '</span></p>' +
+    '<div class="progress-row" style="padding:4px 0"><span class="pr-bar"><i style="width:' + n.coveragePct + '%"></i></span></div>' +
+    '</div></div>' +
+    '<p class="small muted" style="margin-top:10px">Moyenne simple, à pondération égale, des seuls critères déjà notés par un réviseur humain — un critère sans note n\'est jamais compté comme 0. Cette note mesure la qualité et la solidité des éléments documentés selon la méthodologie LASER-ROBOT : ce n\'est ni une prédiction sur la capacité à bien gouverner, ni un conseil de vote, et elle ne sert jamais à classer les candidats entre eux.</p>';
+}
+
+function formatDisplayName(fullName, lastName) {
+  if (!lastName || !fullName) return fullName || "";
+  var prenom = fullName;
+  if (fullName.toLowerCase().indexOf(lastName.toLowerCase()) !== -1) {
+    var idx = fullName.toLowerCase().lastIndexOf(lastName.toLowerCase());
+    prenom = (fullName.slice(0, idx) + fullName.slice(idx + lastName.length)).trim();
+  }
+  return lastName.toUpperCase() + (prenom ? ", " + prenom : "");
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+</script>
+</body>
+</html>

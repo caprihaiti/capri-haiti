@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiche candidat — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <a href="dashboard.html">← Registre</a>
+
+    <section class="card" style="margin-top:14px">
+      <div class="profile-head">
+        <img id="candPhoto" class="profile-photo" style="display:none" alt="">
+        <div id="candPhotoPlaceholder" class="profile-photo-placeholder"></div>
+        <div style="flex:1;min-width:220px">
+          <p class="eyebrow" id="candEyebrow">FICHE CANDIDAT</p>
+          <h1 id="candName" style="margin-bottom:6px">…</h1>
+          <span class="muted" id="candSub"></span>
+          <span id="dossierBadge" class="dossier-badge" style="margin-left:10px"></span>
+          <div class="profile-facts" id="profileFacts"></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn secondary icon-btn" id="reportLink" href="#"></a>
+          <a class="btn icon-btn" id="scanLink" href="#"></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="card note-card" id="noteGlobaleCard"></section>
+
+    <div class="fiche-layout">
+      <nav class="subnav no-print" id="ficheNav">
+        <a href="#section-profil" data-icon="user">Profil général</a>
+        <a href="#section-parcours" data-icon="folder">Parcours et expérience</a>
+        <a href="#section-propositions" data-icon="report">Propositions et programme</a>
+        <a href="#section-domaines" data-icon="book">Évaluation (22 domaines)</a>
+        <a href="#section-criteres" data-icon="scan">Critères détaillés (78)</a>
+        <a href="#section-documents" data-icon="search">Documents et preuves</a>
+        <a href="#section-reponses" data-icon="user">Réponses du candidat</a>
+        <a href="#section-historique" data-icon="chart">Historique des vérifications</a>
+      </nav>
+
+      <div>
+        <section class="card" id="section-profil">
+          <div class="sectionhead">
+            <h2>Profil général</h2>
+            <div style="display:flex;gap:8px">
+              <button type="button" class="btn secondary icon-btn" id="researchBtn" style="display:none"></button>
+              <button type="button" class="btn secondary" id="toggleIdentityEdit" style="display:none">Modifier</button>
+            </div>
+          </div>
+          <div id="researchStatus" class="small muted" style="display:none;margin-bottom:10px"></div>
+          <div id="researchResults"></div>
+          <div id="identityView">
+            <div class="facts">
+              <div><small>Date de naissance</small><b id="fBirthDate">Non vérifié</b></div>
+              <div><small>Lieu de naissance</small><b id="fBirthplace">Non vérifié</b></div>
+              <div><small>Nationalité</small><b id="fNationality">Non vérifié</b></div>
+            </div>
+            <p id="fBio" class="muted" style="margin-top:14px"></p>
+          </div>
+          <form id="identityForm" hidden>
+            <div class="form-field">
+              <label for="iFullName">Nom complet (corriger l'orthographe si besoin)</label>
+              <input type="text" id="iFullName" required>
+            </div>
+            <div class="form-field">
+              <label for="iLastName">Nom de famille (pour le tri alphabétique, ex. « Jeudy » pour Wilson Jeudy)</label>
+              <input type="text" id="iLastName">
+            </div>
+            <div class="form-field">
+              <label for="iPhotoFile">Téléverser une photo (recommandé — hébergée directement ici, aucun lien externe fragile)</label>
+              <input type="file" id="iPhotoFile" accept="image/png,image/jpeg,image/webp">
+              <p class="small muted" id="iPhotoUploadStatus" style="margin:4px 0 0"></p>
+            </div>
+            <div class="form-field">
+              <label for="iPhotoUrl">Ou lien photo direct (http(s):// uniquement) — si ni téléversée</label>
+              <input type="url" id="iPhotoUrl" placeholder="https://…">
+            </div>
+            <div class="grid-2">
+              <div class="form-field">
+                <label for="iBirthDate">Date de naissance</label>
+                <input type="date" id="iBirthDate">
+              </div>
+              <div class="form-field">
+                <label for="iBirthplace">Lieu de naissance</label>
+                <input type="text" id="iBirthplace">
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="iNationality">Nationalité</label>
+              <input type="text" id="iNationality">
+            </div>
+            <div class="form-field">
+              <label for="iBio">Biographie / fonctions déjà occupées (si documenté)</label>
+              <textarea id="iBio" rows="3"></textarea>
+            </div>
+            <div style="display:flex;gap:10px">
+              <button type="submit" class="btn">Enregistrer</button>
+              <button type="button" class="btn secondary" id="cancelIdentityEdit">Annuler</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="card" id="section-parcours">
+          <h2>Parcours et expérience</h2>
+          <p class="muted small">Faits et documents officiels établis par une source identifiée — un parcours constaté, pas une appréciation de qualité. Sous-ensemble du registre complet ci-dessous.</p>
+          <div id="parcoursList"><div class="empty-state">Chargement…</div></div>
+        </section>
+
+        <section class="card" id="section-propositions">
+          <h2>Propositions et programme</h2>
+          <p class="muted small">Ce que le candidat déclare ou propose publiquement, rapporté sans jugement de valeur sur sa faisabilité.</p>
+          <div id="propositionsList"><div class="empty-state">Chargement…</div></div>
+        </section>
+
+        <section class="card" id="section-domaines">
+          <h2>Évaluation — 22 domaines</h2>
+          <p class="muted small">Simple décompte de ce que les réviseurs ont déjà constaté, domaine par domaine — pas un score, pas un classement. Permet de voir d'un coup d'œil où l'examen est avancé et où il reste à faire, sans tirer de conclusion à la place du lecteur.</p>
+          <div id="domainOverview" class="domain-overview"></div>
+        </section>
+
+        <section class="card" id="section-criteres">
+          <div class="sectionhead">
+            <h2>Critères détaillés — 78 critères</h2>
+            <a class="button secondary btn secondary" id="bulkLink" href="#">Mise à jour groupée</a>
+          </div>
+          <p class="muted small">La note est facultative et ne doit être saisie qu'après examen humain des éléments — un critère sans note n'est jamais compté comme 0. Échelle : 0 = absent · 1 = déclaration générale · 2 = proposition structurée · 3 = plan chiffré · 4 = plan chiffré avec calendrier et indicateurs · 5 = preuves solides de capacité et résultats vérifiables. La note globale ci-dessus en est la moyenne à pondération égale — jamais un classement entre candidats.</p>
+          <div id="criteriaGroups"><div class="empty-state">Chargement…</div></div>
+        </section>
+
+        <section class="card" id="section-documents">
+          <div class="sectionhead">
+            <h2>Documents et preuves</h2>
+          </div>
+          <form id="newEvidenceForm" style="margin-bottom:22px;border-bottom:1px solid var(--line);padding-bottom:20px">
+            <div class="grid-2">
+              <div class="form-field">
+                <label for="eTitle">Titre</label>
+                <input type="text" id="eTitle" required>
+              </div>
+              <div class="form-field">
+                <label for="eCriterion">Critère lié</label>
+                <select id="eCriterion"><option value="">Sans critère lié</option></select>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="form-field">
+                <label for="eType">Type de source</label>
+                <select id="eType"></select>
+              </div>
+              <div class="form-field">
+                <label for="eStatus">État de vérification</label>
+                <select id="eStatus"></select>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="form-field">
+                <label for="eSourceName">Nom de la source</label>
+                <input type="text" id="eSourceName">
+              </div>
+              <div class="form-field">
+                <label for="eSourceUrl">Lien (http(s):// uniquement)</label>
+                <input type="url" id="eSourceUrl">
+              </div>
+            </div>
+            <div class="form-field">
+              <label for="eDate">Date de publication</label>
+              <input type="date" id="eDate">
+            </div>
+            <div class="form-field">
+              <label for="eSummary">Résumé</label>
+              <textarea id="eSummary" rows="2"></textarea>
+            </div>
+            <button type="submit" class="btn">＋ Ajouter l'élément</button>
+          </form>
+          <div id="evidenceList"><div class="empty-state">Chargement…</div></div>
+        </section>
+
+        <section class="card" id="section-reponses">
+          <h2>Réponses du candidat</h2>
+          <p class="muted small">Chaque observation contradictoire ou réponse que le candidat a apportée à un élément documentaire de son dossier.</p>
+          <div id="reponsesList"><div class="empty-state">Chargement…</div></div>
+        </section>
+
+        <section class="card" id="section-historique">
+          <div class="sectionhead"><h2>Historique des vérifications</h2></div>
+          <p class="muted small">Chaque création ou modification de l'identité, d'un critère ou d'un élément documentaire de ce dossier, journalisée automatiquement côté serveur — traçabilité complète, non modifiable depuis l'application.</p>
+          <div id="verificationHistory"><div class="empty-state">Chargement…</div></div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var ASSESSMENT_STATUSES = ["À documenter", "À examiner", "Documenté", "Vérifié", "Allégation grave documentée", "Non applicable"];
+var EVIDENCE_STATUSES = ["Non vérifié", "À examiner", "Vérifié", "Contesté", "Non vérifiable"];
+var EVIDENCE_TYPES = [
+  "Document officiel / source primaire", "Programme ou engagement public", "Déclaration du candidat",
+  "Fait documenté", "Allégation attribuée", "Sanction administrative", "Enquête en cours",
+  "Recommandation de poursuite", "Décision judiciaire définitive"
+];
+
+var candidateId = new URLSearchParams(window.location.search).get("id");
+var profileRef = null;
+var canWrite = false;
+var allCriteria = [];
+
+if (!candidateId) { document.body.innerHTML = "<p style='padding:30px'>Identifiant de candidat manquant.</p>"; }
+
+LaserAuth.requireSession().then(async function (session) {
+  profileRef = session.profile;
+  canWrite = profileRef.role === "admin" || profileRef.role === "reviewer";
+  LaserShell.renderSidebar(session.profile, "dashboard");
+
+  document.getElementById("scanLink").href = "scan.html?id=" + candidateId;
+  document.getElementById("scanLink").innerHTML = LaserIcons.svg("scan", 16) + " Lancer le scanner";
+  document.getElementById("reportLink").href = "rapport.html?id=" + candidateId;
+  document.getElementById("reportLink").innerHTML = LaserIcons.svg("report", 16) + " Rapport électeur";
+  document.getElementById("researchBtn").innerHTML = LaserIcons.svg("search", 16) + " Rechercher des sources";
+  document.getElementById("bulkLink").href = "bulk.html?id=" + candidateId;
+  if (!canWrite) document.getElementById("bulkLink").style.display = "none";
+  document.getElementById("candPhotoPlaceholder").innerHTML = LaserIcons.svg("user", 34);
+
+  document.querySelectorAll("#ficheNav a").forEach(function (a) {
+    a.innerHTML = LaserIcons.svg(a.getAttribute("data-icon"), 15) + "<span>" + a.textContent + "</span>";
+  });
+  setupSubnavScrollSpy();
+
+  populateSelect("eType", EVIDENCE_TYPES);
+  populateSelect("eStatus", EVIDENCE_STATUSES, "Non vérifié");
+  if (!canWrite) document.getElementById("newEvidenceForm").style.display = "none";
+
+  await loadCandidate();
+  await loadGrid();
+  await loadEvidence();
+  await loadHistory();
+
+  document.getElementById("newEvidenceForm").addEventListener("submit", addEvidence);
+  if (canWrite) {
+    document.getElementById("toggleIdentityEdit").style.display = "inline-flex";
+    document.getElementById("toggleIdentityEdit").addEventListener("click", openIdentityEdit);
+    document.getElementById("cancelIdentityEdit").addEventListener("click", closeIdentityEdit);
+    document.getElementById("identityForm").addEventListener("submit", saveIdentity);
+    document.getElementById("iPhotoFile").addEventListener("change", uploadPhotoFile);
+  }
+  // La recherche est ouverte à tout compte actif (lecteur compris) : c'est
+  // l'outil public de LASER-ROBOT. Le bouton ne s'affiche que si la fiche
+  // n'a pas encore été documentée — une fois faite, tout le monde voit la
+  // même fiche déjà enregistrée, comme un article déjà publié.
+  if (!currentCandidate.biography) {
+    document.getElementById("researchBtn").style.display = "inline-flex";
+    document.getElementById("researchBtn").addEventListener("click", runResearch);
+    if (new URLSearchParams(window.location.search).get("autorun") === "1") {
+      runResearch();
+    }
+  }
+});
+
+async function runResearch() {
+  var btn = document.getElementById("researchBtn");
+  var statusEl = document.getElementById("researchStatus");
+  btn.disabled = true;
+  statusEl.style.display = "block";
+  statusEl.textContent = "Recherche en cours sur des sources officielles (sanctions, ULCC/CSCCA, biographie)… cela peut prendre une minute.";
+  document.getElementById("researchResults").innerHTML = "";
+
+  var { data, error } = await laserSupabase.functions.invoke("research-candidate", {
+    body: { candidate_id: candidateId, full_name: currentCandidate.full_name }
+  });
+
+  btn.disabled = false;
+  if (error || !data || data.error) {
+    var detail = data && data.error ? data.error : (error ? error.message : "inconnue");
+    if (error && error.context && typeof error.context.json === "function") {
+      try {
+        var body = await error.context.clone().json();
+        if (body && body.error) detail = body.error;
+      } catch (_e) { /* le corps n'était pas du JSON lisible, on garde le message par défaut */ }
+    }
+    statusEl.textContent = "Erreur : " + detail;
+    return;
+  }
+
+  if (data.already_researched) {
+    statusEl.style.display = "none";
+    btn.style.display = "none";
+    await loadCandidate();
+    return;
+  }
+
+  statusEl.style.display = "none";
+  btn.style.display = "none";
+  await loadCandidate();
+  await loadEvidence();
+  await loadGrid();
+  renderResearchResults(data.findings, data.saved);
+}
+
+function renderResearchResults(f, saved) {
+  var html = '<div class="card" style="background:#0d1828;margin-top:10px">';
+  html += '<h3 style="margin:0 0 10px">✓ Recherche terminée</h3>';
+  html += '<p class="notice">' +
+    (saved && saved.identity_fields.length ? "Identité complétée (" + saved.identity_fields.length + " champ(s))." : "Aucune nouvelle information d'identité trouvée.") + ' ' +
+    (saved ? saved.evidence_added + " élément(s) documentaire(s) ajouté(s)." : "") + ' ' +
+    (saved && saved.assessments_updated ? saved.assessments_updated + " critère(s) de la charte mis à jour automatiquement sur la grille de scan." : "") +
+    ' Chaque élément reste au statut « Non vérifié » jusqu\'à ce qu\'un réviseur CAPRI lise la source et le confirme — vous pouvez consulter chaque source vous-même ci-dessous.</p>';
+
+  if (f.identity && f.identity.contested_notes) {
+    html += '<p class="small muted">⚠️ ' + escapeHtml(f.identity.contested_notes) + '</p>';
+  }
+
+  (f.evidence || []).forEach(function (ev) {
+    html += '<article class="evidence" style="border-top:1px solid var(--line);padding-top:12px;margin-top:12px">' +
+      '<div class="crithead"><div><b>' + escapeHtml(ev.title) + '</b><p class="small muted">' + escapeHtml(ev.evidence_type) + ' · ' + escapeHtml(ev.source_name || '') + (ev.publication_date ? ' · ' + escapeHtml(ev.publication_date) : '') + '</p></div></div>' +
+      '<p class="small">' + escapeHtml(ev.summary || '') + '</p>' +
+      (ev.caution ? '<p class="small muted">⚠️ ' + escapeHtml(ev.caution) + '</p>' : '') +
+      (ev.source_url ? '<a href="' + escapeAttr(ev.source_url) + '" target="_blank" rel="noopener noreferrer">Voir la source ↗</a>' : '') +
+      '</article>';
+  });
+
+  if ((f.not_found || []).length) {
+    html += '<div style="margin-top:14px"><b class="small muted">Non trouvé / non confirmé :</b><ul class="small muted">' +
+      f.not_found.map(function (s) { return '<li>' + escapeHtml(s) + '</li>'; }).join('') + '</ul></div>';
+  }
+
+  html += '</div>';
+  document.getElementById("researchResults").innerHTML = html;
+}
+
+var currentCandidate = null;
+
+function openIdentityEdit() {
+  document.getElementById("iFullName").value = currentCandidate.full_name || "";
+  document.getElementById("iLastName").value = currentCandidate.last_name || "";
+  document.getElementById("iPhotoUrl").value = currentCandidate.photo_url || "";
+  document.getElementById("iBirthDate").value = currentCandidate.birth_date || "";
+  document.getElementById("iBirthplace").value = currentCandidate.birthplace || "";
+  document.getElementById("iNationality").value = currentCandidate.nationality || "";
+  document.getElementById("iBio").value = currentCandidate.biography || "";
+  document.getElementById("identityView").hidden = true;
+  document.getElementById("identityForm").hidden = false;
+}
+
+async function uploadPhotoFile(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var statusEl = document.getElementById("iPhotoUploadStatus");
+  statusEl.textContent = "Téléversement en cours…";
+  var ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  var path = candidateId + "/" + Date.now() + "." + ext;
+  var { error } = await laserSupabase.storage.from("candidate-photos").upload(path, file, { upsert: true });
+  if (error) {
+    statusEl.textContent = "Erreur de téléversement : " + error.message;
+    return;
+  }
+  var { data } = laserSupabase.storage.from("candidate-photos").getPublicUrl(path);
+  document.getElementById("iPhotoUrl").value = data.publicUrl;
+  statusEl.textContent = "✓ Photo téléversée — cliquez « Enregistrer » pour confirmer.";
+}
+
+function closeIdentityEdit() {
+  document.getElementById("identityForm").hidden = true;
+  document.getElementById("identityView").hidden = false;
+}
+
+async function saveIdentity(e) {
+  e.preventDefault();
+  var fullName = document.getElementById("iFullName").value.trim();
+  if (!fullName) { LaserShell.toast("Le nom complet est obligatoire.", true); return; }
+  var photoUrl = document.getElementById("iPhotoUrl").value.trim();
+  if (photoUrl && !/^https?:\/\//.test(photoUrl)) {
+    LaserShell.toast("Le lien photo doit commencer par http:// ou https://.", true);
+    return;
+  }
+  var payload = {
+    full_name: fullName,
+    last_name: document.getElementById("iLastName").value.trim() || null,
+    photo_url: photoUrl || null,
+    birth_date: document.getElementById("iBirthDate").value || null,
+    birthplace: document.getElementById("iBirthplace").value.trim() || null,
+    nationality: document.getElementById("iNationality").value.trim() || null,
+    biography: document.getElementById("iBio").value.trim() || null
+  };
+  var { error } = await laserSupabase.from("candidates").update(payload).eq("id", candidateId);
+  if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
+  LaserShell.toast("Identité mise à jour.");
+  closeIdentityEdit();
+  await loadCandidate();
+}
+
+function populateSelect(id, options, selected) {
+  var sel = document.getElementById(id);
+  sel.innerHTML = options.map(function (o) {
+    return '<option' + (o === selected ? " selected" : "") + ">" + escapeHtml(o) + "</option>";
+  }).join("");
+}
+
+async function loadCandidate() {
+  var { data: c, error } = await laserSupabase.from("candidates").select("*").eq("id", candidateId).single();
+  if (error || !c) { document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; throw error; }
+  currentCandidate = c;
+  document.getElementById("candEyebrow").textContent = "FICHE CANDIDAT · ID " + c.id.slice(0, 8);
+  document.getElementById("candName").textContent = formatDisplayName(c.full_name, c.last_name);
+  document.getElementById("candSub").textContent = "Candidat à la Présidence";
+  document.getElementById("fBirthDate").textContent = c.birth_date || "Non vérifié";
+  document.getElementById("fBirthplace").textContent = c.birthplace || "Non vérifié";
+  document.getElementById("fNationality").textContent = c.nationality || "Non vérifié";
+  document.getElementById("fBio").textContent = c.biography || "Aucune biographie documentaire enregistrée.";
+
+  if (c.photo_url && /^https?:\/\//.test(c.photo_url)) {
+    document.getElementById("candPhoto").src = c.photo_url;
+    document.getElementById("candPhoto").style.display = "block";
+    document.getElementById("candPhotoPlaceholder").style.display = "none";
+  } else {
+    document.getElementById("candPhoto").style.display = "none";
+    document.getElementById("candPhotoPlaceholder").style.display = "flex";
+  }
+
+  var badge = document.getElementById("dossierBadge");
+  if (c.biography) { badge.className = "dossier-badge complete"; badge.textContent = "Dossier documenté"; }
+  else { badge.className = "dossier-badge incomplete"; badge.textContent = "Pas encore documenté"; }
+
+  var age = null;
+  if (c.birth_date) {
+    var bd = new Date(c.birth_date);
+    var today = new Date();
+    age = today.getFullYear() - bd.getFullYear();
+    if (today.getMonth() < bd.getMonth() || (today.getMonth() === bd.getMonth() && today.getDate() < bd.getDate())) age--;
+  }
+  var facts = [];
+  if (age !== null) facts.push(["user", age + " ans (né le " + c.birth_date + ")"]);
+  if (c.birthplace) facts.push(["book", c.birthplace]);
+  facts.push(["folder", c.political_group || "Groupe politique non renseigné"]);
+  facts.push(["shield", "Statut CEP : " + c.cep_status]);
+  document.getElementById("profileFacts").innerHTML = facts.map(function (f) {
+    return '<span>' + LaserIcons.svg(f[0], 14) + escapeHtml(f[1]) + '</span>';
+  }).join("");
+}
+
+function setupSubnavScrollSpy() {
+  var links = Array.prototype.slice.call(document.querySelectorAll("#ficheNav a"));
+  if (!("IntersectionObserver" in window) || !links.length) return;
+  var sections = links.map(function (a) { return document.querySelector(a.getAttribute("href")); }).filter(Boolean);
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      links.forEach(function (a) { a.classList.toggle("active", a.getAttribute("href") === "#" + entry.target.id); });
+    });
+  }, { rootMargin: "-20% 0px -70% 0px" });
+  sections.forEach(function (s) { observer.observe(s); });
+}
+
+function renderDomainOverview(domains, criteria, byId) {
+  var html = domains.map(function (d) {
+    var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
+    var counts = { ok: 0, ko: 0, pending: 0, documented: 0 };
+    rows.forEach(function (r) {
+      var status = (byId[r.id] || {}).status || "À documenter";
+      if (status === "Vérifié") counts.ok++;
+      else if (status === "Allégation grave documentée") counts.ko++;
+      else if (status === "Documenté" || status === "À examiner") counts.documented++;
+      else counts.pending++;
+    });
+    return '<div class="domain-tile">' +
+      '<b>' + escapeHtml(d.id + " · " + d.name) + '</b>' +
+      '<div class="domain-tile-counts">' +
+      '<span class="dok">' + counts.ok + ' vérifié' + (counts.ok > 1 ? 's' : '') + '</span>' +
+      '<span class="ddoc">' + counts.documented + ' documenté' + (counts.documented > 1 ? 's' : '') + '</span>' +
+      '<span class="dko">' + counts.ko + ' allégation' + (counts.ko > 1 ? 's' : '') + ' documentée' + (counts.ko > 1 ? 's' : '') + '</span>' +
+      '<span class="dpending">' + counts.pending + ' à documenter</span>' +
+      '</div></div>';
+  }).join("");
+  document.getElementById("domainOverview").innerHTML = html;
+}
+
+async function loadGrid() {
+  var { data: domains } = await laserSupabase.from("domains").select("*").order("id");
+  var { data: criteria } = await laserSupabase.from("criteria").select("*").order("id");
+  var { data: assessments } = await laserSupabase.from("assessments").select("*").eq("candidate_id", candidateId);
+  var { data: evidenceRows } = await laserSupabase.from("evidence").select("criterion_id").eq("candidate_id", candidateId);
+  allCriteria = criteria || [];
+  populateSelect("eCriterion", ["Sans critère lié"].concat(allCriteria.map(function (c) { return c.id + " · " + c.title; })));
+  document.getElementById("eCriterion").options[0].value = "";
+  allCriteria.forEach(function (c, i) { document.getElementById("eCriterion").options[i + 1].value = c.id; });
+
+  renderNoteGlobale(document.getElementById("noteGlobaleCard"), assessments || [], allCriteria.length, "Note globale (documentation) — ce candidat");
+
+  var byId = {};
+  (assessments || []).forEach(function (a) { byId[a.criterion_id] = a; });
+  var evCountByCriterion = {};
+  (evidenceRows || []).forEach(function (e) {
+    if (e.criterion_id) evCountByCriterion[e.criterion_id] = (evCountByCriterion[e.criterion_id] || 0) + 1;
+  });
+
+  renderDomainOverview(domains || [], criteria || [], byId);
+
+  var html = (domains || []).map(function (d) {
+    var rows = (criteria || []).filter(function (c) { return c.domain_id === d.id; });
+    return "<details open><summary><b>" + escapeHtml(d.id + " · " + d.name) + "</b><span>" + rows.length + " critères</span></summary>" +
+      rows.map(function (r) {
+        var a = byId[r.id] || { status: "À documenter", score: null, analysis: "" };
+        var evCount = evCountByCriterion[r.id] || 0;
+        return '<article class="criterion" id="' + r.id + '">' +
+          '<div class="crithead"><div><b>' + escapeHtml(r.id + " · " + r.title) + "</b><p>" + escapeHtml(r.requirement) + "</p></div>" +
+          '<span class="status">' + escapeHtml(a.status) + "</span></div>" +
+          '<p class="small muted"><b>Indicateurs :</b> ' + escapeHtml(r.indicators || "") + "</p>" +
+          '<p class="small muted"><b>Preuves attendues :</b> ' + escapeHtml(r.evidence_expected || "") + "</p>" +
+          '<p class="small">Éléments liés : ' + evCount + "</p>" +
+          (canWrite ?
+            '<form class="inlineform assessForm" data-criterion="' + r.id + '">' +
+            '<div class="form-field"><select class="aStatus">' + ASSESSMENT_STATUSES.map(function (s) { return '<option' + (a.status === s ? " selected" : "") + ">" + s + "</option>"; }).join("") + "</select></div>" +
+            '<div class="form-field"><select class="aScore"><option value="">Sans note</option>' +
+            [0, 1, 2, 3, 4, 5].map(function (n) { return '<option value="' + n + '"' + (a.score === n ? " selected" : "") + ">" + n + " / 5</option>"; }).join("") + "</select></div>" +
+            '<div class="form-field"><input class="aAnalysis" placeholder="Analyse et limites" value="' + escapeAttr(a.analysis || "") + '"></div>' +
+            '<button type="submit" class="smallbtn btn" style="padding:9px 12px;font-size:12px">Enregistrer</button>' +
+            "</form>" : "") +
+          "</article>";
+      }).join("") + "</details>";
+  }).join("");
+  document.getElementById("criteriaGroups").innerHTML = html;
+
+  document.querySelectorAll(".assessForm").forEach(function (form) {
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var criterionId = form.getAttribute("data-criterion");
+      var payload = {
+        status: form.querySelector(".aStatus").value,
+        score: form.querySelector(".aScore").value === "" ? null : parseInt(form.querySelector(".aScore").value, 10),
+        analysis: form.querySelector(".aAnalysis").value.trim() || null
+      };
+      var { error } = await laserSupabase.from("assessments").update(payload).eq("candidate_id", candidateId).eq("criterion_id", criterionId);
+      if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
+      LaserShell.toast("Critère " + criterionId + " enregistré.");
+      loadGrid();
+    });
+  });
+}
+
+async function addEvidence(e) {
+  e.preventDefault();
+  var url = document.getElementById("eSourceUrl").value.trim();
+  if (url && !/^https?:\/\//.test(url)) { LaserShell.toast("Le lien doit commencer par http:// ou https://.", true); return; }
+  var payload = {
+    candidate_id: candidateId,
+    criterion_id: document.getElementById("eCriterion").value || null,
+    title: document.getElementById("eTitle").value.trim(),
+    evidence_type: document.getElementById("eType").value,
+    verification_status: document.getElementById("eStatus").value,
+    source_name: document.getElementById("eSourceName").value.trim() || null,
+    source_url: url || null,
+    publication_date: document.getElementById("eDate").value || null,
+    summary: document.getElementById("eSummary").value.trim() || null,
+    created_by: profileRef.id
+  };
+  var { error } = await laserSupabase.from("evidence").insert(payload);
+  if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
+  LaserShell.toast("Élément ajouté.");
+  document.getElementById("newEvidenceForm").reset();
+  populateSelect("eType", EVIDENCE_TYPES);
+  populateSelect("eStatus", EVIDENCE_STATUSES, "Non vérifié");
+  loadEvidence();
+  loadGrid();
+}
+
+var POSITIVE_TYPES = ["Fait documenté", "Document officiel / source primaire"];
+var PROGRAM_TYPES = ["Programme ou engagement public", "Déclaration du candidat"];
+
+async function loadEvidence() {
+  var { data, error } = await laserSupabase
+    .from("evidence")
+    .select("*")
+    .eq("candidate_id", candidateId)
+    .order("created_at", { ascending: false });
+
+  renderFilteredEvidence("parcoursList", (data || []).filter(function (e) { return POSITIVE_TYPES.indexOf(e.evidence_type) !== -1; }), "Aucun élément de parcours documenté à ce jour.");
+  renderFilteredEvidence("propositionsList", (data || []).filter(function (e) { return PROGRAM_TYPES.indexOf(e.evidence_type) !== -1; }), "Aucune proposition ou engagement documenté à ce jour.");
+  renderReponses((data || []).filter(function (e) { return e.candidate_response; }));
+
+  var container = document.getElementById("evidenceList");
+  if (error) { container.innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+  if (!data.length) { container.innerHTML = '<div class="empty-state">Aucun élément documentaire enregistré.</div>'; return; }
+
+  container.innerHTML = data.map(function (ev) {
+    var showLink = ev.source_url && /^https?:\/\//.test(ev.source_url);
+    return '<article class="evidence">' +
+      '<div class="crithead"><div><b>' + escapeHtml(ev.title) + "</b><p class='small muted'>" +
+      escapeHtml((ev.criterion_id || "Sans critère lié")) + " · " + escapeHtml(ev.source_name || "Source non renseignée") + " · " + escapeHtml(ev.publication_date || "Date non renseignée") + "</p></div>" +
+      '<span class="status">' + escapeHtml(ev.verification_status) + "</span></div>" +
+      "<p>" + escapeHtml(ev.summary || "") + "</p>" +
+      (showLink ? '<a href="' + escapeAttr(ev.source_url) + '" target="_blank" rel="noopener noreferrer">Consulter la source ↗</a>' : "") +
+      (canWrite ?
+        '<form class="respForm" data-id="' + ev.id + '" style="margin-top:10px">' +
+        '<label class="small">Réponse du candidat / observation contradictoire<textarea class="eResp" rows="2" placeholder="Aucune réponse enregistrée">' + escapeHtml(ev.candidate_response || "") + "</textarea></label>" +
+        '<button type="submit" class="smallbtn btn secondary" style="padding:8px 12px;font-size:12px">Enregistrer la réponse</button>' +
+        "</form>" :
+        (ev.candidate_response ? '<p class="small muted" style="margin-top:8px">Réponse : ' + escapeHtml(ev.candidate_response) + "</p>" : "")) +
+      '<p class="small muted">Note du réviseur : ' + escapeHtml(ev.reviewer_notes || "Aucune") + "</p>" +
+      "</article>";
+  }).join("");
+
+  container.querySelectorAll(".respForm").forEach(function (form) {
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var { error } = await laserSupabase.from("evidence").update({ candidate_response: form.querySelector(".eResp").value.trim() || null }).eq("id", form.getAttribute("data-id"));
+      if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
+      LaserShell.toast("Réponse enregistrée.");
+    });
+  });
+}
+
+function renderFilteredEvidence(containerId, items, emptyText) {
+  var box = document.getElementById(containerId);
+  if (!items.length) { box.innerHTML = '<div class="empty-state">' + escapeHtml(emptyText) + '</div>'; return; }
+  box.innerHTML = items.map(function (ev) {
+    var showLink = ev.source_url && /^https?:\/\//.test(ev.source_url);
+    return '<article class="evidence">' +
+      '<div class="crithead"><div><b>' + escapeHtml(ev.title) + '</b><p class="small muted">' +
+      '<span class="doc-type-chip">' + escapeHtml(ev.evidence_type) + '</span> · ' + escapeHtml(ev.source_name || "Source non renseignée") +
+      (ev.publication_date ? ' · ' + escapeHtml(ev.publication_date) : '') + '</p></div>' +
+      '<span class="status">' + escapeHtml(ev.verification_status) + '</span></div>' +
+      '<p class="small">' + escapeHtml(ev.summary || '') + '</p>' +
+      (showLink ? '<a href="' + escapeAttr(ev.source_url) + '" target="_blank" rel="noopener noreferrer">Voir la source ↗</a>' : '') +
+      '</article>';
+  }).join("");
+}
+
+function renderReponses(items) {
+  var box = document.getElementById("reponsesList");
+  if (!items.length) { box.innerHTML = '<div class="empty-state">Aucune réponse du candidat enregistrée à ce jour.</div>'; return; }
+  box.innerHTML = items.map(function (ev) {
+    return '<article class="evidence"><div class="crithead"><div><b>' + escapeHtml(ev.title) + '</b></div></div>' +
+      '<p class="small muted" style="margin:4px 0 0"><b>Réponse du candidat :</b> ' + escapeHtml(ev.candidate_response) + '</p>' +
+      '</article>';
+  }).join("");
+}
+
+async function loadHistory() {
+  var [{ data: assessRows }, { data: evRows }] = await Promise.all([
+    laserSupabase.from("assessments").select("id").eq("candidate_id", candidateId),
+    laserSupabase.from("evidence").select("id").eq("candidate_id", candidateId),
+  ]);
+  var ids = [candidateId]
+    .concat((assessRows || []).map(function (r) { return r.id; }))
+    .concat((evRows || []).map(function (r) { return r.id; }));
+  var { data, error } = await laserSupabase
+    .from("audit_log").select("*").in("entity_id", ids).order("at", { ascending: false }).limit(25);
+  var box = document.getElementById("verificationHistory");
+  if (error || !data || !data.length) { box.innerHTML = '<div class="empty-state">Aucune modification journalisée pour l\'instant.</div>'; return; }
+  var ACTION_LABELS = { insert: "Création", update: "Mise à jour", recherche_automatique: "Recherche automatique" };
+  var ENTITY_LABELS = { candidates: "identité du candidat", assessments: "critère", evidence: "élément documentaire" };
+  box.innerHTML = '<div class="timeline">' + data.map(function (row) {
+    return '<div class="timeline-row"><span class="timeline-dot"></span><div>' +
+      '<div class="timeline-text"><b>' + escapeHtml(ACTION_LABELS[row.action] || row.action) + '</b>' +
+      ' (' + escapeHtml(ENTITY_LABELS[row.entity_type] || row.entity_type) + ')' +
+      (row.details ? ' : ' + escapeHtml(row.details) : '') + '</div>' +
+      '<div class="timeline-time">' + new Date(row.at).toLocaleString("fr-FR") + '</div></div></div>';
+  }).join('') + '</div>';
+}
+
+// Convention administrative haïtienne : NOM DE FAMILLE d'abord, en
+// majuscules, suivi d'une virgule et du ou des prénoms — ex. « TARDIEU,
+// Jerry ». Si last_name n'est pas encore renseigné, affiche full_name tel
+// quel plutôt que de deviner.
+function formatDisplayName(fullName, lastName) {
+  if (!lastName || !fullName) return fullName || "";
+  var prenom = fullName;
+  if (fullName.toLowerCase().indexOf(lastName.toLowerCase()) !== -1) {
+    var idx = fullName.toLowerCase().lastIndexOf(lastName.toLowerCase());
+    prenom = (fullName.slice(0, idx) + fullName.slice(idx + lastName.length)).trim();
+  }
+  return lastName.toUpperCase() + (prenom ? ", " + prenom : "");
+}
+
+// Note globale — méthodologie approuvée par CAPRI (voir discussion projet) :
+// moyenne simple, à pondération égale, des seuls critères sur lesquels un
+// réviseur a déjà saisi une note (0-5). Un critère sans note n'est JAMAIS
+// compté comme 0 — il est simplement exclu du calcul et compté à part dans
+// le taux de couverture. Le niveau de confiance reflète uniquement combien
+// de critères ont été notés, pas la qualité du candidat. Cette note mesure
+// la solidité des éléments déjà documentés selon la méthodologie
+// LASER-ROBOT — ce n'est ni une prédiction de capacité à gouverner, ni un
+// conseil de vote, et elle ne sert JAMAIS à classer les candidats entre eux.
+function computeGlobalNote(assessments, totalCriteria) {
+  var scored = (assessments || []).filter(function (a) { return a.score !== null && a.score !== undefined; });
+  var coverage = totalCriteria ? scored.length / totalCriteria : 0;
+  var avg = scored.length ? scored.reduce(function (s, a) { return s + a.score; }, 0) / scored.length : null;
+  var confidence = coverage >= 0.7 ? "Élevé" : coverage >= 0.3 ? "Modéré" : coverage > 0 ? "Faible" : "Insuffisant";
+  return { avg: avg, scoredCount: scored.length, total: totalCriteria, coveragePct: Math.round(coverage * 100), confidence: confidence };
+}
+
+function renderNoteGlobale(container, assessments, totalCriteria, title) {
+  if (!container) return;
+  var n = computeGlobalNote(assessments, totalCriteria);
+  var confClass = { "Élevé": "eleve", "Modéré": "modere", "Faible": "faible", "Insuffisant": "insuffisant" }[n.confidence];
+  container.innerHTML =
+    '<h2>' + escapeHtml(title || "Note globale (documentation)") + '</h2>' +
+    '<div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">' +
+    '<div class="note-big">' + (n.avg === null ? "—" : n.avg.toFixed(1)) + ' <small>/ 5</small></div>' +
+    '<div style="flex:1;min-width:220px">' +
+    '<p class="small">' + n.scoredCount + ' / ' + n.total + ' critères notés (' + n.coveragePct + ' %)' +
+    '<span class="note-confidence ' + confClass + '">Confiance : ' + n.confidence + '</span></p>' +
+    '<div class="progress-row" style="padding:4px 0"><span class="pr-bar"><i style="width:' + n.coveragePct + '%"></i></span></div>' +
+    '</div></div>' +
+    '<p class="small muted" style="margin-top:10px">Moyenne simple, à pondération égale, des seuls critères déjà notés par un réviseur humain — un critère sans note n\'est jamais compté comme 0, il est exclu du calcul et compte dans le taux de couverture ci-dessus. Cette note mesure la qualité et la solidité des éléments documentés selon la méthodologie LASER-ROBOT : ce n\'est ni une prédiction sur la capacité à bien gouverner, ni un conseil de vote, et elle ne sert jamais à classer les candidats entre eux.</p>';
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+</script>
+</body>
+</html>

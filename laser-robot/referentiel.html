@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Référentiel — 22 domaines, 78 critères — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <p class="eyebrow">LASER-ROBOT · MÉTHODOLOGIE</p>
+      <h1>Référentiel national — 22 domaines, 78 critères</h1>
+      <p class="muted">La charte appliquée identiquement à chaque candidat, sans exception. Chaque critère ci-dessous décrit ce qui est attendu, les indicateurs utilisés pour en juger la documentation, et le type de preuve recherché — avant même de consulter un seul candidat. Ce référentiel ne contient aucune donnée sur une personne : c'est la règle du jeu, pas le jeu.</p>
+    </div>
+
+    <div class="card">
+      <div class="form-field" style="margin-bottom:0">
+        <label for="critSearch">Rechercher un critère ou un domaine</label>
+        <input type="text" id="critSearch" placeholder="Ex. : corruption, groupes armés, constitution…">
+      </div>
+    </div>
+
+    <div id="domainsList"><div class="card empty-state">Chargement du référentiel…</div></div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var allDomains = [], allCriteria = [];
+
+LaserAuth.requireSession().then(async function (session) {
+  LaserShell.renderSidebar(session.profile, "referentiel");
+  var { data: domains } = await laserSupabase.from("domains").select("*").order("id");
+  var { data: criteria } = await laserSupabase.from("criteria").select("*").order("id");
+  allDomains = domains || [];
+  allCriteria = criteria || [];
+  render(allDomains, allCriteria);
+  document.getElementById("critSearch").addEventListener("input", function () {
+    var q = this.value.trim().toLowerCase();
+    if (!q) { render(allDomains, allCriteria); return; }
+    var matchedCriteria = allCriteria.filter(function (c) {
+      return (c.title + " " + c.requirement + " " + (c.indicators || "")).toLowerCase().indexOf(q) !== -1;
+    });
+    var domainIds = new Set(matchedCriteria.map(function (c) { return c.domain_id; }));
+    var matchedDomains = allDomains.filter(function (d) {
+      return domainIds.has(d.id) || d.name.toLowerCase().indexOf(q) !== -1;
+    });
+    render(matchedDomains, matchedDomains.length === allDomains.length ? allCriteria : matchedCriteria.length ? matchedCriteria : allCriteria.filter(function(c){return domainIds.has(c.domain_id);}));
+  });
+});
+
+function render(domains, criteria) {
+  var container = document.getElementById("domainsList");
+  if (!domains.length) { container.innerHTML = '<div class="card empty-state">Aucun résultat.</div>'; return; }
+  container.innerHTML = domains.map(function (d) {
+    var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
+    if (!rows.length) return "";
+    return '<section class="card">' +
+      '<details open><summary><b>' + escapeHtml(d.id + " · " + d.name) + '</b><span>' + rows.length + ' critère' + (rows.length > 1 ? 's' : '') + '</span></summary>' +
+      rows.map(function (r) {
+        return '<article class="criterion">' +
+          '<div class="crithead"><div><b>' + escapeHtml(r.id + " · " + r.title) + '</b><p>' + escapeHtml(r.requirement) + '</p></div></div>' +
+          (r.indicators ? '<p class="small muted"><b>Indicateurs d\'évaluation :</b> ' + escapeHtml(r.indicators) + '</p>' : '') +
+          (r.evidence_expected ? '<p class="small muted"><b>Preuves attendues :</b> ' + escapeHtml(r.evidence_expected) + '</p>' : '') +
+          (r.safeguard ? '<p class="small muted"><b>Garde-fou :</b> ' + escapeHtml(r.safeguard) + '</p>' : '') +
+          '</article>';
+      }).join("") +
+      '</details></section>';
+  }).join("");
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+</script>
+</body>
+</html>

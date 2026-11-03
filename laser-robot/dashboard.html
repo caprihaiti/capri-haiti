@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registre des candidats — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <p class="eyebrow">LASER-ROBOT · CANDIDATS</p>
+      <h1>Registre des candidats</h1>
+      <p class="muted">Chaque candidat est évalué avec la même charte nationale (22 domaines, 78 critères), avec la même méthode et le même niveau d'exigence. Aucun classement entre candidats ni recommandation de vote n'est calculé.</p>
+    </div>
+
+    <div class="card" id="newCandidateCard" hidden>
+      <h2>Nouveau candidat</h2>
+      <form id="newCandidateForm">
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="cName">Nom complet</label>
+            <input type="text" id="cName" required>
+          </div>
+          <div class="form-field">
+            <label for="cLastName">Nom de famille (pour le tri alphabétique, ex. « Jeudy » pour Wilson Jeudy)</label>
+            <input type="text" id="cLastName">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="cGroup">Groupe politique</label>
+            <input type="text" id="cGroup">
+          </div>
+          <div class="form-field">
+            <label for="cCep">Statut CEP</label>
+            <input type="text" id="cCep" placeholder="Enregistré, À l'étude, Rejeté…">
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="cPhoto">Lien photo (http(s):// uniquement)</label>
+          <input type="url" id="cPhoto" placeholder="https://…">
+        </div>
+        <div class="grid-2">
+          <div class="form-field">
+            <label for="cBirthDate">Date de naissance</label>
+            <input type="date" id="cBirthDate">
+          </div>
+          <div class="form-field">
+            <label for="cBirthplace">Lieu de naissance</label>
+            <input type="text" id="cBirthplace">
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="cNationality">Nationalité</label>
+          <input type="text" id="cNationality">
+        </div>
+        <div class="form-field">
+          <label for="cBio">Biographie / fonctions déjà occupées (si documenté)</label>
+          <textarea id="cBio" rows="2" placeholder="Ex. : fonctions publiques antérieures, mandat(s), date(s)…"></textarea>
+        </div>
+        <button type="submit" class="btn">Créer la fiche (les 78 critères sont initialisés automatiquement)</button>
+      </form>
+    </div>
+
+    <div class="kpi-grid" id="registryKpis"><div class="empty-state">Chargement des indicateurs…</div></div>
+
+    <div class="card">
+      <div class="sectionhead">
+        <h2>Liste des candidats à la présidence</h2>
+      </div>
+      <div class="form-field" style="margin-bottom:16px">
+        <label for="candidateSearch">Rechercher un candidat par nom</label>
+        <input type="text" id="candidateSearch" placeholder="Ex. : Jean Ernst Muscadin">
+      </div>
+      <div class="candidates-layout">
+        <aside class="filter-sidebar no-print">
+          <h3>Filtres de recherche</h3>
+          <div class="filter-group">
+            <div class="small muted" style="margin-bottom:6px">Statut du dossier</div>
+            <label class="opt"><input type="radio" name="statusFilter" value="" checked> Tous (<span id="fCountAll">0</span>)</label>
+            <label class="opt"><input type="radio" name="statusFilter" value="complet"> Dossier complet (<span id="fCountComplet">0</span>)</label>
+            <label class="opt"><input type="radio" name="statusFilter" value="en_analyse"> En analyse (<span id="fCountAnalyse">0</span>)</label>
+            <label class="opt"><input type="radio" name="statusFilter" value="incomplet"> Incomplet (<span id="fCountIncomplet">0</span>)</label>
+          </div>
+          <div class="filter-group">
+            <div class="small muted" style="margin-bottom:6px">Groupe politique</div>
+            <select id="groupFilter"><option value="">Tous</option></select>
+          </div>
+          <button type="button" class="btn secondary" id="resetFiltersBtn" style="width:100%">Réinitialiser les filtres</button>
+        </aside>
+        <div>
+          <div id="candidatesList"><div class="empty-state">Chargement…</div></div>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var profileRef = null;
+
+LaserAuth.requireSession().then(async function (session) {
+  profileRef = session.profile;
+  LaserShell.renderSidebar(session.profile, "dashboard");
+  if (profileRef.role === "admin" || profileRef.role === "reviewer") {
+    document.getElementById("newCandidateCard").hidden = false;
+    document.getElementById("newCandidateForm").addEventListener("submit", createCandidate);
+  }
+  await loadCandidates();
+  document.getElementById("candidateSearch").addEventListener("input", function () { currentPage = 1; applyFilters(); });
+  document.getElementById("groupFilter").addEventListener("change", function () { currentPage = 1; applyFilters(); });
+  document.querySelectorAll('input[name="statusFilter"]').forEach(function (r) {
+    r.addEventListener("change", function () { currentPage = 1; applyFilters(); });
+  });
+  document.getElementById("resetFiltersBtn").addEventListener("click", function () {
+    document.getElementById("candidateSearch").value = "";
+    document.getElementById("groupFilter").value = "";
+    document.querySelector('input[name="statusFilter"][value=""]').checked = true;
+    currentPage = 1;
+    applyFilters();
+  });
+});
+
+var allCandidates = [];
+var PAGE_SIZE = 10;
+var currentPage = 1;
+
+// Statut du dossier, entièrement dérivé des données réelles (jamais inventé) :
+// « incomplet » = aucune recherche documentaire encore faite (pas de
+// biographie) ; « en analyse » = recherche faite mais des critères restent
+// encore à leur état par défaut « À documenter » ; « complet » = tous les 78
+// critères ont déjà été examinés au moins une fois. « Prêt pour rapport »
+// (KPI) = dossier documenté (complet ou en analyse), puisque le rapport
+// électeur s'ouvre dès qu'une biographie existe.
+function candidateStatus(c, examinedCount, totalCriteria) {
+  if (!c.biography) return "incomplet";
+  if (totalCriteria > 0 && examinedCount >= totalCriteria) return "complet";
+  return "en_analyse";
+}
+
+function applyFilters() {
+  var q = document.getElementById("candidateSearch").value.trim().toLowerCase();
+  var group = document.getElementById("groupFilter").value;
+  var status = document.querySelector('input[name="statusFilter"]:checked').value;
+  var list = allCandidates.filter(function (c) {
+    if (q && (c.full_name || "").toLowerCase().indexOf(q) === -1) return false;
+    if (group && (c.political_group || "") !== group) return false;
+    if (status && c.status !== status) return false;
+    return true;
+  });
+  renderCandidates(list);
+}
+
+async function createCandidate(e) {
+  e.preventDefault();
+  var photo = document.getElementById("cPhoto").value.trim();
+  if (photo && !/^https?:\/\//.test(photo)) {
+    LaserShell.toast("Le lien photo doit commencer par http:// ou https://.", true);
+    return;
+  }
+  var payload = {
+    full_name: document.getElementById("cName").value.trim(),
+    last_name: document.getElementById("cLastName").value.trim() || null,
+    political_group: document.getElementById("cGroup").value.trim() || null,
+    cep_status: document.getElementById("cCep").value.trim() || "Enregistré",
+    photo_url: photo || null,
+    birth_date: document.getElementById("cBirthDate").value || null,
+    birthplace: document.getElementById("cBirthplace").value.trim() || null,
+    nationality: document.getElementById("cNationality").value.trim() || null,
+    biography: document.getElementById("cBio").value.trim() || null,
+    created_by: profileRef.id
+  };
+  var { data, error } = await laserSupabase.from("candidates").insert(payload).select("id").single();
+  if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
+  window.location.href = "candidate.html?id=" + data.id + "&autorun=1";
+}
+
+async function loadCandidates() {
+  var [{ data, error }, { data: criteria }, { data: assessments }] = await Promise.all([
+    laserSupabase
+      .from("candidates")
+      .select("id, full_name, last_name, political_group, cep_status, photo_url, biography, created_at")
+      .order("last_name", { ascending: true })
+      .order("full_name", { ascending: true }),
+    laserSupabase.from("criteria").select("id"),
+    laserSupabase.from("assessments").select("candidate_id, status"),
+  ]);
+  if (error) { document.getElementById("candidatesList").innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
+
+  var totalCriteria = (criteria || []).length;
+  var examinedByCandidate = {};
+  (assessments || []).forEach(function (a) {
+    if (a.status !== "À documenter") examinedByCandidate[a.candidate_id] = (examinedByCandidate[a.candidate_id] || 0) + 1;
+  });
+
+  allCandidates = (data || []).map(function (c) {
+    c.status = candidateStatus(c, examinedByCandidate[c.id] || 0, totalCriteria);
+    return c;
+  });
+
+  renderKpis();
+  populateGroupFilter();
+  applyFilters();
+}
+
+function renderKpis() {
+  var counts = { complet: 0, en_analyse: 0, incomplet: 0 };
+  allCandidates.forEach(function (c) { counts[c.status]++; });
+  document.getElementById("fCountAll").textContent = allCandidates.length;
+  document.getElementById("fCountComplet").textContent = counts.complet;
+  document.getElementById("fCountAnalyse").textContent = counts.en_analyse;
+  document.getElementById("fCountIncomplet").textContent = counts.incomplet;
+  document.getElementById("registryKpis").innerHTML =
+    kpiCard("folder", allCandidates.length, "Candidats enregistrés") +
+    kpiCard("check", counts.complet, "Dossiers complets (78/78 critères examinés)") +
+    kpiCard("search", counts.en_analyse, "Dossiers en analyse") +
+    kpiCard("warning", counts.incomplet, "Dossiers incomplets (aucune recherche)", true) +
+    kpiCard("report", counts.complet + counts.en_analyse, "Prêts pour un rapport électeur");
+}
+function kpiCard(icon, value, label, warn) {
+  return '<div class="kpi-card' + (warn ? ' warn' : '') + '"><span class="kpi-icon">' + LaserIcons.svg(icon, 24) + '</span>' +
+    '<div class="kpi-value">' + value + '</div><div class="kpi-label">' + escapeHtml(label) + '</div></div>';
+}
+
+function populateGroupFilter() {
+  var groups = Array.from(new Set(allCandidates.map(function (c) { return c.political_group; }).filter(Boolean))).sort();
+  var sel = document.getElementById("groupFilter");
+  var current = sel.value;
+  sel.innerHTML = '<option value="">Tous</option>' + groups.map(function (g) { return '<option value="' + escapeAttr(g) + '">' + escapeHtml(g) + '</option>'; }).join("");
+  sel.value = current;
+}
+
+var STATUS_LABELS = { complet: "Dossier complet", en_analyse: "En analyse", incomplet: "Dossier incomplet" };
+
+function renderCandidates(data) {
+  var container = document.getElementById("candidatesList");
+  var hasFilter = document.getElementById("candidateSearch").value.trim() !== "" ||
+    document.getElementById("groupFilter").value !== "" ||
+    document.querySelector('input[name="statusFilter"]:checked').value !== "";
+  if (!data.length) {
+    container.innerHTML = '<div class="empty-state">' + (hasFilter ? "Aucun candidat ne correspond à ces filtres." : "Aucun candidat enregistré pour l'instant.") + '</div>';
+    document.getElementById("pagination").innerHTML = "";
+    return;
+  }
+
+  var totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+  currentPage = Math.min(currentPage, totalPages);
+  var pageItems = data.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  container.innerHTML = '<div class="candidate-grid">' + pageItems.map(function (c) {
+    var photo = c.photo_url && /^https?:\/\//.test(c.photo_url)
+      ? '<img class="cc-photo" src="' + escapeAttr(c.photo_url) + '" alt="">'
+      : '<div class="cc-photo-placeholder">' + LaserIcons.svg("user", 28) + '</div>';
+    return '<div class="candidate-card">' + photo +
+      '<b>' + escapeHtml(formatDisplayName(c.full_name, c.last_name)) + '</b>' +
+      '<div class="cc-sub">' + escapeHtml(c.political_group || "Groupe non renseigné") + '</div>' +
+      '<span class="status-badge ' + c.status + '">' + escapeHtml(STATUS_LABELS[c.status]) + '</span>' +
+      '<div class="cc-actions">' +
+      '<a class="btn secondary" href="candidate.html?id=' + c.id + '">Voir le profil</a>' +
+      '<a class="btn" href="scan.html?id=' + c.id + '">Scanner</a>' +
+      '</div></div>';
+  }).join("") + '</div>';
+
+  renderPagination(totalPages, data.length);
+}
+
+function renderPagination(totalPages, total) {
+  var box = document.getElementById("pagination");
+  if (totalPages <= 1) { box.innerHTML = ""; return; }
+  var html = '<button type="button" ' + (currentPage === 1 ? "disabled" : "") + ' data-page="1">«</button>' +
+    '<button type="button" ' + (currentPage === 1 ? "disabled" : "") + ' data-page="' + (currentPage - 1) + '">‹</button>';
+  for (var p = 1; p <= totalPages; p++) {
+    html += '<button type="button" class="' + (p === currentPage ? "active" : "") + '" data-page="' + p + '">' + p + '</button>';
+  }
+  html += '<button type="button" ' + (currentPage === totalPages ? "disabled" : "") + ' data-page="' + (currentPage + 1) + '">›</button>' +
+    '<button type="button" ' + (currentPage === totalPages ? "disabled" : "") + ' data-page="' + totalPages + '">»</button>' +
+    '<span class="pagination-info">' + total + ' candidat(s)</span>';
+  box.innerHTML = html;
+  box.querySelectorAll("button[data-page]").forEach(function (btn) {
+    btn.addEventListener("click", function () { currentPage = parseInt(btn.getAttribute("data-page"), 10); applyFilters(); });
+  });
+}
+
+// Convention administrative haïtienne : NOM DE FAMILLE d'abord, en
+// majuscules, suivi d'une virgule et du ou des prénoms — ex. « TARDIEU,
+// Jerry ». Si last_name n'est pas encore renseigné, affiche full_name tel
+// quel plutôt que de deviner.
+function formatDisplayName(fullName, lastName) {
+  if (!lastName || !fullName) return fullName || "";
+  var prenom = fullName;
+  if (fullName.toLowerCase().indexOf(lastName.toLowerCase()) !== -1) {
+    var idx = fullName.toLowerCase().lastIndexOf(lastName.toLowerCase());
+    prenom = (fullName.slice(0, idx) + fullName.slice(idx + lastName.length)).trim();
+  }
+  return lastName.toUpperCase() + (prenom ? ", " + prenom : "");
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+</script>
+</body>
+</html>

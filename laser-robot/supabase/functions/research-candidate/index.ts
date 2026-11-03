@@ -2,17 +2,21 @@
 //
 // Tourne côté serveur (Supabase Edge Function) précisément parce que la clé
 // API Anthropic ne doit jamais atteindre le navigateur. Appelée par
-// candidate.html avec le jeton de session de la personne connectée ; la
-// vérification du rôle (admin/reviewer) se fait ICI, pas côté client.
+// candidate.html avec le jeton de session de la personne connectée —
+// n'importe quel compte actif (lecteur compris, pas seulement admin/
+// reviewer) peut déclencher une recherche : c'est l'outil public de
+// LASER-ROBOT, un citoyen qui consulte un candidat peut lancer la recherche
+// lui-même et obtenir directement une fiche documentée.
 //
-// Principe non négociable (voir REVUE_CLAUDE.md) : cette fonction ne
-// renvoie que des PROPOSITIONS sourcées, jamais rien d'écrit directement en
-// base comme "vérifié". Le client affiche chaque élément avec sa source et
-// un bouton d'ajout explicite ; tout reste au statut "Non vérifié" jusqu'à
-// ce qu'un réviseur humain lise la source et le confirme — exactement comme
-// une preuve ajoutée à la main. Rien n'est jamais inventé : le modèle est
-// instruit de ne rapporter que ce qu'une recherche web réelle a trouvé, et
-// de signaler explicitement ce qu'il n'a pas pu vérifier.
+// Principe non négociable (voir REVUE_CLAUDE.md) : chaque élément trouvé est
+// enregistré au statut "Non vérifié" — jamais "Vérifié" — exactement comme
+// si quelqu'un l'avait ajouté à la main. Un champ d'identité déjà renseigné
+// (par une recherche précédente ou une correction d'un réviseur) n'est
+// JAMAIS écrasé : seuls les champs encore vides sont complétés. Rien n'est
+// jamais inventé : le modèle est instruit de ne rapporter que ce qu'une
+// recherche web réelle a trouvé, et de signaler explicitement ce qu'il n'a
+// pas pu vérifier. Un réviseur humain reste seul habilité à faire passer un
+// critère ou un élément au statut "Vérifié" ou "Contesté".
 //
 // Déploiement : supabase functions deploy research-candidate
 // Secrets requis (Supabase → Project Settings → Edge Functions → Secrets) :
@@ -126,14 +130,30 @@ Deno.serve(async (req: Request) => {
       .eq("id", userData.user.id)
       .single();
     if (profileErr || !profile || !profile.active) return json({ error: "Profil introuvable ou inactif." }, 403);
-    if (!["admin", "reviewer"].includes(profile.role)) {
-      return json({ error: "Seuls admin et reviewer peuvent lancer une recherche." }, 403);
+    if (profile.role === "pending" || !["admin", "reviewer", "lecteur"].includes(profile.role)) {
+      return json({ error: "Ce compte n'a pas encore accès à l'outil." }, 403);
     }
 
     const payload = await req.json();
     const candidateId = String(payload.candidate_id || "").trim();
     const fullName = String(payload.full_name || "").trim();
     if (!candidateId || !fullName) return json({ error: "candidate_id et full_name sont requis." }, 400);
+
+    const { data: existingCandidate, error: candErr } = await admin
+      .from("candidates")
+      .select("id, full_name, birth_date, birthplace, nationality, biography, photo_url")
+      .eq("id", candidateId)
+      .single();
+    if (candErr || !existingCandidate) return json({ error: "Candidat introuvable." }, 404);
+
+    // La recherche n'est lancée qu'une seule fois par candidat — une fois la
+    // biographie renseignée, tout le monde (admin, réviseur ou simple
+    // lecteur) voit exactement la même fiche déjà documentée, sans relancer
+    // l'API à chaque consultation. Seul un réviseur qui modifie la fiche à
+    // la main (bouton « Modifier ») peut changer ce qui est affiché.
+    if (existingCandidate.biography) {
+      return json({ already_researched: true, candidate: existingCandidate });
+    }
 
     const userPrompt = `Recherche le candidat présidentiel haïtien suivant : "${fullName}".
 Cherche en priorité : sanctions administratives (Canada, États-Unis/OFAC, Union européenne), mentions dans les rapports du comité de sanctions de l'ONU sur Haïti, rapports de l'ULCC ou de la CSCCA (ex. dossier PetroCaribe), décisions de justice, faits biographiques de base (date de naissance, lieu de naissance, fonctions publiques déjà occupées), et une photographie publique fiable de cette personne précise. Signale toute contradiction entre sources.`;
@@ -175,13 +195,66 @@ Cherche en priorité : sanctions administratives (Canada, États-Unis/OFAC, Unio
       }, 502);
     }
 
+    const findings = reportBlock.input as {
+      identity?: Record<string, unknown>;
+      evidence?: Array<Record<string, unknown>>;
+      not_found?: string[];
+    };
+
+    // Enregistrement automatique : seuls les champs d'identité encore vides
+    // sont complétés (on n'écrase jamais une donnée déjà présente, qu'elle
+    // vienne d'une recherche précédente ou d'une correction manuelle). La
+    // photo n'est appliquée que si l'URL est une image http(s) valide.
+    const identity = findings.identity || {};
+    const identityUpdate: Record<string, string> = {};
+    (["birth_date", "birthplace", "nationality", "biography"] as const).forEach((field) => {
+      const value = identity[field];
+      if (!existingCandidate[field] && typeof value === "string" && value.trim()) {
+        identityUpdate[field] = value.trim();
+      }
+    });
+    const photoUrl = identity.photo_url;
+    if (!existingCandidate.photo_url && typeof photoUrl === "string" && /^https?:\/\//.test(photoUrl)) {
+      identityUpdate.photo_url = photoUrl;
+    }
+    if (Object.keys(identityUpdate).length > 0) {
+      await admin.from("candidates").update(identityUpdate).eq("id", candidateId);
+    }
+
+    // Éléments documentaires : on évite les doublons si la fonction est
+    // relancée (par sécurité — en pratique une recherche ne se relance pas
+    // une fois la biographie déjà renseignée, voir plus haut).
+    const { data: existingEvidence } = await admin
+      .from("evidence").select("title").eq("candidate_id", candidateId);
+    const existingTitles = new Set((existingEvidence || []).map((e) => (e.title || "").toLowerCase().trim()));
+    const evidenceToInsert = (findings.evidence || [])
+      .filter((ev) => ev && typeof ev.title === "string" && !existingTitles.has(ev.title.toLowerCase().trim()))
+      .map((ev) => ({
+        candidate_id: candidateId,
+        title: ev.title,
+        evidence_type: ev.evidence_type,
+        source_name: typeof ev.source_name === "string" ? ev.source_name : null,
+        source_url: (typeof ev.source_url === "string" && /^https?:\/\//.test(ev.source_url)) ? ev.source_url : null,
+        publication_date: typeof ev.publication_date === "string" && ev.publication_date ? ev.publication_date : null,
+        summary: typeof ev.summary === "string" ? ev.summary : null,
+        verification_status: "Non vérifié",
+        created_by: profile.id,
+      }));
+    if (evidenceToInsert.length > 0) {
+      await admin.from("evidence").insert(evidenceToInsert);
+    }
+
     await admin.from("audit_log").insert({
       actor_id: profile.id, username: null,
       action: "recherche_automatique", entity_type: "candidate", entity_id: candidateId,
-      details: "Recherche de sources via research-candidate",
+      details: "Recherche de sources via research-candidate — " + Object.keys(identityUpdate).length +
+        " champ(s) d'identité complété(s), " + evidenceToInsert.length + " élément(s) ajouté(s) (Non vérifié).",
     });
 
-    return json({ findings: reportBlock.input });
+    return json({
+      findings,
+      saved: { identity_fields: Object.keys(identityUpdate), evidence_added: evidenceToInsert.length },
+    });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Erreur inattendue." }, 500);
   }

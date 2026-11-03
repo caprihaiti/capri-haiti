@@ -45,6 +45,7 @@ code{background:#0a1524;padding:1px 5px;border-radius:4px}
 .domain-tile-counts span{padding:2px 8px;border-radius:20px;background:#182537}
 .domain-tile-counts .dok{color:#5fc489}
 .domain-tile-counts .dko{color:#ef7b86}
+.domain-tile-counts .ddoc{color:var(--gold)}
 .domain-tile-counts .dpending{color:var(--muted)}
 .pw-wrap{position:relative}
 .pw-wrap input{padding-right:40px}
@@ -92,12 +93,12 @@ code{background:#0a1524;padding:1px 5px;border-radius:4px}
 .scan-summary b{font-size:14px;color:#eaf3fa}
 .scan-summary-counts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px;font-size:10.5px}
 .scan-summary-counts span{padding:2px 7px;border-radius:20px;background:#0008}
-.scan-summary-counts .dok{color:#5fc489}.scan-summary-counts .dko{color:#ef7b86}.scan-summary-counts .dpending{color:var(--muted)}
+.scan-summary-counts .dok{color:#5fc489}.scan-summary-counts .dko{color:#ef7b86}.scan-summary-counts .ddoc{color:var(--gold)}.scan-summary-counts .dpending{color:var(--muted)}
 .scan-status-line{color:var(--accent);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin:6px 0 20px}
 .scan-legend{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-bottom:18px;font-size:12px;color:var(--muted)}
 .scan-legend span{display:inline-flex;align-items:center;gap:6px}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
-.dot.ok{background:#5fc489}.dot.ko{background:#ef7b86}.dot.pending{background:#53647b}
+.dot.ok{background:#5fc489}.dot.ko{background:#ef7b86}.dot.documented{background:var(--gold)}.dot.pending{background:#53647b}
 .scan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:6px;text-align:left}
 .scan-cell{border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:11px;background:#111e30;opacity:0;transform:translateY(6px);animation:cellIn .45s ease forwards}
 .scan-cell b{display:block;font-size:11px;margin-bottom:4px;color:#eaf3fa}
@@ -106,6 +107,8 @@ code{background:#0a1524;padding:1px 5px;border-radius:4px}
 .scan-cell.ok .sc-status{color:#5fc489}
 .scan-cell.ko{border-color:#7d2f35;background:#2a1012}
 .scan-cell.ko .sc-status{color:#ef7b86}
+.scan-cell.documented{border-color:#8a6d2e;background:#2a2210}
+.scan-cell.documented .sc-status{color:var(--gold)}
 .scan-cell.pending .sc-status{color:var(--muted)}
 @keyframes cellIn{to{opacity:1;transform:none}}
 .scan-name-reveal{opacity:0;transform:translateY(10px);animation:nameRise .6s ease forwards}

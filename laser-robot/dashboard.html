@@ -33,7 +33,7 @@
         <div class="grid-2">
           <div class="form-field">
             <label for="cCep">Statut CEP</label>
-            <input type="text" id="cCep" placeholder="Non vérifié">
+            <input type="text" id="cCep" placeholder="Enregistré, À l'étude, Rejeté…">
           </div>
           <div class="form-field">
             <label for="cPhoto">Lien photo (http(s):// uniquement)</label>
@@ -114,7 +114,7 @@ async function createCandidate(e) {
   var payload = {
     full_name: document.getElementById("cName").value.trim(),
     political_group: document.getElementById("cGroup").value.trim() || null,
-    cep_status: document.getElementById("cCep").value.trim() || "Non vérifié",
+    cep_status: document.getElementById("cCep").value.trim() || "Enregistré",
     photo_url: photo || null,
     birth_date: document.getElementById("cBirthDate").value || null,
     birthplace: document.getElementById("cBirthplace").value.trim() || null,

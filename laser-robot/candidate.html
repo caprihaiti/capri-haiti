@@ -46,6 +46,10 @@
           <label for="iFullName">Nom complet (corriger l'orthographe si besoin)</label>
           <input type="text" id="iFullName" required>
         </div>
+        <div class="form-field">
+          <label for="iPhotoUrl">Lien photo (http(s):// uniquement)</label>
+          <input type="url" id="iPhotoUrl" placeholder="https://…">
+        </div>
         <div class="grid-2">
           <div class="form-field">
             <label for="iBirthDate">Date de naissance</label>
@@ -180,6 +184,12 @@ LaserAuth.requireSession().then(async function (session) {
     document.getElementById("toggleIdentityEdit").addEventListener("click", openIdentityEdit);
     document.getElementById("cancelIdentityEdit").addEventListener("click", closeIdentityEdit);
     document.getElementById("identityForm").addEventListener("submit", saveIdentity);
+  }
+  // La recherche est ouverte à tout compte actif (lecteur compris) : c'est
+  // l'outil public de LASER-ROBOT. Le bouton ne s'affiche que si la fiche
+  // n'a pas encore été documentée — une fois faite, tout le monde voit la
+  // même fiche déjà enregistrée, comme un article déjà publié.
+  if (!currentCandidate.biography) {
     document.getElementById("researchBtn").style.display = "inline-flex";
     document.getElementById("researchBtn").addEventListener("click", runResearch);
     if (new URLSearchParams(window.location.search).get("autorun") === "1") {
@@ -187,8 +197,6 @@ LaserAuth.requireSession().then(async function (session) {
     }
   }
 });
-
-var lastFindings = null;
 
 async function runResearch() {
   var btn = document.getElementById("researchBtn");
@@ -215,40 +223,39 @@ async function runResearch() {
     return;
   }
 
-  statusEl.style.display = "none";
-  lastFindings = data.findings;
-  renderResearchResults(data.findings);
-}
-
-function renderResearchResults(f) {
-  var html = '<div class="card" style="background:#0d1828;margin-top:10px">';
-  html += '<h3 style="margin:0 0 10px">Résultats de recherche — à vérifier avant tout usage</h3>';
-  html += '<p class="notice">Rien ici n\'est automatiquement enregistré. Chaque élément reste au statut « Non vérifié » tant qu\'un réviseur n\'a pas lu la source et confirmé.</p>';
-
-  if (f.identity && (f.identity.birth_date || f.identity.birthplace || f.identity.nationality || f.identity.biography || f.identity.photo_url || f.identity.contested_notes)) {
-    html += '<div style="margin:14px 0">';
-    if (f.identity.photo_url && /^https?:\/\//.test(f.identity.photo_url)) {
-      html += '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px">' +
-        '<img src="' + escapeAttr(f.identity.photo_url) + '" alt="" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">' +
-        '<div><p class="small muted" style="margin:0 0 6px">Photo suggérée' + (f.identity.photo_source ? ' — ' + escapeHtml(f.identity.photo_source) : '') + '</p>' +
-        '<button type="button" class="btn smallbtn" id="applyPhotoSuggestion">Utiliser cette photo</button></div></div>';
-    }
-    html += '<b>Identité suggérée :</b><ul class="small">';
-    if (f.identity.birth_date) html += '<li>Date de naissance : ' + escapeHtml(f.identity.birth_date) + '</li>';
-    if (f.identity.birthplace) html += '<li>Lieu de naissance : ' + escapeHtml(f.identity.birthplace) + '</li>';
-    if (f.identity.nationality) html += '<li>Nationalité : ' + escapeHtml(f.identity.nationality) + '</li>';
-    if (f.identity.biography) html += '<li>Biographie : ' + escapeHtml(f.identity.biography) + '</li>';
-    if (f.identity.contested_notes) html += '<li class="muted">⚠️ ' + escapeHtml(f.identity.contested_notes) + '</li>';
-    html += '</ul><button type="button" class="btn secondary smallbtn" id="applyIdentitySuggestion">Pré-remplir le formulaire d\'identité (à confirmer)</button></div>';
+  if (data.already_researched) {
+    statusEl.style.display = "none";
+    btn.style.display = "none";
+    await loadCandidate();
+    return;
   }
 
-  (f.evidence || []).forEach(function (ev, i) {
+  statusEl.style.display = "none";
+  btn.style.display = "none";
+  await loadCandidate();
+  await loadEvidence();
+  await loadGrid();
+  renderResearchResults(data.findings, data.saved);
+}
+
+function renderResearchResults(f, saved) {
+  var html = '<div class="card" style="background:#0d1828;margin-top:10px">';
+  html += '<h3 style="margin:0 0 10px">✓ Recherche terminée</h3>';
+  html += '<p class="notice">' +
+    (saved && saved.identity_fields.length ? "Identité complétée (" + saved.identity_fields.length + " champ(s))." : "Aucune nouvelle information d'identité trouvée.") + ' ' +
+    (saved ? saved.evidence_added + " élément(s) documentaire(s) ajouté(s)." : "") +
+    ' Chaque élément reste au statut « Non vérifié » jusqu\'à ce qu\'un réviseur CAPRI lise la source et le confirme — vous pouvez consulter chaque source vous-même ci-dessous.</p>';
+
+  if (f.identity && f.identity.contested_notes) {
+    html += '<p class="small muted">⚠️ ' + escapeHtml(f.identity.contested_notes) + '</p>';
+  }
+
+  (f.evidence || []).forEach(function (ev) {
     html += '<article class="evidence" style="border-top:1px solid var(--line);padding-top:12px;margin-top:12px">' +
       '<div class="crithead"><div><b>' + escapeHtml(ev.title) + '</b><p class="small muted">' + escapeHtml(ev.evidence_type) + ' · ' + escapeHtml(ev.source_name || '') + (ev.publication_date ? ' · ' + escapeHtml(ev.publication_date) : '') + '</p></div></div>' +
       '<p class="small">' + escapeHtml(ev.summary || '') + '</p>' +
       (ev.caution ? '<p class="small muted">⚠️ ' + escapeHtml(ev.caution) + '</p>' : '') +
       (ev.source_url ? '<a href="' + escapeAttr(ev.source_url) + '" target="_blank" rel="noopener noreferrer">Voir la source ↗</a>' : '') +
-      '<div style="margin-top:8px"><button type="button" class="btn smallbtn applyEvidenceBtn" data-index="' + i + '">＋ Ajouter comme élément documentaire (Non vérifié)</button></div>' +
       '</article>';
   });
 
@@ -259,54 +266,13 @@ function renderResearchResults(f) {
 
   html += '</div>';
   document.getElementById("researchResults").innerHTML = html;
-
-  var applyIdBtn = document.getElementById("applyIdentitySuggestion");
-  if (applyIdBtn) applyIdBtn.addEventListener("click", function () {
-    openIdentityEdit();
-    if (f.identity.birth_date) document.getElementById("iBirthDate").value = f.identity.birth_date;
-    if (f.identity.birthplace) document.getElementById("iBirthplace").value = f.identity.birthplace;
-    if (f.identity.nationality) document.getElementById("iNationality").value = f.identity.nationality;
-    if (f.identity.biography) document.getElementById("iBio").value = f.identity.biography;
-  });
-
-  var applyPhotoBtn = document.getElementById("applyPhotoSuggestion");
-  if (applyPhotoBtn) applyPhotoBtn.addEventListener("click", async function () {
-    var { error } = await laserSupabase.from("candidates").update({ photo_url: f.identity.photo_url }).eq("id", candidateId);
-    if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
-    LaserShell.toast("Photo appliquée.");
-    applyPhotoBtn.disabled = true;
-    applyPhotoBtn.textContent = "Appliquée ✓";
-    await loadCandidate();
-  });
-
-  document.querySelectorAll(".applyEvidenceBtn").forEach(function (btn) {
-    btn.addEventListener("click", async function () {
-      var ev = lastFindings.evidence[parseInt(btn.getAttribute("data-index"), 10)];
-      var payload = {
-        candidate_id: candidateId,
-        title: ev.title,
-        evidence_type: ev.evidence_type,
-        source_name: ev.source_name || null,
-        source_url: (ev.source_url && /^https?:\/\//.test(ev.source_url)) ? ev.source_url : null,
-        publication_date: ev.publication_date || null,
-        summary: ev.summary || null,
-        verification_status: "Non vérifié",
-        created_by: profileRef.id
-      };
-      var { error } = await laserSupabase.from("evidence").insert(payload);
-      if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
-      LaserShell.toast("Élément ajouté (Non vérifié) — à confirmer après lecture de la source.");
-      btn.disabled = true;
-      btn.textContent = "Ajouté ✓";
-      loadEvidence();
-    });
-  });
 }
 
 var currentCandidate = null;
 
 function openIdentityEdit() {
   document.getElementById("iFullName").value = currentCandidate.full_name || "";
+  document.getElementById("iPhotoUrl").value = currentCandidate.photo_url || "";
   document.getElementById("iBirthDate").value = currentCandidate.birth_date || "";
   document.getElementById("iBirthplace").value = currentCandidate.birthplace || "";
   document.getElementById("iNationality").value = currentCandidate.nationality || "";
@@ -324,8 +290,14 @@ async function saveIdentity(e) {
   e.preventDefault();
   var fullName = document.getElementById("iFullName").value.trim();
   if (!fullName) { LaserShell.toast("Le nom complet est obligatoire.", true); return; }
+  var photoUrl = document.getElementById("iPhotoUrl").value.trim();
+  if (photoUrl && !/^https?:\/\//.test(photoUrl)) {
+    LaserShell.toast("Le lien photo doit commencer par http:// ou https://.", true);
+    return;
+  }
   var payload = {
     full_name: fullName,
+    photo_url: photoUrl || null,
     birth_date: document.getElementById("iBirthDate").value || null,
     birthplace: document.getElementById("iBirthplace").value.trim() || null,
     nationality: document.getElementById("iNationality").value.trim() || null,
@@ -361,19 +333,21 @@ async function loadCandidate() {
 function renderDomainOverview(domains, criteria, byId) {
   var html = domains.map(function (d) {
     var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
-    var counts = { ok: 0, ko: 0, pending: 0 };
+    var counts = { ok: 0, ko: 0, pending: 0, documented: 0 };
     rows.forEach(function (r) {
       var status = (byId[r.id] || {}).status || "À documenter";
       if (status === "Vérifié") counts.ok++;
       else if (status === "Contesté") counts.ko++;
+      else if (status === "Documenté" || status === "À examiner") counts.documented++;
       else counts.pending++;
     });
     return '<div class="domain-tile">' +
       '<b>' + escapeHtml(d.id + " · " + d.name) + '</b>' +
       '<div class="domain-tile-counts">' +
       '<span class="dok">' + counts.ok + ' vérifié' + (counts.ok > 1 ? 's' : '') + '</span>' +
+      '<span class="ddoc">' + counts.documented + ' documenté' + (counts.documented > 1 ? 's' : '') + '</span>' +
       '<span class="dko">' + counts.ko + ' contesté' + (counts.ko > 1 ? 's' : '') + '</span>' +
-      '<span class="dpending">' + counts.pending + ' en attente</span>' +
+      '<span class="dpending">' + counts.pending + ' à documenter</span>' +
       '</div></div>';
   }).join("");
   document.getElementById("domainOverview").innerHTML = html;

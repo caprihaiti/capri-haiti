@@ -102,7 +102,7 @@ function safePlay(el) { el.currentTime = 0; return el.play().catch(function () {
 LaserAuth.requireSession().then(async function (session) {
   var { data: c } = await laserSupabase.from("candidates").select("*").eq("id", candidateId).single();
   if (!c) { safePlay(document.getElementById("scanAudioError")); document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; return; }
-  document.getElementById("candName").textContent = c.full_name;
+  document.getElementById("candName").textContent = formatDisplayName(c.full_name, c.last_name);
 
   // Rien à scanner tant qu'aucune recherche n'a été faite — inutile (et
   // trompeur) de faire tourner toute l'animation pour aboutir à 78 cases
@@ -291,6 +291,20 @@ function buildCitizenSummary(domains, criteria, statusByCriterion) {
     html = '<p class="small muted">Pa gen done pou kounye a.</p>';
   }
   return html;
+}
+
+// Convention administrative haïtienne : NOM DE FAMILLE d'abord, en
+// majuscules, suivi d'une virgule et du ou des prénoms — ex. « TARDIEU,
+// Jerry ». Si last_name n'est pas encore renseigné, affiche full_name tel
+// quel plutôt que de deviner.
+function formatDisplayName(fullName, lastName) {
+  if (!lastName || !fullName) return fullName || "";
+  var prenom = fullName;
+  if (fullName.toLowerCase().indexOf(lastName.toLowerCase()) !== -1) {
+    var idx = fullName.toLowerCase().lastIndexOf(lastName.toLowerCase());
+    prenom = (fullName.slice(0, idx) + fullName.slice(idx + lastName.length)).trim();
+  }
+  return lastName.toUpperCase() + (prenom ? ", " + prenom : "");
 }
 
 function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }

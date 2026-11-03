@@ -154,12 +154,26 @@ function renderCandidates(data) {
   container.innerHTML = '<table class="data-table"><thead><tr><th>Nom</th><th>Groupe politique</th><th>Statut CEP</th><th>Ajouté le</th></tr></thead><tbody>' +
     data.map(function (c) {
       return '<tr style="cursor:pointer" onclick="window.location.href=\'candidate.html?id=' + c.id + '\'">' +
-        "<td><b>" + escapeHtml(c.full_name) + "</b></td>" +
+        "<td><b>" + escapeHtml(formatDisplayName(c.full_name, c.last_name)) + "</b></td>" +
         "<td>" + escapeHtml(c.political_group || "—") + "</td>" +
         '<td><span class="status">' + escapeHtml(c.cep_status) + "</span></td>" +
         "<td>" + new Date(c.created_at).toLocaleDateString("fr-FR") + "</td>" +
         "</tr>";
     }).join("") + "</tbody></table>";
+}
+
+// Convention administrative haïtienne : NOM DE FAMILLE d'abord, en
+// majuscules, suivi d'une virgule et du ou des prénoms — ex. « TARDIEU,
+// Jerry ». Si last_name n'est pas encore renseigné, affiche full_name tel
+// quel plutôt que de deviner.
+function formatDisplayName(fullName, lastName) {
+  if (!lastName || !fullName) return fullName || "";
+  var prenom = fullName;
+  if (fullName.toLowerCase().indexOf(lastName.toLowerCase()) !== -1) {
+    var idx = fullName.toLowerCase().lastIndexOf(lastName.toLowerCase());
+    prenom = (fullName.slice(0, idx) + fullName.slice(idx + lastName.length)).trim();
+  }
+  return lastName.toUpperCase() + (prenom ? ", " + prenom : "");
 }
 
 function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }

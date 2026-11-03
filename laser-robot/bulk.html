@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mise à jour groupée — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <a href="#" id="backLink">← Fiche du candidat</a>
+    <div class="app-header" style="margin-top:14px">
+      <p class="eyebrow">MISE À JOUR GROUPÉE</p>
+      <h1 id="candName">…</h1>
+      <p class="muted">Un critère par ligne, format <code>ID|STATUT|NOTE|ANALYSE</code>. La note et l'analyse sont facultatives. Les lignes commençant par <code>#</code> sont ignorées. Statuts valides : <span id="statusList"></span>.</p>
+    </div>
+    <div class="card">
+      <form id="bulkForm">
+        <textarea id="bulkText" rows="24" style="font-family:monospace;font-size:12.5px"></textarea>
+        <button type="submit" class="btn" style="margin-top:14px">Appliquer</button>
+      </form>
+      <div id="resultBox" style="margin-top:16px"></div>
+    </div>
+    <div class="card">
+      <h2>Référence des 78 critères</h2>
+      <div id="refList" class="small muted"></div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script>
+var ASSESSMENT_STATUSES = ["À documenter", "À examiner", "Documenté", "Vérifié", "Allégation grave documentée", "Non applicable"];
+var candidateId = new URLSearchParams(window.location.search).get("id");
+document.getElementById("backLink").href = "candidate.html?id=" + candidateId;
+document.getElementById("statusList").textContent = ASSESSMENT_STATUSES.join(" · ");
+
+LaserAuth.requireSession(["admin", "reviewer"]).then(async function () {
+  var { data: c } = await laserSupabase.from("candidates").select("full_name").eq("id", candidateId).single();
+  if (!c) { document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; return; }
+  document.getElementById("candName").textContent = c.full_name;
+  await loadCurrentState();
+  document.getElementById("bulkForm").addEventListener("submit", applyBulk);
+});
+
+var criteriaMeta = {};
+
+async function loadCurrentState() {
+  var { data: criteria } = await laserSupabase.from("criteria").select("id, title").order("id");
+  var { data: assessments } = await laserSupabase.from("assessments").select("criterion_id, status, score, analysis").eq("candidate_id", candidateId);
+  var byId = {};
+  (assessments || []).forEach(function (a) { byId[a.criterion_id] = a; });
+  (criteria || []).forEach(function (c) { criteriaMeta[c.id] = c.title; });
+
+  var lines = ["# ID|STATUT|NOTE|ANALYSE"];
+  (criteria || []).forEach(function (c) {
+    var a = byId[c.id] || { status: "À documenter", score: null, analysis: "" };
+    lines.push(c.id + "|" + a.status + "|" + (a.score === null || a.score === undefined ? "" : a.score) + "|" + (a.analysis || "").replace(/\n/g, " "));
+  });
+  document.getElementById("bulkText").value = lines.join("\n");
+
+  document.getElementById("refList").innerHTML = (criteria || []).map(function (c) {
+    return escapeHtml(c.id + " · " + c.title);
+  }).join("<br>");
+}
+
+async function applyBulk(e) {
+  e.preventDefault();
+  var raw = document.getElementById("bulkText").value;
+  var validIds = Object.keys(criteriaMeta);
+  var updates = [];
+  var errors = [];
+
+  raw.split(/\r?\n/).forEach(function (rawLine, idx) {
+    var i = idx + 1;
+    var line = rawLine.trim();
+    if (!line || line.indexOf("#") === 0) return;
+    var parts = line.split("|");
+    if (parts.length < 2) { errors.push("Ligne " + i + " : format invalide (attendu ID|STATUT|NOTE|ANALYSE)."); return; }
+    var critId = parts[0].trim();
+    var status = parts[1].trim();
+    var scoreRaw = (parts[2] || "").trim();
+    var analysis = parts.slice(3).join("|").trim();
+    if (validIds.indexOf(critId) === -1) { errors.push("Ligne " + i + " : critère \"" + critId + "\" inconnu pour cette grille."); return; }
+    if (ASSESSMENT_STATUSES.indexOf(status) === -1) { errors.push("Ligne " + i + " : statut \"" + status + "\" invalide."); return; }
+    var score = null;
+    if (scoreRaw !== "") {
+      score = parseInt(scoreRaw, 10);
+      if (isNaN(score) || score < 0 || score > 5 || String(score) !== scoreRaw) {
+        errors.push("Ligne " + i + " : note \"" + scoreRaw + "\" invalide (0 à 5 ou vide).");
+        return;
+      }
+    }
+    updates.push({ criterion_id: critId, status: status, score: score, analysis: analysis || null });
+  });
+
+  var applied = 0;
+  for (var k = 0; k < updates.length; k++) {
+    var u = updates[k];
+    var { error } = await laserSupabase.from("assessments").update({ status: u.status, score: u.score, analysis: u.analysis })
+      .eq("candidate_id", candidateId).eq("criterion_id", u.criterion_id);
+    if (error) { errors.push("Critère " + u.criterion_id + " : " + error.message); continue; }
+    applied++;
+  }
+
+  var box = document.getElementById("resultBox");
+  var msg = applied + " critère(s) mis à jour.";
+  if (errors.length) {
+    msg += " " + errors.length + " ligne(s) ignorée(s) :<br>" + errors.slice(0, 10).map(escapeHtml).join("<br>");
+    box.innerHTML = '<div class="login-msg error" style="background:var(--danger-pale);color:#ffd9dd;padding:12px;border-radius:8px">' + msg + "</div>";
+  } else {
+    box.innerHTML = '<div class="login-msg info" style="background:#113230;color:#8fe0cf;padding:12px;border-radius:8px">' + msg + "</div>";
+  }
+  await loadCurrentState();
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+</script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon compte — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <h1>Mon compte</h1>
+    </div>
+    <div class="card" style="max-width:420px">
+      <h2 id="whoami"></h2>
+      <form id="pwForm">
+        <div class="form-field">
+          <label for="curPass">Mot de passe actuel</label>
+          <div class="pw-wrap">
+            <input type="password" id="curPass" required autocomplete="current-password">
+            <button type="button" class="pw-toggle" data-target="curPass" aria-label="Afficher le mot de passe"></button>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="newPass">Nouveau mot de passe (8 caractères min.)</label>
+          <div class="pw-wrap">
+            <input type="password" id="newPass" required minlength="8" autocomplete="new-password">
+            <button type="button" class="pw-toggle" data-target="newPass" aria-label="Afficher le mot de passe"></button>
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="confPass">Confirmer le nouveau mot de passe</label>
+          <div class="pw-wrap">
+            <input type="password" id="confPass" required minlength="8" autocomplete="new-password">
+            <button type="button" class="pw-toggle" data-target="confPass" aria-label="Afficher le mot de passe"></button>
+          </div>
+        </div>
+        <button type="submit" class="btn">Changer le mot de passe</button>
+      </form>
+      <div id="msgBox" style="margin-top:14px"></div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var sessionProfile = null;
+var sessionEmail = null;
+
+document.querySelectorAll(".pw-toggle").forEach(function (btn) {
+  btn.innerHTML = LaserIcons.svg("eye", 16);
+  btn.addEventListener("click", function () {
+    var input = document.getElementById(btn.getAttribute("data-target"));
+    var showing = input.type === "text";
+    input.type = showing ? "password" : "text";
+    btn.innerHTML = LaserIcons.svg(showing ? "eye" : "eyeOff", 16);
+  });
+});
+
+LaserAuth.requireSession().then(function (session) {
+  sessionProfile = session.profile;
+  sessionEmail = session.user.email;
+  LaserShell.renderSidebar(session.profile, "account");
+  document.getElementById("whoami").textContent = sessionProfile.full_name + " — " + LaserAuth.roleLabel(sessionProfile.role);
+});
+
+document.getElementById("pwForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  var cur = document.getElementById("curPass").value;
+  var next = document.getElementById("newPass").value;
+  var conf = document.getElementById("confPass").value;
+  var box = document.getElementById("msgBox");
+  if (next !== conf) { box.innerHTML = '<div style="background:var(--danger-pale);color:#ffd9dd;padding:11px;border-radius:8px">Les deux mots de passe ne correspondent pas.</div>'; return; }
+
+  var { error: checkError } = await laserSupabase.auth.signInWithPassword({ email: sessionEmail, password: cur });
+  if (checkError) { box.innerHTML = '<div style="background:var(--danger-pale);color:#ffd9dd;padding:11px;border-radius:8px">Mot de passe actuel incorrect.</div>'; return; }
+
+  var { error } = await laserSupabase.auth.updateUser({ password: next });
+  if (error) { box.innerHTML = '<div style="background:var(--danger-pale);color:#ffd9dd;padding:11px;border-radius:8px">Erreur : ' + error.message + '</div>'; return; }
+  box.innerHTML = '<div style="background:#113230;color:#8fe0cf;padding:11px;border-radius:8px">Mot de passe mis à jour.</div>';
+  document.getElementById("pwForm").reset();
+});
+</script>
+</body>
+</html>

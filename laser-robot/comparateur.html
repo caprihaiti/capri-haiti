@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparateur de candidatures — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <p class="eyebrow">LASER-ROBOT · COMPARATEUR</p>
+      <h1>Comparateur de candidatures</h1>
+      <p class="muted">Choisissez deux à cinq candidats pour les comparer sur exactement les mêmes 22 domaines et 78 critères, avec la même méthode et le même niveau d'exigence pour chacun, présentés dans l'ordre de sélection. Aucun classement automatique n'est présenté comme une recommandation électorale.</p>
+    </div>
+
+    <div class="card">
+      <h2>Candidats à comparer</h2>
+      <div class="candidate-picker" id="candidatePicker"><div class="empty-state">Chargement…</div></div>
+      <button type="button" class="btn" id="compareBtn" disabled>Comparer</button>
+      <p class="small muted" id="pickerHint" style="margin-top:10px">Sélectionnez au moins deux candidats (cinq maximum).</p>
+    </div>
+
+    <div class="card">
+      <h2>Filtres de comparaison</h2>
+      <div class="form-field">
+        <label for="domainFilter">Domaines à inclure dans le tableau détaillé</label>
+        <select id="domainFilter" multiple size="6"></select>
+        <p class="small muted" style="margin-top:6px">Aucune sélection = tous les domaines. Ctrl/Cmd-clic pour sélectionner plusieurs domaines.</p>
+      </div>
+    </div>
+
+    <div id="compareResult"></div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var MAX_COMPARE = 5;
+var allCandidates = [], selectedIds = [], allDomains = [];
+
+LaserAuth.requireSession().then(async function (session) {
+  LaserShell.renderSidebar(session.profile, "comparateur");
+  var [{ data: candData }, { data: domainData }] = await Promise.all([
+    laserSupabase.from("candidates").select("id, full_name, last_name").order("last_name").order("full_name"),
+    laserSupabase.from("domains").select("*").order("id"),
+  ]);
+  allCandidates = candData || [];
+  allDomains = domainData || [];
+  renderPicker();
+  document.getElementById("domainFilter").innerHTML = allDomains.map(function (d) {
+    return '<option value="' + d.id + '">' + escapeHtml(d.id + " · " + d.name) + '</option>';
+  }).join("");
+
+  var presetIds = (new URLSearchParams(window.location.search).get("ids") || "").split(",").filter(Boolean);
+  if (presetIds.length >= 2) {
+    selectedIds = presetIds.filter(function (id) { return allCandidates.some(function (c) { return c.id === id; }); }).slice(0, MAX_COMPARE);
+    renderPicker();
+    runCompare();
+  }
+
+  document.getElementById("compareBtn").addEventListener("click", runCompare);
+});
+
+function renderPicker() {
+  var container = document.getElementById("candidatePicker");
+  if (!allCandidates.length) { container.innerHTML = '<div class="empty-state">Aucun candidat enregistré pour l\'instant.</div>'; return; }
+  container.innerHTML = allCandidates.map(function (c) {
+    var checked = selectedIds.indexOf(c.id) !== -1;
+    return '<label class="candidate-chip' + (checked ? ' checked' : '') + '" data-id="' + c.id + '">' +
+      '<input type="checkbox" value="' + c.id + '"' + (checked ? ' checked' : '') + '>' +
+      escapeHtml(formatDisplayName(c.full_name, c.last_name)) + '</label>';
+  }).join("");
+  container.querySelectorAll('input[type="checkbox"]').forEach(function (box) {
+    box.addEventListener("change", function () {
+      var id = this.value;
+      if (this.checked) {
+        if (selectedIds.length >= MAX_COMPARE) { this.checked = false; LaserShell.toast("Cinq candidats au maximum à la fois.", true); return; }
+        selectedIds.push(id);
+      } else {
+        selectedIds = selectedIds.filter(function (x) { return x !== id; });
+      }
+      this.closest(".candidate-chip").classList.toggle("checked", this.checked);
+      document.getElementById("compareBtn").disabled = selectedIds.length < 2;
+    });
+  });
+  document.getElementById("compareBtn").disabled = selectedIds.length < 2;
+}
+
+async function runCompare() {
+  var btn = document.getElementById("compareBtn");
+  btn.disabled = true;
+  btn.textContent = "Comparaison en cours…";
+  var resultBox = document.getElementById("compareResult");
+
+  var candidates = allCandidates.filter(function (c) { return selectedIds.indexOf(c.id) !== -1; });
+  var { data: criteria } = await laserSupabase.from("criteria").select("*").order("id");
+  var { data: assessments } = await laserSupabase.from("assessments").select("candidate_id, criterion_id, status, score").in("candidate_id", selectedIds);
+  var { data: evidence } = await laserSupabase.from("evidence").select("candidate_id, verification_status").in("candidate_id", selectedIds);
+
+  var statusByCandCrit = {}, scoreByCandCrit = {};
+  (assessments || []).forEach(function (a) {
+    statusByCandCrit[a.candidate_id + "|" + a.criterion_id] = a.status;
+    if (a.score !== null && a.score !== undefined) scoreByCandCrit[a.candidate_id + "|" + a.criterion_id] = a.score;
+  });
+
+  var selectedDomainOpts = Array.prototype.filter.call(document.getElementById("domainFilter").options, function (o) { return o.selected; }).map(function (o) { return o.value; });
+  var domains = selectedDomainOpts.length ? allDomains.filter(function (d) { return selectedDomainOpts.indexOf(d.id) !== -1; }) : allDomains;
+
+  resultBox.innerHTML =
+    renderOverview(candidates, allDomains, criteria || [], statusByCandCrit, evidence || [], scoreByCandCrit) +
+    renderProgressChart(candidates, criteria || [], statusByCandCrit) +
+    renderSynthesis(candidates, allDomains, criteria || [], statusByCandCrit) +
+    renderDetailTable(candidates, domains, criteria || [], statusByCandCrit) +
+    '<div class="card no-print" style="text-align:center"><button type="button" class="btn icon-btn" id="exportPdfBtn">' + LaserIcons.svg("print", 16) + ' Exporter le rapport comparatif (PDF)</button>' +
+    '<p class="small muted" style="margin-top:8px">Utilise l\'impression du navigateur — choisissez « Enregistrer en PDF » comme destination.</p></div>';
+  document.getElementById("exportPdfBtn").addEventListener("click", function () { window.print(); });
+
+  btn.disabled = selectedIds.length < 2;
+  btn.textContent = "Comparer";
+}
+
+function renderProgressChart(candidates, criteria, statusByCandCrit) {
+  var total = criteria.length || 1;
+  var bars = candidates.map(function (cand) {
+    var examined = criteria.filter(function (r) { return (statusByCandCrit[cand.id + "|" + r.id] || "À documenter") !== "À documenter"; }).length;
+    var pct = Math.round(examined / total * 100);
+    return '<div class="progress-row"><span class="pr-label">' + escapeHtml(formatDisplayName(cand.full_name, cand.last_name)) + '</span>' +
+      '<span class="pr-bar"><i style="width:' + pct + '%"></i></span><span class="pr-pct">' + examined + '/' + total + '</span></div>';
+  }).join("");
+  return '<div class="card"><h2>Avancement documentaire comparé</h2>' +
+    '<p class="muted small">Part des 78 critères déjà examinés pour chaque candidat — une mesure de l\'avancement de la recherche, pas une note de qualité ni un classement.</p>' +
+    bars + '</div>';
+}
+
+function renderSynthesis(candidates, domains, criteria, statusByCandCrit) {
+  var common = [], different = [];
+  domains.forEach(function (d) {
+    var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
+    var allEmpty = candidates.every(function (cand) { return rows.every(function (r) { return (statusByCandCrit[cand.id + "|" + r.id] || "À documenter") === "À documenter"; }); });
+    var anyContested = candidates.some(function (cand) { return rows.some(function (r) { return statusByCandCrit[cand.id + "|" + r.id] === "Allégation grave documentée"; }); });
+    var contestedCandidates = candidates.filter(function (cand) { return rows.some(function (r) { return statusByCandCrit[cand.id + "|" + r.id] === "Allégation grave documentée"; }); }).length;
+    if (allEmpty) common.push(d.name + " — aucune recherche aboutie pour aucun candidat sélectionné");
+    else if (anyContested && contestedCandidates < candidates.length) different.push(d.name + " — allégation grave documentée pour certains candidats seulement, pas tous");
+  });
+  return '<div class="card"><h2>Synthèse — différences et points communs</h2>' +
+    '<p class="muted small">Observations factuelles tirées des données déjà enregistrées, jamais une recommandation.</p>' +
+    (different.length ? '<p class="small"><b>Principales différences :</b></p><ul class="small">' + different.map(function (s) { return "<li>" + escapeHtml(s) + "</li>"; }).join("") + "</ul>" : "") +
+    (common.length ? '<p class="small muted"><b>Lacunes communes (aucune information pour personne) :</b></p><ul class="small muted">' + common.map(function (s) { return "<li>" + escapeHtml(s) + "</li>"; }).join("") + "</ul>" : "") +
+    (!different.length && !common.length ? '<p class="small muted">Pas assez de données encore enregistrées pour dégager des différences ou points communs clairs.</p>' : '') +
+    '</div>';
+}
+
+function statusClass(status) {
+  if (status === "Vérifié") return "ok";
+  if (status === "Allégation grave documentée") return "ko";
+  if (status === "Documenté" || status === "À examiner") return "documented";
+  return "pending";
+}
+
+function renderOverview(candidates, domains, criteria, statusByCandCrit, evidence, scoreByCandCrit) {
+  var html = '<div class="card"><h2>Vue d\'ensemble par candidat et par domaine</h2>' +
+    '<p class="muted small">Même décompte, même méthode, pour chaque candidat sélectionné, présentés dans l\'ordre de sélection — jamais trié ou classé par note.</p>' +
+    '<p class="small muted"><b>Note globale (documentation) :</b> moyenne à pondération égale des seuls critères déjà notés par un réviseur (un critère sans note n\'est jamais compté comme 0). Mesure la solidité des éléments documentés selon la méthodologie LASER-ROBOT — ni une prédiction de capacité à gouverner, ni un conseil de vote, et ne sert jamais à classer les candidats.</p>';
+  html += candidates.map(function (cand) {
+    var ev = evidence.filter(function (e) { return e.candidate_id === cand.id; });
+    var evVerified = ev.filter(function (e) { return e.verification_status === "Vérifié"; }).length;
+    var evUnverified = ev.filter(function (e) { return e.verification_status === "Non vérifié" || e.verification_status === "À examiner"; }).length;
+    var evLine = '<p class="small muted" style="margin:6px 0 10px">' + ev.length + ' élément(s) documentaire(s) — ' + evVerified + ' vérifié(s), ' + evUnverified + ' non vérifié(s)/à examiner.</p>';
+    var candScores = criteria.map(function (r) { var s = scoreByCandCrit[cand.id + "|" + r.id]; return s !== undefined ? { score: s } : null; }).filter(Boolean);
+    var n = computeGlobalNote(candScores, criteria.length);
+    var noteLine = '<p class="small" style="margin:2px 0 6px"><b>Note globale :</b> ' + (n.avg === null ? "—" : n.avg.toFixed(1) + " / 5") + ' (' + n.scoredCount + '/' + n.total + ' critères notés, ' + n.coveragePct + '% — confiance ' + n.confidence + ')</p>';
+    var tiles = domains.map(function (d) {
+      var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
+      var counts = { ok: 0, ko: 0, pending: 0, documented: 0 };
+      rows.forEach(function (r) {
+        var status = statusByCandCrit[cand.id + "|" + r.id] || "À documenter";
+        counts[statusClass(status)]++;
+      });
+      return '<div class="domain-tile"><b>' + escapeHtml(d.id) + '</b>' +
+        '<div class="domain-tile-counts">' +
+        '<span class="dok">' + counts.ok + '</span>' +
+        '<span class="ddoc">' + counts.documented + '</span>' +
+        '<span class="dko">' + counts.ko + '</span>' +
+        '<span class="dpending">' + counts.pending + '</span>' +
+        '</div></div>';
+    }).join("");
+    return '<h3 style="margin:18px 0 4px">' + escapeHtml(formatDisplayName(cand.full_name, cand.last_name)) + '</h3>' +
+      noteLine + evLine + '<div class="domain-overview">' + tiles + '</div>';
+  }).join("");
+  html += '</div>';
+  return html;
+}
+
+function renderDetailTable(candidates, domains, criteria, statusByCandCrit) {
+  var rows = "";
+  domains.forEach(function (d) {
+    var critRows = criteria.filter(function (c) { return c.domain_id === d.id; });
+    if (!critRows.length) return;
+    rows += '<tr class="compare-domain-row"><td class="crit-col">' + escapeHtml(d.id + " · " + d.name) + '</td>' +
+      candidates.map(function () { return "<td></td>"; }).join("") + '</tr>';
+    critRows.forEach(function (r) {
+      rows += '<tr><td class="crit-col"><b>' + escapeHtml(r.id) + '</b> — ' + escapeHtml(r.title) + '</td>' +
+        candidates.map(function (cand) {
+          var status = statusByCandCrit[cand.id + "|" + r.id] || "À documenter";
+          var cls = statusClass(status);
+          return '<td><span class="compare-cell"><i class="dot ' + cls + '"></i>' + escapeHtml(status) + '</span></td>';
+        }).join("") + '</tr>';
+    });
+  });
+
+  return '<div class="card"><h2>Détail — 78 critères</h2>' +
+    '<p class="muted small">« Allégation grave documentée » signale un fait sourcé mis en question, jamais une culpabilité. « À documenter » signifie qu\'aucune recherche n\'a encore établi quoi que ce soit — ni positif, ni négatif.</p>' +
+    '<div class="compare-table-wrap"><table class="compare-table"><thead><tr><th class="crit-col">Critère</th>' +
+    candidates.map(function (c) { return "<th>" + escapeHtml(formatDisplayName(c.full_name, c.last_name)) + "</th>"; }).join("") +
+    '</tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+}
+
+function computeGlobalNote(scoredList, totalCriteria) {
+  var scored = (scoredList || []).filter(function (a) { return a.score !== null && a.score !== undefined; });
+  var coverage = totalCriteria ? scored.length / totalCriteria : 0;
+  var avg = scored.length ? scored.reduce(function (s, a) { return s + a.score; }, 0) / scored.length : null;
+  var confidence = coverage >= 0.7 ? "Élevé" : coverage >= 0.3 ? "Modéré" : coverage > 0 ? "Faible" : "Insuffisant";
+  return { avg: avg, scoredCount: scored.length, total: totalCriteria, coveragePct: Math.round(coverage * 100), confidence: confidence };
+}
+
+function formatDisplayName(fullName, lastName) {
+  if (!lastName || !fullName) return fullName || "";
+  var prenom = fullName;
+  if (fullName.toLowerCase().indexOf(lastName.toLowerCase()) !== -1) {
+    var idx = fullName.toLowerCase().lastIndexOf(lastName.toLowerCase());
+    prenom = (fullName.slice(0, idx) + fullName.slice(idx + lastName.length)).trim();
+  }
+  return lastName.toUpperCase() + (prenom ? ", " + prenom : "");
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+</script>
+</body>
+</html>

@@ -204,7 +204,14 @@ async function runResearch() {
 
   btn.disabled = false;
   if (error || !data || data.error) {
-    statusEl.textContent = "Erreur : " + (data && data.error ? data.error : (error ? error.message : "inconnue")) + ". La fonction research-candidate est-elle déployée et configurée (ANTHROPIC_API_KEY) ?";
+    var detail = data && data.error ? data.error : (error ? error.message : "inconnue");
+    if (error && error.context && typeof error.context.json === "function") {
+      try {
+        var body = await error.context.clone().json();
+        if (body && body.error) detail = body.error;
+      } catch (_e) { /* le corps n'était pas du JSON lisible, on garde le message par défaut */ }
+    }
+    statusEl.textContent = "Erreur : " + detail;
     return;
   }
 

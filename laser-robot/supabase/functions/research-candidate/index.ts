@@ -78,8 +78,9 @@ const REPORT_TOOL = {
             publication_date: { type: ["string", "null"], description: "Format YYYY-MM-DD si connu, sinon null." },
             summary: { type: "string", description: "Résumé neutre et factuel, sans qualifier le candidat de bon ou mauvais." },
             caution: { type: ["string", "null"], description: "Précision importante, ex. 'accusation administrative, pas une condamnation judiciaire'." },
+            related_criterion_id: { type: ["string", "null"], description: "L'identifiant exact (ex. « C014 ») du critère de la charte nationale (liste fournie dans le message) qui correspond le plus directement à cet élément. Ne remplir que si la correspondance est claire et spécifique — jamais une supposition approximative. Laisser null si aucun critère ne correspond nettement." },
           },
-          required: ["title", "evidence_type", "source_name", "source_url", "publication_date", "summary", "caution"],
+          required: ["title", "evidence_type", "source_name", "source_url", "publication_date", "summary", "caution", "related_criterion_id"],
         },
       },
       not_found: {
@@ -102,6 +103,7 @@ const SYSTEM_PROMPT = `Tu assistes un outil citoyen de vérification de candidat
 - Toujours fournir l'URL réelle de la source quand elle existe.
 - Pour la photo (photo_url) : ne proposer qu'une URL d'image directe et réelle trouvée via la recherche (Wikimedia Commons, site officiel gouvernemental, agence de presse reconnue). Si le nom du candidat est courant ou si tu n'es pas raisonnablement certain que la photo trouvée représente bien cette personne précise (et pas un homonyme), laisser photo_url à null et l'expliquer dans contested_notes plutôt que de proposer une image incertaine.
 - Utilise la recherche web autant que nécessaire avant de répondre.
+- Pour chaque élément documentaire (evidence), le message te fournit la liste complète des 78 critères de la charte nationale (répartis en 22 domaines). Indique dans related_criterion_id l'identifiant exact du critère le plus directement concerné, uniquement si le lien est clair et spécifique — jamais par approximation ou pour « remplir » un domaine. S'il n'y a pas de correspondance nette, laisser related_criterion_id à null : un critère non documenté doit rester non documenté plutôt que de recevoir une correspondance forcée.
 - Termine TOUJOURS en appelant l'outil report_findings avec tes résultats structurés.`;
 
 Deno.serve(async (req: Request) => {
@@ -157,8 +159,26 @@ Deno.serve(async (req: Request) => {
       return json({ already_researched: true, candidate: existingCandidate });
     }
 
+    // La charte nationale (22 domaines, 78 critères) est le référentiel unique
+    // de toute évaluation dans LASER-ROBOT. On la transmet en entier au modèle
+    // pour que chaque élément documentaire soit rattaché, quand c'est justifié,
+    // à un critère précis — sinon l'automatisation ne ferait que trouver des
+    // preuves sans jamais les relier à la grille que le scanner affiche
+    // réellement (voir trg_seed_assessments dans schema.sql).
+    const { data: criteriaList } = await admin
+      .from("criteria")
+      .select("id, domain_id, title")
+      .order("id");
+    const criteriaIds = new Set((criteriaList || []).map((c) => c.id));
+    const criteriaPromptText = (criteriaList || [])
+      .map((c) => c.id + " (" + c.domain_id + ") — " + c.title)
+      .join("\n");
+
     const userPrompt = `Recherche le candidat présidentiel haïtien suivant : "${fullName}".
-Vérifie d'abord son statut d'enregistrement auprès du Conseil Électoral Provisoire sur www.cephaiti.ht (candidature enregistrée, encore en lice, contestée ou rejetée). Cherche ensuite en priorité : sanctions administratives (Canada, États-Unis/OFAC, Union européenne), mentions dans les rapports du comité de sanctions de l'ONU sur Haïti, rapports de l'ULCC ou de la CSCCA (ex. dossier PetroCaribe), décisions de justice, faits biographiques de base (date de naissance, lieu de naissance, fonctions publiques déjà occupées), et une photographie publique fiable de cette personne précise. Signale toute contradiction entre sources.`;
+Vérifie d'abord son statut d'enregistrement auprès du Conseil Électoral Provisoire sur www.cephaiti.ht (candidature enregistrée, encore en lice, contestée ou rejetée). Cherche ensuite en priorité : sanctions administratives (Canada, États-Unis/OFAC, Union européenne), mentions dans les rapports du comité de sanctions de l'ONU sur Haïti, rapports de l'ULCC ou de la CSCCA (ex. dossier PetroCaribe), décisions de justice, faits biographiques de base (date de naissance, lieu de naissance, fonctions publiques déjà occupées), et une photographie publique fiable de cette personne précise. Signale toute contradiction entre sources.
+
+Voici les 78 critères de la charte nationale (22 domaines), pour relier chaque élément documentaire trouvé au critère exact qu'il concerne via related_criterion_id (uniquement en cas de correspondance claire) :
+${criteriaPromptText}`;
 
     const anthropicResp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -231,31 +251,81 @@ Vérifie d'abord son statut d'enregistrement auprès du Conseil Électoral Provi
     const existingTitles = new Set((existingEvidence || []).map((e) => (e.title || "").toLowerCase().trim()));
     const evidenceToInsert = (findings.evidence || [])
       .filter((ev) => ev && typeof ev.title === "string" && !existingTitles.has(ev.title.toLowerCase().trim()))
-      .map((ev) => ({
-        candidate_id: candidateId,
-        title: ev.title,
-        evidence_type: ev.evidence_type,
-        source_name: typeof ev.source_name === "string" ? ev.source_name : null,
-        source_url: (typeof ev.source_url === "string" && /^https?:\/\//.test(ev.source_url)) ? ev.source_url : null,
-        publication_date: typeof ev.publication_date === "string" && ev.publication_date ? ev.publication_date : null,
-        summary: typeof ev.summary === "string" ? ev.summary : null,
-        verification_status: "Non vérifié",
-        created_by: profile.id,
-      }));
+      .map((ev) => {
+        const rawCriterionId = ev.related_criterion_id;
+        const criterionId = (typeof rawCriterionId === "string" && criteriaIds.has(rawCriterionId)) ? rawCriterionId : null;
+        return {
+          candidate_id: candidateId,
+          criterion_id: criterionId,
+          title: ev.title,
+          evidence_type: ev.evidence_type,
+          source_name: typeof ev.source_name === "string" ? ev.source_name : null,
+          source_url: (typeof ev.source_url === "string" && /^https?:\/\//.test(ev.source_url)) ? ev.source_url : null,
+          publication_date: typeof ev.publication_date === "string" && ev.publication_date ? ev.publication_date : null,
+          summary: typeof ev.summary === "string" ? ev.summary : null,
+          verification_status: "Non vérifié",
+          created_by: profile.id,
+        };
+      });
     if (evidenceToInsert.length > 0) {
       await admin.from("evidence").insert(evidenceToInsert);
+    }
+
+    // Rattachement automatique à la grille des 78 critères (assessments) :
+    // c'est cette table, pas "evidence", que le scanner affiche réellement.
+    // Sans cette étape, une recherche peut trouver des preuves solides et le
+    // scan continuerait pourtant à montrer 78/78 "À documenter" — exactement
+    // le défaut signalé ("li dwe otomatik pou tout kandida yo séprement").
+    // Règles conservatrices, non négociables :
+    //   - on ne touche jamais un critère déjà sorti de son état par défaut
+    //     "À documenter" (une correction manuelle de réviseur prime toujours) ;
+    //   - on n'attribue jamais "Vérifié" ni "Contesté" automatiquement — seul
+    //     un réviseur humain peut faire passer un critère à ces statuts ;
+    //   - le statut choisi reflète uniquement le type d'élément documentaire,
+    //     jamais un jugement sur le fond.
+    const CONCERNING_EVIDENCE_TYPES = new Set([
+      "Allégation attribuée", "Sanction administrative", "Enquête en cours",
+      "Recommandation de poursuite", "Décision judiciaire définitive",
+    ]);
+    const byCriterion = new Map<string, { concerning: boolean; lines: string[] }>();
+    evidenceToInsert.forEach((ev) => {
+      if (!ev.criterion_id) return;
+      const entry = byCriterion.get(ev.criterion_id) || { concerning: false, lines: [] };
+      if (CONCERNING_EVIDENCE_TYPES.has(ev.evidence_type as string)) entry.concerning = true;
+      if (ev.summary) entry.lines.push("• " + ev.summary + " (source : " + (ev.source_name || "non précisée") + ", " + ev.evidence_type + ").");
+      byCriterion.set(ev.criterion_id, entry);
+    });
+
+    let assessmentsUpdated = 0;
+    for (const [criterionId, entry] of byCriterion.entries()) {
+      const status = entry.concerning ? "Allégation grave documentée" : "Documenté";
+      const analysis = entry.lines.join("\n") +
+        "\n(Rattachement automatique par la recherche assistée — à vérifier par un réviseur humain.)";
+      const { data: updatedRows } = await admin
+        .from("assessments")
+        .update({ status, analysis })
+        .eq("candidate_id", candidateId)
+        .eq("criterion_id", criterionId)
+        .eq("status", "À documenter")
+        .select("id");
+      assessmentsUpdated += (updatedRows || []).length;
     }
 
     await admin.from("audit_log").insert({
       actor_id: profile.id, username: null,
       action: "recherche_automatique", entity_type: "candidate", entity_id: candidateId,
       details: "Recherche de sources via research-candidate — " + Object.keys(identityUpdate).length +
-        " champ(s) d'identité complété(s), " + evidenceToInsert.length + " élément(s) ajouté(s) (Non vérifié).",
+        " champ(s) d'identité complété(s), " + evidenceToInsert.length + " élément(s) ajouté(s) (Non vérifié), " +
+        assessmentsUpdated + " critère(s) rattaché(s) automatiquement.",
     });
 
     return json({
       findings,
-      saved: { identity_fields: Object.keys(identityUpdate), evidence_added: evidenceToInsert.length },
+      saved: {
+        identity_fields: Object.keys(identityUpdate),
+        evidence_added: evidenceToInsert.length,
+        assessments_updated: assessmentsUpdated,
+      },
     });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Erreur inattendue." }, 500);

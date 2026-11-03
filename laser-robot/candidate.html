@@ -253,7 +253,8 @@ function renderResearchResults(f, saved) {
   html += '<h3 style="margin:0 0 10px">✓ Recherche terminée</h3>';
   html += '<p class="notice">' +
     (saved && saved.identity_fields.length ? "Identité complétée (" + saved.identity_fields.length + " champ(s))." : "Aucune nouvelle information d'identité trouvée.") + ' ' +
-    (saved ? saved.evidence_added + " élément(s) documentaire(s) ajouté(s)." : "") +
+    (saved ? saved.evidence_added + " élément(s) documentaire(s) ajouté(s)." : "") + ' ' +
+    (saved && saved.assessments_updated ? saved.assessments_updated + " critère(s) de la charte mis à jour automatiquement sur la grille de scan." : "") +
     ' Chaque élément reste au statut « Non vérifié » jusqu\'à ce qu\'un réviseur CAPRI lise la source et le confirme — vous pouvez consulter chaque source vous-même ci-dessous.</p>';
 
   if (f.identity && f.identity.contested_notes) {

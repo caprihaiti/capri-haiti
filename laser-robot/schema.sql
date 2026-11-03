@@ -41,14 +41,20 @@ exception when duplicate_object then null; end $$;
 -- -----------------------------------------------------------------------------
 -- 1. LASER ID — profils et rôles
 -- -----------------------------------------------------------------------------
--- Un compte nouvellement créé reçoit automatiquement le rôle 'pending' (aucun
--- accès réel, ni lecture ni écriture) jusqu'à ce qu'un administrateur lui
--- attribue un rôle depuis Supabase → Table Editor → profiles. Volontaire :
--- personne ne peut s'auto-attribuer un accès à des dossiers de candidats.
+-- Un compte nouvellement créé reçoit automatiquement le rôle 'lecteur' —
+-- accès gratuit, immédiat et en lecture seule à toutes les fiches (c'est
+-- l'accès public de LASER-ROBOT : n'importe quel citoyen peut chercher un
+-- candidat par son nom et consulter ce qui a été documenté). Aucune écriture
+-- n'est possible avec ce rôle (voir les politiques RLS plus bas). Les rôles
+-- 'reviewer' et 'admin', qui donnent un droit d'écriture, restent attribués
+-- uniquement à la main par un administrateur depuis Supabase → Table Editor
+-- → profiles — jamais auto-attribuables. 'pending' reste disponible comme
+-- état manuel (un administrateur peut y remettre un compte pour suspendre
+-- son accès sans le désactiver complètement).
 create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null,
-  role laser_role not null default 'pending',
+  role laser_role not null default 'lecteur',
   active boolean not null default true,
   created_at timestamptz not null default now()
 );
@@ -57,7 +63,7 @@ create or replace function handle_new_user()
 returns trigger as $$
 begin
   insert into public.profiles (id, full_name, role)
-  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', new.email), 'pending');
+  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', new.email), 'lecteur');
   return new;
 end;
 $$ language plpgsql security definer;

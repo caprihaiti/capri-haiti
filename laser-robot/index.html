@@ -75,7 +75,7 @@
     <button type="submit" class="btn" style="width:100%;justify-content:center">Créer mon compte</button>
   </form>
 
-  <div class="login-footer">Un compte nouvellement créé reste en attente jusqu'à ce qu'un administrateur lui attribue un rôle. Aucune donnée réelle sur un candidat n'est visible sans rôle attribué.</div>
+  <div class="login-footer">Créer un compte donne un accès gratuit et immédiat en lecture (rechercher et consulter les fiches des candidats). Les droits d'écriture (réviseur, administrateur) sont réservés et attribués uniquement par CAPRI.</div>
 </div>
 
 <script src="assets/config.js"></script>
@@ -128,7 +128,7 @@ signupForm.addEventListener("submit", async function (e) {
     options: { data: { full_name: fullName } }
   });
   if (error) { showMsg("Création impossible : " + error.message, "error"); return; }
-  showMsg("Compte créé. Un administrateur doit maintenant vous attribuer un rôle avant que vous puissiez accéder à l'outil.", "info");
+  showMsg("Compte créé. Vous pouvez vous connecter dès maintenant — accès lecteur gratuit.", "info");
   signupForm.reset();
 });
 

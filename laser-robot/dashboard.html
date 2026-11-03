@@ -131,7 +131,7 @@ async function loadCandidates() {
   var { data, error } = await laserSupabase
     .from("candidates")
     .select("id, full_name, political_group, cep_status, created_at")
-    .order("created_at", { ascending: false });
+    .order("full_name", { ascending: true });
   if (error) { document.getElementById("candidatesList").innerHTML = '<div class="empty-state">Erreur de chargement.</div>'; return; }
   allCandidates = data || [];
   renderCandidates(allCandidates);

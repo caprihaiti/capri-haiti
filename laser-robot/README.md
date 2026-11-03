@@ -68,7 +68,7 @@ autres rôles.
   éléments documentaires avec ajout de preuve et réponse du candidat.
 - **Scanner** (`scan.html`) — visualisation animée des 78 critères. Affiche
   **uniquement** des états déjà posés par un réviseur humain : vert =
-  uniquement `Vérifié`, rouge = uniquement `Contesté`, tout le reste
+  uniquement `Vérifié`, rouge = uniquement `Allégation grave documentée`, tout le reste
   (y compris l'absence d'évaluation) = gris neutre. Ne calcule jamais de
   verdict.
 - **Mise à jour groupée** (`bulk.html`) — saisir ou corriger les 78

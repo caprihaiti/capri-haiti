@@ -146,7 +146,7 @@
 <script src="assets/auth.js"></script>
 <script src="assets/shell.js"></script>
 <script>
-var ASSESSMENT_STATUSES = ["À documenter", "À examiner", "Documenté", "Vérifié", "Contesté", "Non applicable"];
+var ASSESSMENT_STATUSES = ["À documenter", "À examiner", "Documenté", "Vérifié", "Allégation grave documentée", "Non applicable"];
 var EVIDENCE_STATUSES = ["Non vérifié", "À examiner", "Vérifié", "Contesté", "Non vérifiable"];
 var EVIDENCE_TYPES = [
   "Document officiel / source primaire", "Programme ou engagement public", "Déclaration du candidat",
@@ -337,7 +337,7 @@ function renderDomainOverview(domains, criteria, byId) {
     rows.forEach(function (r) {
       var status = (byId[r.id] || {}).status || "À documenter";
       if (status === "Vérifié") counts.ok++;
-      else if (status === "Contesté") counts.ko++;
+      else if (status === "Allégation grave documentée") counts.ko++;
       else if (status === "Documenté" || status === "À examiner") counts.documented++;
       else counts.pending++;
     });
@@ -346,7 +346,7 @@ function renderDomainOverview(domains, criteria, byId) {
       '<div class="domain-tile-counts">' +
       '<span class="dok">' + counts.ok + ' vérifié' + (counts.ok > 1 ? 's' : '') + '</span>' +
       '<span class="ddoc">' + counts.documented + ' documenté' + (counts.documented > 1 ? 's' : '') + '</span>' +
-      '<span class="dko">' + counts.ko + ' contesté' + (counts.ko > 1 ? 's' : '') + '</span>' +
+      '<span class="dko">' + counts.ko + ' allégation' + (counts.ko > 1 ? 's' : '') + ' documentée' + (counts.ko > 1 ? 's' : '') + '</span>' +
       '<span class="dpending">' + counts.pending + ' à documenter</span>' +
       '</div></div>';
   }).join("");

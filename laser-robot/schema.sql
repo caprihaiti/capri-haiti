@@ -23,7 +23,7 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 do $$ begin
-  create type assessment_status as enum ('À documenter', 'À examiner', 'Documenté', 'Vérifié', 'Contesté', 'Non applicable');
+  create type assessment_status as enum ('À documenter', 'À examiner', 'Documenté', 'Vérifié', 'Allégation grave documentée', 'Non applicable');
 exception when duplicate_object then null; end $$;
 
 do $$ begin

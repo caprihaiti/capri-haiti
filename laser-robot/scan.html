@@ -31,10 +31,10 @@
       <div class="scan-readout" id="scanReadout"></div>
       <p class="scan-status-line" id="scanStatusLine">Lecture des 78 critères enregistrés…</p>
       <div class="scan-legend">
-        <span><i class="dot ok"></i> Vérifié (<span id="countOk">0</span>)</span>
-        <span><i class="dot documented"></i> Documenté (<span id="countDoc">0</span>)</span>
-        <span><i class="dot pending"></i> À documenter (<span id="countPending">0</span>)</span>
-        <span><i class="dot ko"></i> Contesté (<span id="countKo">0</span>)</span>
+        <span><i class="dot ok"></i> Vérifié / Verifye (<span id="countOk">0</span>)</span>
+        <span><i class="dot documented"></i> Documenté / Dokimante (<span id="countDoc">0</span>)</span>
+        <span><i class="dot pending"></i> À documenter / Pa dokimante ankò (<span id="countPending">0</span>)</span>
+        <span><i class="dot ko"></i> Allégation grave documentée / Gwo akizasyon dokimante (<span id="countKo">0</span>)</span>
       </div>
       <div class="scan-grid" id="scanGrid"></div>
       <div class="card" id="citizenSummary" style="display:none;margin-top:22px;background:linear-gradient(150deg,#1a2438,#121a2b);border-color:#3a4f6e">
@@ -42,7 +42,8 @@
         <p class="muted small">Rezime sa a jis ba ou kote enfòmasyon an ye — li pa yon konklizyon, li pa di w vote pou oswa kont pyès moun.</p>
         <div id="citizenSummaryBody"></div>
       </div>
-      <p class="notice" style="margin-top:22px"><b>« Contesté »</b> signifie qu'un fait documenté et sourcé (sanction administrative, rapport officiel, allégation attribuée à une personne ou institution précise) met en question ce critère — <b>jamais</b> une culpabilité, ni une condamnation judiciaire. Lisez toujours la source citée et, quand elle existe, la réponse du candidat avant de vous forger une opinion. <b>« À documenter »</b> (gris) signifie simplement qu'aucune recherche n'a encore établi quoi que ce soit sur ce point précis — ce n'est ni positif ni négatif, c'est inconnu à ce jour. Cet écran affiche uniquement des états déjà renseignés à partir de sources documentées. Aucun score global, pourcentage, classement ni recommandation de vote n'est calculé ici.</p>
+      <p class="notice" style="margin-top:22px"><b>« Allégation grave documentée »</b> signifie qu'un fait documenté et sourcé (sanction administrative, rapport officiel, allégation attribuée à une personne ou institution précise) met en question ce critère — <b>jamais</b> une culpabilité, ni une condamnation judiciaire. Lisez toujours la source citée et, quand elle existe, la réponse du candidat avant de vous forger une opinion. <b>« À documenter »</b> (gris) signifie simplement qu'aucune recherche n'a encore établi quoi que ce soit sur ce point précis — ce n'est ni positif ni négatif, c'est inconnu à ce jour. Cet écran affiche uniquement des états déjà renseignés à partir de sources documentées. Aucun score global, pourcentage, classement ni recommandation de vote n'est calculé ici.</p>
+      <p class="notice" style="margin-top:10px"><b>« Gwo akizasyon dokimante »</b> vle di gen yon fè dokimante ak sous (sanksyon administratif, rapò ofisyèl, akizasyon ki atribye a yon moun oswa yon enstitisyon presi) ki mete kritè sa a an kesyon — li <b>pa janm</b> vle di koupabilite, ni yon kondanasyon jistis. Toujou li sous la, e repons kandida a si li genyen, anvan w fè pwòp lide w. <b>« Pa dokimante ankò »</b> (gri) vle di tou senpleman pa gen okenn rechèch ki etabli anyen sou pwen sa a — se pa ni pozitif ni negatif, se enkoni jiska jodi a. Ekran sa a montre sèlman eta ki deja anrejistre apati sous dokimante. Pa gen okenn nòt global, pousantaj, klasman, ni rekòmandasyon vòt ki kalkile isit la.</p>
     </section>
   </main>
 </div>
@@ -124,13 +125,13 @@ LaserAuth.requireSession().then(async function (session) {
 
   // Visualisation pure d'états déjà posés par un réviseur humain — ne calcule
   // jamais de verdict. Vert = uniquement « Vérifié ». Rouge = uniquement
-  // « Contesté ». Tout le reste (y compris l'absence d'évaluation) = gris
-  // neutre, pour qu'un critère non encore examiné n'apparaisse jamais comme
-  // négatif par défaut.
+  // « Allégation grave documentée ». Tout le reste (y compris l'absence
+  // d'évaluation) = gris neutre, pour qu'un critère non encore examiné
+  // n'apparaisse jamais comme négatif par défaut.
   var counts = { ok: 0, pending: 0, ko: 0, documented: 0 };
   var cells = (criteria || []).map(function (crit, i) {
     var status = statusByCriterion[crit.id] || "À documenter";
-    var cls = status === "Vérifié" ? "ok" : (status === "Contesté" ? "ko" : (status === "Documenté" || status === "À examiner" ? "documented" : "pending"));
+    var cls = status === "Vérifié" ? "ok" : (status === "Allégation grave documentée" ? "ko" : (status === "Documenté" || status === "À examiner" ? "documented" : "pending"));
     counts[cls]++;
     return '<div class="scan-cell ' + cls + ' sd' + (i % 78) + '"><b>' + escapeHtml(crit.id + " · " + crit.title) + '</b><span class="sc-status">' + escapeHtml(status) + "</span></div>";
   });
@@ -146,15 +147,15 @@ LaserAuth.requireSession().then(async function (session) {
   var total = (criteria || []).length;
   setTimeout(function () {
     document.getElementById("photoWrap").classList.add("finished");
-    document.getElementById("scanStatusLine").textContent = "Analyse terminée — " + new Date().toLocaleString("fr-FR");
+    document.getElementById("scanStatusLine").textContent = "Analyse terminée / Analiz fini — " + new Date().toLocaleString("fr-FR");
     document.getElementById("scanSummary").innerHTML =
       '<span class="scan-summary-check">✓</span>' +
-      '<b>Scan terminé</b>' +
+      '<b>Scan terminé / Scann fini</b>' +
       '<span class="small muted">' + total + ' critères examinés</span>' +
       '<div class="scan-summary-counts">' +
       '<span class="dok">' + counts.ok + ' vérifié' + (counts.ok > 1 ? 's' : '') + '</span>' +
       '<span class="ddoc">' + counts.documented + ' documenté' + (counts.documented > 1 ? 's' : '') + '</span>' +
-      '<span class="dko">' + counts.ko + ' contesté' + (counts.ko > 1 ? 's' : '') + '</span>' +
+      '<span class="dko">' + counts.ko + ' allégation' + (counts.ko > 1 ? 's' : '') + ' grave' + (counts.ko > 1 ? 's' : '') + ' documentée' + (counts.ko > 1 ? 's' : '') + '</span>' +
       '<span class="dpending">' + counts.pending + ' à documenter</span>' +
       '</div>';
 
@@ -172,13 +173,13 @@ function buildCitizenSummary(domains, criteria, statusByCriterion) {
   // Rezime an Kreyòl, revele sèlman apre scan lan fini — pa yon verdict,
   // jis yon kat ki di kote gen enfo reyèl (kontwovèse oswa dokimante) ak
   // kote pa gen anyen jwenn ankò. Yon domèn antre nan "gen rapò/alegasyon"
-  // depi gen au mwen yon kritè Contesté ladan ; otreman "gen enfo" si gen
-  // au mwen yon kritè Vérifié/Documenté/À examiner ; otreman li rete
-  // "poko gen enfo".
+  // depi gen au mwen yon kritè Allégation grave documentée ladan ; otreman
+  // "gen enfo" si gen au mwen yon kritè Vérifié/Documenté/À examiner ;
+  // otreman li rete "poko gen enfo".
   var contested = [], documented = [], empty = [];
   domains.forEach(function (d) {
     var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
-    var hasContested = rows.some(function (r) { return statusByCriterion[r.id] === "Contesté"; });
+    var hasContested = rows.some(function (r) { return statusByCriterion[r.id] === "Allégation grave documentée"; });
     var hasDocumented = rows.some(function (r) {
       var s = statusByCriterion[r.id];
       return s === "Vérifié" || s === "Documenté" || s === "À examiner";

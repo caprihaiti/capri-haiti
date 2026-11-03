@@ -36,7 +36,7 @@
 <script src="assets/supabase-client.js"></script>
 <script src="assets/auth.js"></script>
 <script>
-var ASSESSMENT_STATUSES = ["À documenter", "À examiner", "Documenté", "Vérifié", "Contesté", "Non applicable"];
+var ASSESSMENT_STATUSES = ["À documenter", "À examiner", "Documenté", "Vérifié", "Allégation grave documentée", "Non applicable"];
 var candidateId = new URLSearchParams(window.location.search).get("id");
 document.getElementById("backLink").href = "candidate.html?id=" + candidateId;
 document.getElementById("statusList").textContent = ASSESSMENT_STATUSES.join(" · ");

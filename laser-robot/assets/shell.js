@@ -5,8 +5,10 @@ window.LaserShell = (function () {
   "use strict";
 
   var NAV = [
-    { key: "dashboard", href: "dashboard.html", label: "Registre des candidats", icon: "🗂️" },
-    { key: "account", href: "account.html", label: "Mon compte", icon: "🪪" }
+    { key: "dashboard", href: "dashboard.html", label: "Tableau de bord", icon: "home" },
+    { key: "comparateur", href: "comparateur.html", label: "Comparateur", icon: "compare" },
+    { key: "referentiel", href: "referentiel.html", label: "Référentiel — 22 domaines", icon: "book" },
+    { key: "account", href: "account.html", label: "Mon compte", icon: "user" }
   ];
 
   function renderSidebar(profile, activeKey) {
@@ -15,7 +17,7 @@ window.LaserShell = (function () {
     var topbar = document.createElement("div");
     topbar.className = "app-topbar";
     topbar.innerHTML =
-      '<button type="button" class="app-menu-btn" id="laserMenuBtn" aria-label="Ouvrir le menu">☰</button>' +
+      '<button type="button" class="app-menu-btn" id="laserMenuBtn" aria-label="Ouvrir le menu">' + icon("menu", 20) + '</button>' +
       '<span class="app-topbar-brand">LASER-ROBOT</span>';
     shell.insertBefore(topbar, shell.firstChild);
 
@@ -29,8 +31,8 @@ window.LaserShell = (function () {
     var brand = document.createElement("div");
     brand.className = "app-brand";
     brand.innerHTML =
-      "<div>LASER-ROBOT<br><small>Évaluation présidentielle — CAPRI</small></div>" +
-      '<button type="button" class="app-sidebar-close" id="laserSidebarClose" aria-label="Fermer le menu">✕</button>';
+      "<div>LASER-ROBOT<br><small>Vérification documentaire indépendante — CAPRI</small></div>" +
+      '<button type="button" class="app-sidebar-close" id="laserSidebarClose" aria-label="Fermer le menu">' + icon("close", 16) + '</button>';
     sidebar.appendChild(brand);
 
     var nav = document.createElement("nav");
@@ -38,7 +40,7 @@ window.LaserShell = (function () {
     NAV.forEach(function (item) {
       var a = document.createElement("a");
       a.href = item.href;
-      a.appendChild(document.createTextNode(item.icon + "  " + item.label));
+      a.innerHTML = icon(item.icon, 17) + '<span>' + escapeHtml(item.label) + '</span>';
       if (item.key === activeKey) a.className = "active";
       nav.appendChild(a);
     });
@@ -68,6 +70,10 @@ window.LaserShell = (function () {
     var d = document.createElement("div");
     d.textContent = s || "";
     return d.innerHTML;
+  }
+
+  function icon(name, size) {
+    return window.LaserIcons ? window.LaserIcons.svg(name, size) : "";
   }
 
   function toast(message, isError) {

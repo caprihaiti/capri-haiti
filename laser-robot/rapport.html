@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rapport électeur — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <a href="#" id="backLink" class="no-print">← Fiche du candidat</a>
+
+    <div class="top" style="margin-top:14px">
+      <div>
+        <p class="eyebrow">RAPPORT ÉLECTEUR</p>
+        <h1 id="candName">…</h1>
+        <p class="muted" id="candSub"></p>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap" class="no-print">
+        <button type="button" class="btn secondary icon-btn" id="printBtn"></button>
+      </div>
+    </div>
+
+    <div class="report-toggle no-print">
+      <button type="button" class="btn" id="tabSynth">Version synthétique</button>
+      <button type="button" class="btn secondary" id="tabDetail">Version détaillée</button>
+    </div>
+
+    <div id="reportSynth"></div>
+    <div id="reportDetail" hidden></div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
+<script>
+var candidateId = new URLSearchParams(window.location.search).get("id");
+document.getElementById("backLink").href = "candidate.html?id=" + candidateId;
+
+var POSITIVE_TYPES = ["Fait documenté", "Document officiel / source primaire"];
+var PROGRAM_TYPES = ["Programme ou engagement public", "Déclaration du candidat"];
+var CONCERNING_TYPES = ["Allégation attribuée", "Sanction administrative", "Enquête en cours", "Recommandation de poursuite", "Décision judiciaire définitive"];
+
+LaserAuth.requireSession().then(async function (session) {
+  document.getElementById("printBtn").innerHTML = LaserIcons.svg("print", 16) + " Imprimer / Partager";
+  document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+
+  var { data: c } = await laserSupabase.from("candidates").select("*").eq("id", candidateId).single();
+  if (!c) { document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; return; }
+  document.getElementById("candName").textContent = formatDisplayName(c.full_name, c.last_name);
+  document.getElementById("candSub").textContent = (c.political_group || "Groupe politique non renseigné") + " · Statut CEP : " + c.cep_status;
+
+  var { data: domains } = await laserSupabase.from("domains").select("*").order("id");
+  var { data: criteria } = await laserSupabase.from("criteria").select("*").order("id");
+  var { data: assessments } = await laserSupabase.from("assessments").select("*").eq("candidate_id", candidateId);
+  var { data: evidence } = await laserSupabase.from("evidence").select("*").eq("candidate_id", candidateId).order("created_at", { ascending: false });
+
+  domains = domains || []; criteria = criteria || []; assessments = assessments || []; evidence = evidence || [];
+  var byId = {};
+  assessments.forEach(function (a) { byId[a.criterion_id] = a; });
+
+  renderSynth(c, domains, criteria, byId, evidence);
+  renderDetail(domains, criteria, byId);
+
+  document.getElementById("tabSynth").addEventListener("click", function () { showTab("synth"); });
+  document.getElementById("tabDetail").addEventListener("click", function () { showTab("detail"); });
+
+  laserSupabase.from("audit_log").insert({
+    actor_id: session.user.id, username: session.profile.full_name,
+    action: "consultation", entity_type: "rapport", entity_id: candidateId
+  });
+});
+
+function showTab(which) {
+  var isSynth = which === "synth";
+  document.getElementById("reportSynth").hidden = !isSynth;
+  document.getElementById("reportDetail").hidden = isSynth;
+  document.getElementById("tabSynth").className = "btn" + (isSynth ? "" : " secondary");
+  document.getElementById("tabDetail").className = "btn" + (isSynth ? " secondary" : "");
+}
+
+function renderSynth(c, domains, criteria, byId, evidence) {
+  var strengths = evidence.filter(function (e) { return POSITIVE_TYPES.indexOf(e.evidence_type) !== -1; });
+  var programs = evidence.filter(function (e) { return PROGRAM_TYPES.indexOf(e.evidence_type) !== -1; });
+  var risks = evidence.filter(function (e) { return CONCERNING_TYPES.indexOf(e.evidence_type) !== -1; });
+  var unconfirmed = evidence.filter(function (e) { return e.verification_status === "Non vérifié" || e.verification_status === "À examiner"; });
+  var responses = evidence.filter(function (e) { return e.candidate_response; });
+
+  var gapsByDomain = domains.map(function (d) {
+    var rows = criteria.filter(function (cr) { return cr.domain_id === d.id; });
+    var undocumented = rows.filter(function (r) { return !byId[r.id] || byId[r.id].status === "À documenter"; });
+    return { domain: d, total: rows.length, undocumented: undocumented.length };
+  }).filter(function (g) { return g.undocumented > 0; });
+
+  var lastUpdate = [].concat(evidence.map(function (e) { return e.created_at; }), assessmentsDates(byId))
+    .filter(Boolean).sort().slice(-1)[0];
+
+  var html = '';
+
+  html += '<div class="card report-section"><h3>Profil du candidat</h3>' +
+    (c.photo_url ? '<img src="' + escapeAttr(c.photo_url) + '" alt="" style="width:110px;height:110px;object-fit:cover;border-radius:10px;float:right;margin-left:16px;border:1px solid var(--line)">' : '') +
+    '<p><b>Nom :</b> ' + escapeHtml(formatDisplayName(c.full_name, c.last_name)) + '</p>' +
+    '<p><b>Groupe politique :</b> ' + escapeHtml(c.political_group || "Non renseigné") + '</p>' +
+    '<p><b>Statut CEP :</b> ' + escapeHtml(c.cep_status) + '</p>' +
+    '<p><b>Date de naissance :</b> ' + escapeHtml(c.birth_date || "Non vérifié") + ' · <b>Lieu :</b> ' + escapeHtml(c.birthplace || "Non vérifié") + ' · <b>Nationalité :</b> ' + escapeHtml(c.nationality || "Non vérifié") + '</p>' +
+    '<p class="muted">' + escapeHtml(c.biography || "Aucune biographie documentaire enregistrée à ce jour.") + '</p></div>';
+
+  html += evidenceSection("Points forts documentés", strengths, "Faits et documents officiels établis par une source identifiée — un parcours constaté, pas une appréciation de qualité.");
+  html += evidenceSection("Engagements et propositions", programs, "Ce que le candidat déclare ou propose publiquement, rapporté sans jugement de valeur sur sa faisabilité.");
+
+  html += '<div class="card report-section"><h3>Lacunes documentaires</h3>' +
+    (gapsByDomain.length ?
+      '<p class="muted small">Domaines où une partie des critères n\'ont fait l\'objet d\'aucune recherche aboutie à ce jour — une lacune documentaire n\'est ni positive ni négative pour le candidat, c\'est une information manquante.</p><ul class="small">' +
+      gapsByDomain.map(function (g) { return "<li>" + escapeHtml(g.domain.id + " · " + g.domain.name) + " — " + g.undocumented + " / " + g.total + " critère(s) encore à documenter</li>"; }).join("") + '</ul>' :
+      '<p class="muted small">Tous les domaines comportent au moins un élément documenté à ce jour.</p>') +
+    '</div>';
+
+  html += '<div class="card report-section"><h3>Risques étayés par des éléments vérifiables</h3>' +
+    '<p class="muted small">Ces éléments rapportent des faits sourcés (sanction administrative, allégation attribuée, enquête en cours, décision de justice) qui mettent en question un critère précis — <b>ils ne constituent jamais une preuve de culpabilité</b>, et l\'absence de condamnation judiciaire en Haïti ne doit jamais être lue comme une preuve d\'innocence (le système judiciaire haïtien reste marqué par l\'impunité). Lisez la source et, si elle existe, la réponse du candidat avant de vous forger une opinion.</p>' +
+    (risks.length ? risks.map(evidenceCard).join("") : '<p class="muted small">Aucun élément de ce type n\'a été documenté à ce jour pour ce candidat — ce qui ne permet de conclure ni à son intégrité ni au contraire.</p>') +
+    '</div>';
+
+  html += evidenceSection("Informations restant à confirmer", unconfirmed, "Éléments déjà enregistrés mais pas encore relus et confirmés par un réviseur humain CAPRI.");
+
+  html += '<div class="card report-section"><h3>Réponses du candidat</h3>' +
+    (responses.length ? responses.map(function (e) {
+      return '<div style="margin-bottom:12px"><p class="small"><b>' + escapeHtml(e.title) + '</b></p><p class="small muted">' + escapeHtml(e.candidate_response) + '</p></div>';
+    }).join("") : '<p class="muted small">Aucune réponse du candidat enregistrée à ce jour pour les éléments documentaires de ce dossier.</p>') +
+    '</div>';
+
+  html += '<div class="report-meta">' +
+    '<p><b>Méthodologie :</b> charte nationale de 22 domaines et 78 critères, appliquée à l\'identique à chaque candidat. Chaque élément documentaire est d\'abord enregistré au statut « Non vérifié », puis relu par un réviseur humain CAPRI avant tout changement de statut vers « Vérifié ». Aucun score global, classement ni recommandation de vote n\'est calculé par LASER-ROBOT.</p>' +
+    '<p><b>Dernière mise à jour du dossier :</b> ' + (lastUpdate ? new Date(lastUpdate).toLocaleString("fr-FR") : "Non disponible") + ' · <b>Rapport généré le :</b> ' + new Date().toLocaleString("fr-FR") + '</p>' +
+    '</div>';
+
+  document.getElementById("reportSynth").innerHTML = html;
+}
+
+function assessmentsDates(byId) {
+  return Object.keys(byId).map(function (k) { return byId[k].reviewed_at; });
+}
+
+function evidenceSection(title, items, help) {
+  return '<div class="card report-section"><h3>' + escapeHtml(title) + '</h3>' +
+    '<p class="muted small">' + escapeHtml(help) + '</p>' +
+    (items.length ? items.map(evidenceCard).join("") : '<p class="muted small">Aucun élément de ce type documenté à ce jour.</p>') +
+    '</div>';
+}
+
+function evidenceCard(e) {
+  var showLink = e.source_url && /^https?:\/\//.test(e.source_url);
+  return '<article class="evidence">' +
+    '<div class="crithead"><div><b>' + escapeHtml(e.title) + '</b><p class="small muted">' +
+    '<span class="doc-type-chip">' + escapeHtml(e.evidence_type) + '</span> · ' + escapeHtml(e.source_name || "Source non renseignée") +
+    (e.publication_date ? ' · ' + escapeHtml(e.publication_date) : '') + '</p></div>' +
+    '<span class="status">' + escapeHtml(e.verification_status) + '</span></div>' +
+    '<p class="small">' + escapeHtml(e.summary || '') + '</p>' +
+    (showLink ? '<a href="' + escapeAttr(e.source_url) + '" target="_blank" rel="noopener noreferrer">Voir la source ↗</a>' : '') +
+    '</article>';
+}
+
+function renderDetail(domains, criteria, byId) {
+  var html = domains.map(function (d) {
+    var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
+    return '<div class="card"><details open><summary><b>' + escapeHtml(d.id + " · " + d.name) + '</b><span>' + rows.length + ' critères</span></summary>' +
+      rows.map(function (r) {
+        var a = byId[r.id] || { status: "À documenter", score: null, analysis: "" };
+        return '<article class="criterion">' +
+          '<div class="crithead"><div><b>' + escapeHtml(r.id + " · " + r.title) + '</b><p>' + escapeHtml(r.requirement) + '</p></div>' +
+          '<span class="status">' + escapeHtml(a.status) + '</span></div>' +
+          (a.score !== null && a.score !== undefined ? '<p class="small">Niveau : ' + a.score + ' / 5</p>' : '') +
+          (a.analysis ? '<p class="small muted">' + escapeHtml(a.analysis) + '</p>' : '') +
+          '</article>';
+      }).join("") + '</details></div>';
+  }).join("");
+  document.getElementById("reportDetail").innerHTML = html;
+}
+
+function formatDisplayName(fullName, lastName) {
+  if (!lastName || !fullName) return fullName || "";
+  var prenom = fullName;
+  if (fullName.toLowerCase().indexOf(lastName.toLowerCase()) !== -1) {
+    var idx = fullName.toLowerCase().lastIndexOf(lastName.toLowerCase());
+    prenom = (fullName.slice(0, idx) + fullName.slice(idx + lastName.length)).trim();
+  }
+  return lastName.toUpperCase() + (prenom ? ", " + prenom : "");
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+</script>
+</body>
+</html>

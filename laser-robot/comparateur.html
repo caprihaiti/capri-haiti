@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparateur de candidatures — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <p class="eyebrow">LASER-ROBOT · COMPARATEUR</p>
+      <h1>Comparateur de candidatures</h1>
+      <p class="muted">Choisissez deux à cinq candidats pour les comparer sur exactement les mêmes 22 domaines et 78 critères, avec la même méthode et le même niveau d'exigence pour chacun. Aucun classement ni score global n'est calculé — seuls les états déjà constatés, critère par critère, sont mis côte à côte.</p>
+    </div>
+
+    <div class="card">
+      <h2>Candidats à comparer</h2>
+      <div class="candidate-picker" id="candidatePicker"><div class="empty-state">Chargement…</div></div>
+      <button type="button" class="btn" id="compareBtn" disabled>Comparer</button>
+      <p class="small muted" id="pickerHint" style="margin-top:10px">Sélectionnez au moins deux candidats (cinq maximum).</p>
+    </div>
+
+    <div id="compareResult"></div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var MAX_COMPARE = 5;
+var allCandidates = [], selectedIds = [];
+
+LaserAuth.requireSession().then(async function (session) {
+  LaserShell.renderSidebar(session.profile, "comparateur");
+  var { data } = await laserSupabase.from("candidates").select("id, full_name, last_name").order("last_name").order("full_name");
+  allCandidates = data || [];
+  renderPicker();
+
+  var presetIds = (new URLSearchParams(window.location.search).get("ids") || "").split(",").filter(Boolean);
+  if (presetIds.length >= 2) {
+    selectedIds = presetIds.filter(function (id) { return allCandidates.some(function (c) { return c.id === id; }); }).slice(0, MAX_COMPARE);
+    renderPicker();
+    runCompare();
+  }
+
+  document.getElementById("compareBtn").addEventListener("click", runCompare);
+});
+
+function renderPicker() {
+  var container = document.getElementById("candidatePicker");
+  if (!allCandidates.length) { container.innerHTML = '<div class="empty-state">Aucun candidat enregistré pour l\'instant.</div>'; return; }
+  container.innerHTML = allCandidates.map(function (c) {
+    var checked = selectedIds.indexOf(c.id) !== -1;
+    return '<label class="candidate-chip' + (checked ? ' checked' : '') + '" data-id="' + c.id + '">' +
+      '<input type="checkbox" value="' + c.id + '"' + (checked ? ' checked' : '') + '>' +
+      escapeHtml(formatDisplayName(c.full_name, c.last_name)) + '</label>';
+  }).join("");
+  container.querySelectorAll('input[type="checkbox"]').forEach(function (box) {
+    box.addEventListener("change", function () {
+      var id = this.value;
+      if (this.checked) {
+        if (selectedIds.length >= MAX_COMPARE) { this.checked = false; LaserShell.toast("Cinq candidats au maximum à la fois.", true); return; }
+        selectedIds.push(id);
+      } else {
+        selectedIds = selectedIds.filter(function (x) { return x !== id; });
+      }
+      this.closest(".candidate-chip").classList.toggle("checked", this.checked);
+      document.getElementById("compareBtn").disabled = selectedIds.length < 2;
+    });
+  });
+  document.getElementById("compareBtn").disabled = selectedIds.length < 2;
+}
+
+async function runCompare() {
+  var btn = document.getElementById("compareBtn");
+  btn.disabled = true;
+  btn.textContent = "Comparaison en cours…";
+  var resultBox = document.getElementById("compareResult");
+
+  var candidates = allCandidates.filter(function (c) { return selectedIds.indexOf(c.id) !== -1; });
+  var { data: domains } = await laserSupabase.from("domains").select("*").order("id");
+  var { data: criteria } = await laserSupabase.from("criteria").select("*").order("id");
+  var { data: assessments } = await laserSupabase.from("assessments").select("candidate_id, criterion_id, status").in("candidate_id", selectedIds);
+
+  var statusByCandCrit = {};
+  (assessments || []).forEach(function (a) {
+    statusByCandCrit[a.candidate_id + "|" + a.criterion_id] = a.status;
+  });
+
+  resultBox.innerHTML = renderOverview(candidates, domains || [], criteria || [], statusByCandCrit) +
+    renderDetailTable(candidates, domains || [], criteria || [], statusByCandCrit);
+
+  btn.disabled = selectedIds.length < 2;
+  btn.textContent = "Comparer";
+}
+
+function statusClass(status) {
+  if (status === "Vérifié") return "ok";
+  if (status === "Allégation grave documentée") return "ko";
+  if (status === "Documenté" || status === "À examiner") return "documented";
+  return "pending";
+}
+
+function renderOverview(candidates, domains, criteria, statusByCandCrit) {
+  var html = '<div class="card"><h2>Vue d\'ensemble par candidat et par domaine</h2>' +
+    '<p class="muted small">Même décompte, même méthode, pour chaque candidat sélectionné — pas un score, pas un classement.</p>';
+  html += candidates.map(function (cand) {
+    var tiles = domains.map(function (d) {
+      var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
+      var counts = { ok: 0, ko: 0, pending: 0, documented: 0 };
+      rows.forEach(function (r) {
+        var status = statusByCandCrit[cand.id + "|" + r.id] || "À documenter";
+        counts[statusClass(status)]++;
+      });
+      return '<div class="domain-tile"><b>' + escapeHtml(d.id) + '</b>' +
+        '<div class="domain-tile-counts">' +
+        '<span class="dok">' + counts.ok + '</span>' +
+        '<span class="ddoc">' + counts.documented + '</span>' +
+        '<span class="dko">' + counts.ko + '</span>' +
+        '<span class="dpending">' + counts.pending + '</span>' +
+        '</div></div>';
+    }).join("");
+    return '<h3 style="margin:18px 0 8px">' + escapeHtml(formatDisplayName(cand.full_name, cand.last_name)) + '</h3>' +
+      '<div class="domain-overview">' + tiles + '</div>';
+  }).join("");
+  html += '</div>';
+  return html;
+}
+
+function renderDetailTable(candidates, domains, criteria, statusByCandCrit) {
+  var rows = "";
+  domains.forEach(function (d) {
+    var critRows = criteria.filter(function (c) { return c.domain_id === d.id; });
+    if (!critRows.length) return;
+    rows += '<tr class="compare-domain-row"><td class="crit-col">' + escapeHtml(d.id + " · " + d.name) + '</td>' +
+      candidates.map(function () { return "<td></td>"; }).join("") + '</tr>';
+    critRows.forEach(function (r) {
+      rows += '<tr><td class="crit-col"><b>' + escapeHtml(r.id) + '</b> — ' + escapeHtml(r.title) + '</td>' +
+        candidates.map(function (cand) {
+          var status = statusByCandCrit[cand.id + "|" + r.id] || "À documenter";
+          var cls = statusClass(status);
+          return '<td><span class="compare-cell"><i class="dot ' + cls + '"></i>' + escapeHtml(status) + '</span></td>';
+        }).join("") + '</tr>';
+    });
+  });
+
+  return '<div class="card"><h2>Détail — 78 critères</h2>' +
+    '<p class="muted small">« Allégation grave documentée » signale un fait sourcé mis en question, jamais une culpabilité. « À documenter » signifie qu\'aucune recherche n\'a encore établi quoi que ce soit — ni positif, ni négatif.</p>' +
+    '<div class="compare-table-wrap"><table class="compare-table"><thead><tr><th class="crit-col">Critère</th>' +
+    candidates.map(function (c) { return "<th>" + escapeHtml(formatDisplayName(c.full_name, c.last_name)) + "</th>"; }).join("") +
+    '</tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+}
+
+function formatDisplayName(fullName, lastName) {
+  if (!lastName || !fullName) return fullName || "";
+  var prenom = fullName;
+  if (fullName.toLowerCase().indexOf(lastName.toLowerCase()) !== -1) {
+    var idx = fullName.toLowerCase().lastIndexOf(lastName.toLowerCase());
+    prenom = (fullName.slice(0, idx) + fullName.slice(idx + lastName.length)).trim();
+  }
+  return lastName.toUpperCase() + (prenom ? ", " + prenom : "");
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+</script>
+</body>
+</html>

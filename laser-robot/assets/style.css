@@ -1,4 +1,4 @@
-:root{--bg:#0b1220;--panel:#121d30;--line:#26364e;--text:#edf3fb;--muted:#a8b7ca;--accent:#65d5c2;--gold:#e8bd70;--danger:#ef7b86;--danger-pale:#3a1d22;--radius:12px}
+:root{--bg:#0b1220;--panel:#121d30;--panel-2:#0d1726;--line:#26364e;--text:#edf3fb;--muted:#a8b7ca;--accent:#4fd2e8;--accent-deep:#1f9fb8;--gold:#e8bd70;--ok:#5fc489;--danger:#ef7b86;--danger-pale:#3a1d22;--radius:12px;--radius-sm:8px}
 *{box-sizing:border-box}
 body{margin:0;background:linear-gradient(135deg,#09111e,#101b2c 55%,#0b1422);color:var(--text);font:15px/1.55 Inter,system-ui,Segoe UI,sans-serif;min-height:100vh}
 a{color:var(--accent);text-decoration:none}
@@ -59,8 +59,10 @@ code{background:#0a1524;padding:1px 5px;border-radius:4px}
 .app-sidebar-close{display:none;background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:0}
 .app-nav{display:flex;flex-direction:column;gap:2px;flex:1}
 .app-nav-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#5a6c84;margin:14px 0 4px}
-.app-nav a{padding:9px 10px;border-radius:8px;color:#cdd9e8;font-size:13px}
+.app-nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:#cdd9e8;font-size:13px}
+.app-nav a svg{flex:0 0 auto;opacity:.85}
 .app-nav a.active{background:#1b2c44;color:var(--accent);font-weight:700}
+.app-nav a.active svg{opacity:1}
 .app-nav a.disabled{color:#45536a;cursor:default}
 .app-user{border-top:1px solid var(--line);padding-top:14px;margin-top:10px;font-size:12px}
 .app-user-name{font-weight:700;color:#eaf3fa}
@@ -135,5 +137,67 @@ code{background:#0a1524;padding:1px 5px;border-radius:4px}
   .top{flex-direction:column}
   .inlineform{display:grid}
   .inlineform .form-field{width:100%}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .compare-table-wrap{overflow-x:auto}
+}
+
+/* Icônes dans les boutons / liens d'action */
+.icon-btn{display:inline-flex;align-items:center;gap:7px}
+.icon-only{padding:9px;line-height:0}
+
+/* Tableau de bord — indicateurs */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:22px}
+.kpi-card{background:linear-gradient(150deg,#142137,#101a2b);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden}
+.kpi-card .kpi-icon{position:absolute;right:14px;top:14px;color:var(--accent);opacity:.35}
+.kpi-card .kpi-value{font-size:26px;font-weight:800;color:#eaf3fa;line-height:1.1}
+.kpi-card .kpi-value small{font-size:13px;color:var(--muted);font-weight:600}
+.kpi-card .kpi-label{font-size:12px;color:var(--muted);margin-top:4px}
+.kpi-card.warn .kpi-value{color:var(--gold)}
+
+.timeline{display:flex;flex-direction:column;gap:0}
+.timeline-row{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.timeline-row:first-child{border-top:0}
+.timeline-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:6px;flex:0 0 auto}
+.timeline-text{font-size:13px;color:#d6e2ef}
+.timeline-time{font-size:11px;color:var(--muted)}
+
+/* Niveau 0–5 (qualité documentaire d'un programme, PAS un jugement moral) */
+.level-scale{display:flex;gap:3px;align-items:center}
+.level-scale i{width:14px;height:6px;border-radius:3px;background:#223049;display:inline-block}
+.level-scale i.on{background:var(--accent)}
+.level-scale b{font-size:11px;color:var(--muted);margin-left:6px}
+
+/* Puces par type d'élément documentaire — regroupement neutre, pas un verdict */
+.doc-type-chip{display:inline-block;border-radius:20px;padding:2px 9px;font-size:10.5px;background:#182537;color:#cdd9e8;white-space:nowrap}
+
+/* Comparateur */
+.compare-table-wrap{overflow-x:auto;margin-top:10px}
+table.compare-table{width:100%;border-collapse:collapse;min-width:640px}
+.compare-table th,.compare-table td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:12.5px;vertical-align:top}
+.compare-table thead th{position:sticky;top:0;background:#0d1726;color:#eaf3fa;font-size:12px;z-index:2}
+.compare-table th.crit-col,.compare-table td.crit-col{position:sticky;left:0;background:#0d1726;z-index:1;min-width:220px;max-width:260px}
+.compare-table tbody tr:hover td{background:#0f1c30}
+.compare-table tbody tr:hover td.crit-col{background:#132236}
+.compare-domain-row td{background:#101a2b;color:var(--gold);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.05em;position:sticky;left:auto}
+.compare-cell{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.candidate-picker{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 16px}
+.candidate-chip{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:20px;padding:6px 12px 6px 8px;font-size:13px;cursor:pointer;background:#0f1a2b;user-select:none}
+.candidate-chip input{width:auto;margin:0}
+.candidate-chip.checked{border-color:var(--accent);background:#102735;color:var(--accent)}
+
+/* Rapport électeur */
+.report-section{margin-bottom:22px}
+.report-section h3{color:var(--gold);font-size:14px;text-transform:uppercase;letter-spacing:.04em;margin:0 0 10px}
+.report-toggle{display:flex;gap:8px;margin-bottom:18px}
+.report-meta{font-size:12px;color:var(--muted);border-top:1px solid var(--line);margin-top:26px;padding-top:14px}
+
+@media print{
+  body{background:#fff !important;color:#111}
+  .app-sidebar,.app-topbar,.app-sidebar-backdrop,.no-print{display:none !important}
+  .app-main{max-width:none;padding:0;margin:0}
+  .card{background:#fff;border-color:#ccc;box-shadow:none;color:#111}
+  .muted,.small{color:#555}
+  a{color:#0a5a66}
+  .eyebrow{color:#6b5219}
 }
 .sd0{animation-delay:0.000s}.sd1{animation-delay:0.035s}.sd2{animation-delay:0.070s}.sd3{animation-delay:0.105s}.sd4{animation-delay:0.140s}.sd5{animation-delay:0.175s}.sd6{animation-delay:0.210s}.sd7{animation-delay:0.245s}.sd8{animation-delay:0.280s}.sd9{animation-delay:0.315s}.sd10{animation-delay:0.350s}.sd11{animation-delay:0.385s}.sd12{animation-delay:0.420s}.sd13{animation-delay:0.455s}.sd14{animation-delay:0.490s}.sd15{animation-delay:0.525s}.sd16{animation-delay:0.560s}.sd17{animation-delay:0.595s}.sd18{animation-delay:0.630s}.sd19{animation-delay:0.665s}.sd20{animation-delay:0.700s}.sd21{animation-delay:0.735s}.sd22{animation-delay:0.770s}.sd23{animation-delay:0.805s}.sd24{animation-delay:0.840s}.sd25{animation-delay:0.875s}.sd26{animation-delay:0.910s}.sd27{animation-delay:0.945s}.sd28{animation-delay:0.980s}.sd29{animation-delay:1.015s}.sd30{animation-delay:1.050s}.sd31{animation-delay:1.085s}.sd32{animation-delay:1.120s}.sd33{animation-delay:1.155s}.sd34{animation-delay:1.190s}.sd35{animation-delay:1.225s}.sd36{animation-delay:1.260s}.sd37{animation-delay:1.295s}.sd38{animation-delay:1.330s}.sd39{animation-delay:1.365s}.sd40{animation-delay:1.400s}.sd41{animation-delay:1.435s}.sd42{animation-delay:1.470s}.sd43{animation-delay:1.505s}.sd44{animation-delay:1.540s}.sd45{animation-delay:1.575s}.sd46{animation-delay:1.610s}.sd47{animation-delay:1.645s}.sd48{animation-delay:1.680s}.sd49{animation-delay:1.715s}.sd50{animation-delay:1.750s}.sd51{animation-delay:1.785s}.sd52{animation-delay:1.820s}.sd53{animation-delay:1.855s}.sd54{animation-delay:1.890s}.sd55{animation-delay:1.925s}.sd56{animation-delay:1.960s}.sd57{animation-delay:1.995s}.sd58{animation-delay:2.030s}.sd59{animation-delay:2.065s}.sd60{animation-delay:2.100s}.sd61{animation-delay:2.135s}.sd62{animation-delay:2.170s}.sd63{animation-delay:2.205s}.sd64{animation-delay:2.240s}.sd65{animation-delay:2.275s}.sd66{animation-delay:2.310s}.sd67{animation-delay:2.345s}.sd68{animation-delay:2.380s}.sd69{animation-delay:2.415s}.sd70{animation-delay:2.450s}.sd71{animation-delay:2.485s}.sd72{animation-delay:2.520s}.sd73{animation-delay:2.555s}.sd74{animation-delay:2.590s}.sd75{animation-delay:2.625s}.sd76{animation-delay:2.660s}.sd77{animation-delay:2.695s}

@@ -19,7 +19,8 @@
         <p class="muted" id="candSub"></p>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <a class="btn" id="scanLink" href="#">🔦 Lancer le scanner</a>
+        <a class="btn secondary icon-btn" id="reportLink" href="#"></a>
+        <a class="btn icon-btn" id="scanLink" href="#"></a>
       </div>
     </div>
 
@@ -27,7 +28,7 @@
       <div class="sectionhead">
         <h2>Identité et parcours public</h2>
         <div style="display:flex;gap:8px">
-          <button type="button" class="btn secondary" id="researchBtn" style="display:none">🔍 Rechercher des sources</button>
+          <button type="button" class="btn secondary icon-btn" id="researchBtn" style="display:none"></button>
           <button type="button" class="btn secondary" id="toggleIdentityEdit" style="display:none">Modifier</button>
         </div>
       </div>
@@ -146,6 +147,12 @@
       </form>
       <div id="evidenceList"><div class="empty-state">Chargement…</div></div>
     </section>
+
+    <section class="card">
+      <div class="sectionhead"><h2>Historique des vérifications</h2></div>
+      <p class="muted small">Chaque création ou modification de l'identité, d'un critère ou d'un élément documentaire de ce dossier, journalisée automatiquement côté serveur — traçabilité complète, non modifiable depuis l'application.</p>
+      <div id="verificationHistory"><div class="empty-state">Chargement…</div></div>
+    </section>
   </main>
 </div>
 
@@ -153,6 +160,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="assets/supabase-client.js"></script>
 <script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
 <script src="assets/shell.js"></script>
 <script>
 var ASSESSMENT_STATUSES = ["À documenter", "À examiner", "Documenté", "Vérifié", "Allégation grave documentée", "Non applicable"];
@@ -176,6 +184,10 @@ LaserAuth.requireSession().then(async function (session) {
   LaserShell.renderSidebar(session.profile, "dashboard");
 
   document.getElementById("scanLink").href = "scan.html?id=" + candidateId;
+  document.getElementById("scanLink").innerHTML = LaserIcons.svg("scan", 16) + " Lancer le scanner";
+  document.getElementById("reportLink").href = "rapport.html?id=" + candidateId;
+  document.getElementById("reportLink").innerHTML = LaserIcons.svg("report", 16) + " Rapport électeur";
+  document.getElementById("researchBtn").innerHTML = LaserIcons.svg("search", 16) + " Rechercher des sources";
   document.getElementById("bulkLink").href = "bulk.html?id=" + candidateId;
   if (!canWrite) document.getElementById("bulkLink").style.display = "none";
 
@@ -186,6 +198,7 @@ LaserAuth.requireSession().then(async function (session) {
   await loadCandidate();
   await loadGrid();
   await loadEvidence();
+  await loadHistory();
 
   document.getElementById("newEvidenceForm").addEventListener("submit", addEvidence);
   if (canWrite) {
@@ -506,6 +519,29 @@ async function loadEvidence() {
       LaserShell.toast("Réponse enregistrée.");
     });
   });
+}
+
+async function loadHistory() {
+  var [{ data: assessRows }, { data: evRows }] = await Promise.all([
+    laserSupabase.from("assessments").select("id").eq("candidate_id", candidateId),
+    laserSupabase.from("evidence").select("id").eq("candidate_id", candidateId),
+  ]);
+  var ids = [candidateId]
+    .concat((assessRows || []).map(function (r) { return r.id; }))
+    .concat((evRows || []).map(function (r) { return r.id; }));
+  var { data, error } = await laserSupabase
+    .from("audit_log").select("*").in("entity_id", ids).order("at", { ascending: false }).limit(25);
+  var box = document.getElementById("verificationHistory");
+  if (error || !data || !data.length) { box.innerHTML = '<div class="empty-state">Aucune modification journalisée pour l\'instant.</div>'; return; }
+  var ACTION_LABELS = { insert: "Création", update: "Mise à jour", recherche_automatique: "Recherche automatique" };
+  var ENTITY_LABELS = { candidates: "identité du candidat", assessments: "critère", evidence: "élément documentaire" };
+  box.innerHTML = '<div class="timeline">' + data.map(function (row) {
+    return '<div class="timeline-row"><span class="timeline-dot"></span><div>' +
+      '<div class="timeline-text"><b>' + escapeHtml(row.username || "Système") + '</b> — ' +
+      escapeHtml(ACTION_LABELS[row.action] || row.action) + ' (' + escapeHtml(ENTITY_LABELS[row.entity_type] || row.entity_type) + ')' +
+      (row.details ? ' : ' + escapeHtml(row.details) : '') + '</div>' +
+      '<div class="timeline-time">' + new Date(row.at).toLocaleString("fr-FR") + '</div></div></div>';
+  }).join('') + '</div>';
 }
 
 // Convention administrative haïtienne : NOM DE FAMILLE d'abord, en

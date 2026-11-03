@@ -13,8 +13,17 @@
   <main class="app-main">
     <div class="app-header">
       <p class="eyebrow">LASER-ROBOT</p>
-      <h1>Registre des candidats</h1>
-      <p class="muted">Objectif : donner à la population les connaissances et l'information nécessaires pour qu'elle fasse elle-même le meilleur choix — pas un verdict à sa place. Chaque candidat est évalué avec la même charte nationale (22 domaines, 78 critères). Aucun score global, classement ni recommandation de vote n'est calculé.</p>
+      <h1>Système indépendant de vérification documentaire et d'analyse des candidatures présidentielles en Haïti</h1>
+      <p class="muted">Objectif : donner à la population les connaissances et l'information nécessaires pour qu'elle fasse elle-même le meilleur choix — pas un verdict à sa place. Chaque candidat est évalué avec la même charte nationale (22 domaines, 78 critères), avec la même méthode et le même niveau d'exigence. Aucun score global, classement ni recommandation de vote n'est calculé.</p>
+    </div>
+
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="empty-state">Chargement des indicateurs…</div>
+    </div>
+
+    <div class="card" id="activityCard">
+      <div class="sectionhead"><h2>Dernières activités du système</h2></div>
+      <div id="activityList"><div class="empty-state">Chargement…</div></div>
     </div>
 
     <div class="card" id="newCandidateCard" hidden>
@@ -83,6 +92,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="assets/supabase-client.js"></script>
 <script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
 <script src="assets/shell.js"></script>
 <script>
 var profileRef = null;
@@ -95,10 +105,63 @@ LaserAuth.requireSession().then(async function (session) {
     document.getElementById("newCandidateForm").addEventListener("submit", createCandidate);
   }
   await loadCandidates();
+  loadStats();
+  loadActivity();
   document.getElementById("candidateSearch").addEventListener("input", function () {
     renderCandidates(filterCandidates(allCandidates, this.value));
   });
 });
+
+function kpiIcon(name) { return '<span class="kpi-icon">' + LaserIcons.svg(name, 26) + '</span>'; }
+
+async function loadStats() {
+  var CRITERIA_PER_CANDIDATE = 78;
+  var results = await Promise.all([
+    laserSupabase.from("candidates").select("*", { count: "exact", head: true }),
+    laserSupabase.from("candidates").select("*", { count: "exact", head: true }).not("biography", "is", null),
+    laserSupabase.from("assessments").select("*", { count: "exact", head: true }).neq("status", "À documenter"),
+    laserSupabase.from("evidence").select("*", { count: "exact", head: true }).eq("verification_status", "Vérifié"),
+    laserSupabase.from("evidence").select("*", { count: "exact", head: true }).eq("verification_status", "Non vérifié"),
+  ]);
+  var totalCandidates = results[0].count || 0;
+  var documented = results[1].count || 0;
+  var criteriaDocumented = results[2].count || 0;
+  var evidenceVerified = results[3].count || 0;
+  var evidencePending = results[4].count || 0;
+  var criteriaTotal = totalCandidates * CRITERIA_PER_CANDIDATE;
+
+  document.getElementById("kpiGrid").innerHTML =
+    kpiCard("folder", totalCandidates, "Candidatures enregistrées") +
+    kpiCard("search", documented, "Dossiers avec recherche initiale effectuée") +
+    kpiCard("scan", criteriaDocumented + ' <small>/ ' + criteriaTotal + '</small>', "Critères de la charte documentés (tous candidats, sur " + CRITERIA_PER_CANDIDATE + " par dossier)") +
+    kpiCard("shield", evidenceVerified, "Éléments documentaires vérifiés par un réviseur") +
+    kpiCard("warning", evidencePending, "Éléments documentaires en attente de vérification humaine", true);
+}
+
+function kpiCard(icon, value, label, warn) {
+  return '<div class="kpi-card' + (warn ? ' warn' : '') + '">' + kpiIcon(icon) +
+    '<div class="kpi-value">' + value + '</div>' +
+    '<div class="kpi-label">' + escapeHtml(label) + '</div></div>';
+}
+
+async function loadActivity() {
+  var { data, error } = await laserSupabase
+    .from("audit_log")
+    .select("*")
+    .order("at", { ascending: false })
+    .limit(8);
+  var box = document.getElementById("activityList");
+  if (error || !data || !data.length) { box.innerHTML = '<div class="empty-state">Aucune activité enregistrée pour l\'instant.</div>'; return; }
+  var ACTION_LABELS = { insert: "Création", update: "Mise à jour", consultation: "Consultation du scanner", recherche_automatique: "Recherche automatique" };
+  box.innerHTML = '<div class="timeline">' + data.map(function (row) {
+    var label = ACTION_LABELS[row.action] || row.action;
+    var entity = row.entity_type === "candidates" ? "candidat" : (row.entity_type === "assessments" ? "critère" : (row.entity_type === "evidence" ? "élément documentaire" : row.entity_type));
+    return '<div class="timeline-row"><span class="timeline-dot"></span><div>' +
+      '<div class="timeline-text"><b>' + escapeHtml(row.username || "Système") + '</b> — ' + escapeHtml(label) + ' (' + escapeHtml(entity) + ')' +
+      (row.details ? ' : ' + escapeHtml(row.details) : '') + '</div>' +
+      '<div class="timeline-time">' + new Date(row.at).toLocaleString("fr-FR") + '</div></div></div>';
+  }).join('') + '</div>';
+}
 
 var allCandidates = [];
 

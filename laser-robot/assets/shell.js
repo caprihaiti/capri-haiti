@@ -27,7 +27,7 @@ window.LaserShell = (function () {
     header.className = "app-topheader";
     header.innerHTML =
       '<div class="app-topheader-brand">' +
-        '<div class="mark">' + icon("shield", 22) + '</div>' +
+        '<img class="mark avatar-mark" src="assets/avatar-laser-robot-icon.webp" alt="Avatar LASER-ROBOT" title="LASER-ROBOT — assistant visuel technologique, jamais un arbitre autonome des candidatures">' +
         '<div class="names"><b>CAPRI-HAÏTI</b><small>Centre d\'Appui à la Performance et au Renforcement Institutionnel</small></div>' +
       '</div>' +
       '<div class="app-topheader-product">' +

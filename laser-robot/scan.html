@@ -30,7 +30,7 @@
 
       <div class="scan-layout" id="scanLayout">
         <div class="scan-main scancard">
-          <div class="hero-badge" style="margin:0 auto 16px" aria-hidden="true"><span id="scanRobotIcon"></span></div>
+          <div class="hero-badge" id="scanAvatarBadge" style="margin:0 auto 16px" title="LASER-ROBOT — assistant visuel technologique, jamais un arbitre autonome des candidatures"><img src="assets/avatar-laser-robot-icon.webp" alt="Avatar LASER-ROBOT"></div>
           <div class="scan-photo-wrap" id="photoWrap">
             <div class="scan-photo-inner" id="photoInner">
               <span class="scan-silhouette">👤</span>
@@ -166,7 +166,6 @@ LaserAuth.requireSession().then(async function (session) {
   var { data: c } = await laserSupabase.from("candidates").select("*").eq("id", candidateId).single();
   if (!c) { safePlay(document.getElementById("scanAudioError")); document.querySelector("main").innerHTML = "<p>Candidat introuvable.</p>"; return; }
   document.getElementById("candName").textContent = formatDisplayName(c.full_name, c.last_name);
-  document.getElementById("scanRobotIcon").innerHTML = LaserIcons.svg("scan", 48);
   document.getElementById("autoReportBtn").href = "rapport.html?id=" + candidateId;
   document.getElementById("autoReportBtn").innerHTML = LaserIcons.svg("report", 15) + " Rapport automatique";
 
@@ -296,6 +295,7 @@ LaserAuth.requireSession().then(async function (session) {
     document.getElementById("stopBtn").disabled = scanState === "idle";
     var label = { idle: "PRÊT — CLIQUEZ LECTURE", running: "SCAN EN COURS…", paused: "EN PAUSE", finished: "ANALYSE TERMINÉE" }[scanState];
     document.getElementById("transportStatus").textContent = label;
+    document.getElementById("scanAvatarBadge").classList.toggle("scanning", scanState === "running");
   }
 
   function renderStats(elapsed) {

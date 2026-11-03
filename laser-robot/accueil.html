@@ -12,8 +12,9 @@
 <div class="app-shell" id="appShell">
   <main class="app-main">
     <div class="card hero-card">
-      <div class="hero-badge" aria-hidden="true">
-        <span id="heroIcon"></span>
+      <div style="flex:0 0 auto;text-align:center">
+        <img class="hero-avatar" src="assets/avatar-laser-robot.webp" alt="Avatar officiel LASER-ROBOT — assistant visuel technologique CAPRI-Haïti">
+        <p class="small muted" style="max-width:190px;margin-top:8px">Assistant visuel technologique — jamais un arbitre autonome des candidatures.</p>
       </div>
       <div>
         <p class="eyebrow">CAPRI-HAÏTI · LASER-ROBOT™</p>
@@ -60,7 +61,6 @@
 <script>
 LaserAuth.requireSession().then(async function (session) {
   LaserShell.renderSidebar(session.profile, "accueil");
-  document.getElementById("heroIcon").innerHTML = LaserIcons.svg("scan", 56);
   document.getElementById("ctaBtn").innerHTML = LaserIcons.svg("search", 16) + " Analyser un candidat maintenant";
 
   var FEATURES = [

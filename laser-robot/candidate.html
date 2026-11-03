@@ -51,7 +51,12 @@
           <input type="text" id="iLastName">
         </div>
         <div class="form-field">
-          <label for="iPhotoUrl">Lien photo (http(s):// uniquement)</label>
+          <label for="iPhotoFile">Téléverser une photo (recommandé — hébergée directement ici, aucun lien externe fragile)</label>
+          <input type="file" id="iPhotoFile" accept="image/png,image/jpeg,image/webp">
+          <p class="small muted" id="iPhotoUploadStatus" style="margin:4px 0 0"></p>
+        </div>
+        <div class="form-field">
+          <label for="iPhotoUrl">Ou lien photo direct (http(s):// uniquement) — si ni téléversée</label>
           <input type="url" id="iPhotoUrl" placeholder="https://…">
         </div>
         <div class="grid-2">
@@ -188,6 +193,7 @@ LaserAuth.requireSession().then(async function (session) {
     document.getElementById("toggleIdentityEdit").addEventListener("click", openIdentityEdit);
     document.getElementById("cancelIdentityEdit").addEventListener("click", closeIdentityEdit);
     document.getElementById("identityForm").addEventListener("submit", saveIdentity);
+    document.getElementById("iPhotoFile").addEventListener("change", uploadPhotoFile);
   }
   // La recherche est ouverte à tout compte actif (lecteur compris) : c'est
   // l'outil public de LASER-ROBOT. Le bouton ne s'affiche que si la fiche
@@ -284,6 +290,23 @@ function openIdentityEdit() {
   document.getElementById("iBio").value = currentCandidate.biography || "";
   document.getElementById("identityView").hidden = true;
   document.getElementById("identityForm").hidden = false;
+}
+
+async function uploadPhotoFile(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var statusEl = document.getElementById("iPhotoUploadStatus");
+  statusEl.textContent = "Téléversement en cours…";
+  var ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  var path = candidateId + "/" + Date.now() + "." + ext;
+  var { error } = await laserSupabase.storage.from("candidate-photos").upload(path, file, { upsert: true });
+  if (error) {
+    statusEl.textContent = "Erreur de téléversement : " + error.message;
+    return;
+  }
+  var { data } = laserSupabase.storage.from("candidate-photos").getPublicUrl(path);
+  document.getElementById("iPhotoUrl").value = data.publicUrl;
+  statusEl.textContent = "✓ Photo téléversée — cliquez « Enregistrer » pour confirmer.";
 }
 
 function closeIdentityEdit() {

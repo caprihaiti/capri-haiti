@@ -14,7 +14,7 @@
     <div class="app-header">
       <p class="eyebrow">LASER-ROBOT · COMPARATEUR</p>
       <h1>Comparateur de candidatures</h1>
-      <p class="muted">Choisissez deux à cinq candidats pour les comparer sur exactement les mêmes 22 domaines et 78 critères, avec la même méthode et le même niveau d'exigence pour chacun. Aucun classement ni score global n'est calculé — seuls les états déjà constatés, critère par critère, sont mis côte à côte.</p>
+      <p class="muted">Choisissez deux à cinq candidats pour les comparer sur exactement les mêmes 22 domaines et 78 critères, avec la même méthode et le même niveau d'exigence pour chacun, présentés dans l'ordre de sélection. Aucun classement automatique n'est présenté comme une recommandation électorale.</p>
     </div>
 
     <div class="card">
@@ -103,19 +103,20 @@ async function runCompare() {
 
   var candidates = allCandidates.filter(function (c) { return selectedIds.indexOf(c.id) !== -1; });
   var { data: criteria } = await laserSupabase.from("criteria").select("*").order("id");
-  var { data: assessments } = await laserSupabase.from("assessments").select("candidate_id, criterion_id, status").in("candidate_id", selectedIds);
+  var { data: assessments } = await laserSupabase.from("assessments").select("candidate_id, criterion_id, status, score").in("candidate_id", selectedIds);
   var { data: evidence } = await laserSupabase.from("evidence").select("candidate_id, verification_status").in("candidate_id", selectedIds);
 
-  var statusByCandCrit = {};
+  var statusByCandCrit = {}, scoreByCandCrit = {};
   (assessments || []).forEach(function (a) {
     statusByCandCrit[a.candidate_id + "|" + a.criterion_id] = a.status;
+    if (a.score !== null && a.score !== undefined) scoreByCandCrit[a.candidate_id + "|" + a.criterion_id] = a.score;
   });
 
   var selectedDomainOpts = Array.prototype.filter.call(document.getElementById("domainFilter").options, function (o) { return o.selected; }).map(function (o) { return o.value; });
   var domains = selectedDomainOpts.length ? allDomains.filter(function (d) { return selectedDomainOpts.indexOf(d.id) !== -1; }) : allDomains;
 
   resultBox.innerHTML =
-    renderOverview(candidates, allDomains, criteria || [], statusByCandCrit, evidence || []) +
+    renderOverview(candidates, allDomains, criteria || [], statusByCandCrit, evidence || [], scoreByCandCrit) +
     renderProgressChart(candidates, criteria || [], statusByCandCrit) +
     renderSynthesis(candidates, allDomains, criteria || [], statusByCandCrit) +
     renderDetailTable(candidates, domains, criteria || [], statusByCandCrit) +
@@ -165,14 +166,18 @@ function statusClass(status) {
   return "pending";
 }
 
-function renderOverview(candidates, domains, criteria, statusByCandCrit, evidence) {
+function renderOverview(candidates, domains, criteria, statusByCandCrit, evidence, scoreByCandCrit) {
   var html = '<div class="card"><h2>Vue d\'ensemble par candidat et par domaine</h2>' +
-    '<p class="muted small">Même décompte, même méthode, pour chaque candidat sélectionné — pas un score, pas un classement.</p>';
+    '<p class="muted small">Même décompte, même méthode, pour chaque candidat sélectionné, présentés dans l\'ordre de sélection — jamais trié ou classé par note.</p>' +
+    '<p class="small muted"><b>Note globale (documentation) :</b> moyenne à pondération égale des seuls critères déjà notés par un réviseur (un critère sans note n\'est jamais compté comme 0). Mesure la solidité des éléments documentés selon la méthodologie LASER-ROBOT — ni une prédiction de capacité à gouverner, ni un conseil de vote, et ne sert jamais à classer les candidats.</p>';
   html += candidates.map(function (cand) {
     var ev = evidence.filter(function (e) { return e.candidate_id === cand.id; });
     var evVerified = ev.filter(function (e) { return e.verification_status === "Vérifié"; }).length;
     var evUnverified = ev.filter(function (e) { return e.verification_status === "Non vérifié" || e.verification_status === "À examiner"; }).length;
     var evLine = '<p class="small muted" style="margin:6px 0 10px">' + ev.length + ' élément(s) documentaire(s) — ' + evVerified + ' vérifié(s), ' + evUnverified + ' non vérifié(s)/à examiner.</p>';
+    var candScores = criteria.map(function (r) { var s = scoreByCandCrit[cand.id + "|" + r.id]; return s !== undefined ? { score: s } : null; }).filter(Boolean);
+    var n = computeGlobalNote(candScores, criteria.length);
+    var noteLine = '<p class="small" style="margin:2px 0 6px"><b>Note globale :</b> ' + (n.avg === null ? "—" : n.avg.toFixed(1) + " / 5") + ' (' + n.scoredCount + '/' + n.total + ' critères notés, ' + n.coveragePct + '% — confiance ' + n.confidence + ')</p>';
     var tiles = domains.map(function (d) {
       var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
       var counts = { ok: 0, ko: 0, pending: 0, documented: 0 };
@@ -189,7 +194,7 @@ function renderOverview(candidates, domains, criteria, statusByCandCrit, evidenc
         '</div></div>';
     }).join("");
     return '<h3 style="margin:18px 0 4px">' + escapeHtml(formatDisplayName(cand.full_name, cand.last_name)) + '</h3>' +
-      evLine + '<div class="domain-overview">' + tiles + '</div>';
+      noteLine + evLine + '<div class="domain-overview">' + tiles + '</div>';
   }).join("");
   html += '</div>';
   return html;
@@ -217,6 +222,14 @@ function renderDetailTable(candidates, domains, criteria, statusByCandCrit) {
     '<div class="compare-table-wrap"><table class="compare-table"><thead><tr><th class="crit-col">Critère</th>' +
     candidates.map(function (c) { return "<th>" + escapeHtml(formatDisplayName(c.full_name, c.last_name)) + "</th>"; }).join("") +
     '</tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+}
+
+function computeGlobalNote(scoredList, totalCriteria) {
+  var scored = (scoredList || []).filter(function (a) { return a.score !== null && a.score !== undefined; });
+  var coverage = totalCriteria ? scored.length / totalCriteria : 0;
+  var avg = scored.length ? scored.reduce(function (s, a) { return s + a.score; }, 0) / scored.length : null;
+  var confidence = coverage >= 0.7 ? "Élevé" : coverage >= 0.3 ? "Modéré" : coverage > 0 ? "Faible" : "Insuffisant";
+  return { avg: avg, scoredCount: scored.length, total: totalCriteria, coveragePct: Math.round(coverage * 100), confidence: confidence };
 }
 
 function formatDisplayName(fullName, lastName) {

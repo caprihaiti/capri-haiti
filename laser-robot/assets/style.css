@@ -238,6 +238,15 @@ table.compare-table{width:100%;border-collapse:collapse;min-width:640px}
   .progress-row .pr-label{flex-basis:120px}
 }
 
+/* Note globale (moyenne des critères notés — jamais une prédiction) */
+.note-card{background:linear-gradient(150deg,#1a2438,#121a2b);border:1px solid #3a4f6e}
+.note-big{font-size:40px;font-weight:900;color:var(--gold);line-height:1}
+.note-big small{font-size:16px;color:var(--muted);font-weight:700}
+.note-confidence{display:inline-block;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;margin-left:8px}
+.note-confidence.eleve{background:#113230;color:#8fe0cf}
+.note-confidence.modere{background:#241a04;color:var(--gold)}
+.note-confidence.faible,.note-confidence.insuffisant{background:#2a1012;color:#ef7b86}
+
 /* Fiche candidat — sous-navigation + rubriques */
 .fiche-layout{display:grid;grid-template-columns:210px 1fr;gap:22px;align-items:start}
 .subnav{position:sticky;top:14px;display:flex;flex-direction:column;gap:2px;background:linear-gradient(150deg,#142137,#101a2b);border:1px solid var(--line);border-radius:var(--radius);padding:10px}

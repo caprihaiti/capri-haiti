@@ -31,6 +31,8 @@
       </div>
     </section>
 
+    <section class="card note-card" id="noteGlobaleCard"></section>
+
     <div class="fiche-layout">
       <nav class="subnav no-print" id="ficheNav">
         <a href="#section-profil" data-icon="user">Profil général</a>
@@ -128,7 +130,7 @@
             <h2>Critères détaillés — 78 critères</h2>
             <a class="button secondary btn secondary" id="bulkLink" href="#">Mise à jour groupée</a>
           </div>
-          <p class="muted small">La note est facultative et ne doit être saisie qu'après examen humain des éléments. Aucun score global ni classement n'est calculé. Échelle : 0 = absent · 1 = déclaration générale · 2 = proposition structurée · 3 = plan chiffré · 4 = plan chiffré avec calendrier et indicateurs · 5 = preuves solides de capacité et résultats vérifiables.</p>
+          <p class="muted small">La note est facultative et ne doit être saisie qu'après examen humain des éléments — un critère sans note n'est jamais compté comme 0. Échelle : 0 = absent · 1 = déclaration générale · 2 = proposition structurée · 3 = plan chiffré · 4 = plan chiffré avec calendrier et indicateurs · 5 = preuves solides de capacité et résultats vérifiables. La note globale ci-dessus en est la moyenne à pondération égale — jamais un classement entre candidats.</p>
           <div id="criteriaGroups"><div class="empty-state">Chargement…</div></div>
         </section>
 
@@ -494,6 +496,8 @@ async function loadGrid() {
   document.getElementById("eCriterion").options[0].value = "";
   allCriteria.forEach(function (c, i) { document.getElementById("eCriterion").options[i + 1].value = c.id; });
 
+  renderNoteGlobale(document.getElementById("noteGlobaleCard"), assessments || [], allCriteria.length, "Note globale (documentation) — ce candidat");
+
   var byId = {};
   (assessments || []).forEach(function (a) { byId[a.criterion_id] = a; });
   var evCountByCriterion = {};
@@ -678,6 +682,39 @@ function formatDisplayName(fullName, lastName) {
     prenom = (fullName.slice(0, idx) + fullName.slice(idx + lastName.length)).trim();
   }
   return lastName.toUpperCase() + (prenom ? ", " + prenom : "");
+}
+
+// Note globale — méthodologie approuvée par CAPRI (voir discussion projet) :
+// moyenne simple, à pondération égale, des seuls critères sur lesquels un
+// réviseur a déjà saisi une note (0-5). Un critère sans note n'est JAMAIS
+// compté comme 0 — il est simplement exclu du calcul et compté à part dans
+// le taux de couverture. Le niveau de confiance reflète uniquement combien
+// de critères ont été notés, pas la qualité du candidat. Cette note mesure
+// la solidité des éléments déjà documentés selon la méthodologie
+// LASER-ROBOT — ce n'est ni une prédiction de capacité à gouverner, ni un
+// conseil de vote, et elle ne sert JAMAIS à classer les candidats entre eux.
+function computeGlobalNote(assessments, totalCriteria) {
+  var scored = (assessments || []).filter(function (a) { return a.score !== null && a.score !== undefined; });
+  var coverage = totalCriteria ? scored.length / totalCriteria : 0;
+  var avg = scored.length ? scored.reduce(function (s, a) { return s + a.score; }, 0) / scored.length : null;
+  var confidence = coverage >= 0.7 ? "Élevé" : coverage >= 0.3 ? "Modéré" : coverage > 0 ? "Faible" : "Insuffisant";
+  return { avg: avg, scoredCount: scored.length, total: totalCriteria, coveragePct: Math.round(coverage * 100), confidence: confidence };
+}
+
+function renderNoteGlobale(container, assessments, totalCriteria, title) {
+  if (!container) return;
+  var n = computeGlobalNote(assessments, totalCriteria);
+  var confClass = { "Élevé": "eleve", "Modéré": "modere", "Faible": "faible", "Insuffisant": "insuffisant" }[n.confidence];
+  container.innerHTML =
+    '<h2>' + escapeHtml(title || "Note globale (documentation)") + '</h2>' +
+    '<div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">' +
+    '<div class="note-big">' + (n.avg === null ? "—" : n.avg.toFixed(1)) + ' <small>/ 5</small></div>' +
+    '<div style="flex:1;min-width:220px">' +
+    '<p class="small">' + n.scoredCount + ' / ' + n.total + ' critères notés (' + n.coveragePct + ' %)' +
+    '<span class="note-confidence ' + confClass + '">Confiance : ' + n.confidence + '</span></p>' +
+    '<div class="progress-row" style="padding:4px 0"><span class="pr-bar"><i style="width:' + n.coveragePct + '%"></i></span></div>' +
+    '</div></div>' +
+    '<p class="small muted" style="margin-top:10px">Moyenne simple, à pondération égale, des seuls critères déjà notés par un réviseur humain — un critère sans note n\'est jamais compté comme 0, il est exclu du calcul et compte dans le taux de couverture ci-dessus. Cette note mesure la qualité et la solidité des éléments documentés selon la méthodologie LASER-ROBOT : ce n\'est ni une prédiction sur la capacité à bien gouverner, ni un conseil de vote, et elle ne sert jamais à classer les candidats entre eux.</p>';
 }
 
 function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }

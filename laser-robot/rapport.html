@@ -171,6 +171,8 @@ function renderSynth(c, domains, criteria, byId, evidence) {
 
   var html = '';
 
+  html += '<div class="card note-card report-section" id="noteGlobaleBlock"></div>';
+
   html += '<div class="card report-section"><h3>Profil du candidat</h3>' +
     (c.photo_url ? '<img src="' + escapeAttr(c.photo_url) + '" alt="" style="width:110px;height:110px;object-fit:cover;border-radius:10px;float:right;margin-left:16px;border:1px solid var(--line)">' : '') +
     '<p><b>Nom :</b> ' + escapeHtml(formatDisplayName(c.full_name, c.last_name)) + '</p>' +
@@ -203,11 +205,13 @@ function renderSynth(c, domains, criteria, byId, evidence) {
     '</div>';
 
   html += '<div class="report-meta">' +
-    '<p><b>Méthodologie :</b> charte nationale de 22 domaines et 78 critères, appliquée à l\'identique à chaque candidat. Chaque élément documentaire est d\'abord enregistré au statut « Non vérifié », puis relu par un réviseur humain CAPRI avant tout changement de statut vers « Vérifié ». Aucun score global, classement ni recommandation de vote n\'est calculé par LASER-ROBOT.</p>' +
+    '<p><b>Méthodologie :</b> charte nationale de 22 domaines et 78 critères, appliquée à l\'identique à chaque candidat. Chaque élément documentaire est d\'abord enregistré au statut « Non vérifié », puis relu par un réviseur humain CAPRI avant tout changement de statut vers « Vérifié ». La note globale mesure la qualité des éléments déjà documentés (moyenne à pondération égale des seuls critères notés) — ce n\'est ni une prédiction de capacité à gouverner ni un conseil de vote. Aucun classement entre candidats n\'est calculé par LASER-ROBOT.</p>' +
     '<p><b>Dernière mise à jour du dossier :</b> ' + (lastUpdate ? new Date(lastUpdate).toLocaleString("fr-FR") : "Non disponible") + ' · <b>Rapport généré le :</b> ' + new Date().toLocaleString("fr-FR") + '</p>' +
     '</div>';
 
   document.getElementById("reportSynth").innerHTML = html;
+  var allAssessments = Object.keys(byId).map(function (k) { return byId[k]; });
+  renderNoteGlobale(document.getElementById("noteGlobaleBlock"), allAssessments, criteria.length, "Note globale (documentation) — 22 domaines, 78 critères");
 }
 
 function assessmentsDates(byId) {
@@ -236,7 +240,9 @@ function evidenceCard(e) {
 function renderDetail(domains, criteria, byId) {
   var html = domains.map(function (d) {
     var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
-    return '<div class="card"><details open><summary><b>' + escapeHtml(d.id + " · " + d.name) + '</b><span>' + rows.length + ' critères</span></summary>' +
+    var domainAssessments = rows.map(function (r) { return byId[r.id]; }).filter(Boolean);
+    var n = computeGlobalNote(domainAssessments, rows.length);
+    return '<div class="card"><details open><summary><b>' + escapeHtml(d.id + " · " + d.name) + '</b><span>' + rows.length + ' critères · Note domaine : ' + (n.avg === null ? "—" : n.avg.toFixed(1) + " / 5 (" + n.coveragePct + "% couverture)") + '</span></summary>' +
       rows.map(function (r) {
         var a = byId[r.id] || { status: "À documenter", score: null, analysis: "" };
         return '<article class="criterion">' +
@@ -248,6 +254,29 @@ function renderDetail(domains, criteria, byId) {
       }).join("") + '</details></div>';
   }).join("");
   document.getElementById("reportDetail").innerHTML = html;
+}
+
+function computeGlobalNote(assessmentsList, totalCriteria) {
+  var scored = (assessmentsList || []).filter(function (a) { return a.score !== null && a.score !== undefined; });
+  var coverage = totalCriteria ? scored.length / totalCriteria : 0;
+  var avg = scored.length ? scored.reduce(function (s, a) { return s + a.score; }, 0) / scored.length : null;
+  var confidence = coverage >= 0.7 ? "Élevé" : coverage >= 0.3 ? "Modéré" : coverage > 0 ? "Faible" : "Insuffisant";
+  return { avg: avg, scoredCount: scored.length, total: totalCriteria, coveragePct: Math.round(coverage * 100), confidence: confidence };
+}
+function renderNoteGlobale(container, assessmentsList, totalCriteria, title) {
+  if (!container) return;
+  var n = computeGlobalNote(assessmentsList, totalCriteria);
+  var confClass = { "Élevé": "eleve", "Modéré": "modere", "Faible": "faible", "Insuffisant": "insuffisant" }[n.confidence];
+  container.innerHTML =
+    '<h3>' + escapeHtml(title || "Note globale (documentation)") + '</h3>' +
+    '<div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">' +
+    '<div class="note-big">' + (n.avg === null ? "—" : n.avg.toFixed(1)) + ' <small>/ 5</small></div>' +
+    '<div style="flex:1;min-width:220px">' +
+    '<p class="small">' + n.scoredCount + ' / ' + n.total + ' critères notés (' + n.coveragePct + ' %)' +
+    '<span class="note-confidence ' + confClass + '">Confiance : ' + n.confidence + '</span></p>' +
+    '<div class="progress-row" style="padding:4px 0"><span class="pr-bar"><i style="width:' + n.coveragePct + '%"></i></span></div>' +
+    '</div></div>' +
+    '<p class="small muted" style="margin-top:10px">Moyenne simple, à pondération égale, des seuls critères déjà notés par un réviseur humain — un critère sans note n\'est jamais compté comme 0. Cette note mesure la qualité et la solidité des éléments documentés selon la méthodologie LASER-ROBOT : ce n\'est ni une prédiction sur la capacité à bien gouverner, ni un conseil de vote, et elle ne sert jamais à classer les candidats entre eux.</p>';
 }
 
 function formatDisplayName(fullName, lastName) {

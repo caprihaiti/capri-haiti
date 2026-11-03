@@ -35,9 +35,11 @@
           <div id="domainSynthesis"></div>
         </section>
 
+        <section class="card note-card" id="domainNoteCard"></section>
+
         <section class="card">
           <div class="sectionhead"><h2>Critères de ce domaine</h2></div>
-          <p class="muted small">Note facultative (0–5), saisie uniquement par un réviseur humain après examen — l'absence de donnée n'est jamais assimilée à une note de 0. Aucune moyenne ni note globale n'est calculée ici.</p>
+          <p class="muted small">Note facultative (0–5), saisie uniquement par un réviseur humain après examen — l'absence de donnée n'est jamais assimilée à une note de 0.</p>
           <div id="criteriaDetail"><div class="empty-state">Chargement…</div></div>
         </section>
 
@@ -45,6 +47,8 @@
           <h2>Progression de l'analyse (ce candidat)</h2>
           <div class="kpi-grid" id="progressStats"><div class="empty-state">Chargement…</div></div>
         </section>
+
+        <section class="card note-card" id="candidateNoteCard"></section>
 
         <div class="card no-print" style="text-align:center">
           <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
@@ -209,6 +213,9 @@ function renderDomain() {
       (responses.length ? '<p class="small"><b>Réponse du candidat :</b> ' + responses.map(function (e) { return escapeHtml(e.candidate_response); }).join(" · ") + '</p>' : '') +
       '</article>';
   }).join("");
+
+  var domainAssessments = rows.map(function (r) { return byId[r.id]; }).filter(Boolean);
+  renderNoteGlobale(document.getElementById("domainNoteCard"), domainAssessments, rows.length, "Note du domaine " + d.id);
 }
 
 function renderProgressStats() {
@@ -223,6 +230,30 @@ function renderProgressStats() {
     kpiCard("scan", examined + " / " + criteria.length, "Critères déjà examinés") +
     kpiCard("shield", evVerified, "Preuves vérifiées") +
     kpiCard("book", completeDomains + " / " + domains.length, "Domaines entièrement examinés");
+  renderNoteGlobale(document.getElementById("candidateNoteCard"), assessments, criteria.length, "Note globale (documentation) — 22 domaines");
+}
+
+function computeGlobalNote(assessmentsList, totalCriteria) {
+  var scored = (assessmentsList || []).filter(function (a) { return a.score !== null && a.score !== undefined; });
+  var coverage = totalCriteria ? scored.length / totalCriteria : 0;
+  var avg = scored.length ? scored.reduce(function (s, a) { return s + a.score; }, 0) / scored.length : null;
+  var confidence = coverage >= 0.7 ? "Élevé" : coverage >= 0.3 ? "Modéré" : coverage > 0 ? "Faible" : "Insuffisant";
+  return { avg: avg, scoredCount: scored.length, total: totalCriteria, coveragePct: Math.round(coverage * 100), confidence: confidence };
+}
+function renderNoteGlobale(container, assessmentsList, totalCriteria, title) {
+  if (!container) return;
+  var n = computeGlobalNote(assessmentsList, totalCriteria);
+  var confClass = { "Élevé": "eleve", "Modéré": "modere", "Faible": "faible", "Insuffisant": "insuffisant" }[n.confidence];
+  container.innerHTML =
+    '<h2>' + escapeHtml(title || "Note globale (documentation)") + '</h2>' +
+    '<div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">' +
+    '<div class="note-big">' + (n.avg === null ? "—" : n.avg.toFixed(1)) + ' <small>/ 5</small></div>' +
+    '<div style="flex:1;min-width:220px">' +
+    '<p class="small">' + n.scoredCount + ' / ' + n.total + ' critères notés (' + n.coveragePct + ' %)' +
+    '<span class="note-confidence ' + confClass + '">Confiance : ' + n.confidence + '</span></p>' +
+    '<div class="progress-row" style="padding:4px 0"><span class="pr-bar"><i style="width:' + n.coveragePct + '%"></i></span></div>' +
+    '</div></div>' +
+    '<p class="small muted" style="margin-top:10px">Moyenne simple, à pondération égale, des seuls critères déjà notés par un réviseur humain — un critère sans note n\'est jamais compté comme 0. Cette note mesure la qualité et la solidité des éléments documentés selon la méthodologie LASER-ROBOT : ce n\'est ni une prédiction sur la capacité à bien gouverner, ni un conseil de vote, et elle ne sert jamais à classer les candidats entre eux.</p>';
 }
 function kpiCard(iconName, value, label) {
   return '<div class="kpi-card"><span class="kpi-icon">' + LaserIcons.svg(iconName, 24) + '</span>' +

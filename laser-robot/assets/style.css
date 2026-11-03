@@ -38,6 +38,14 @@ summary span{font-size:12px;color:var(--muted)}
 .eyebrow{font-size:11px;letter-spacing:.16em;color:var(--gold);font-weight:800}
 .pill{display:inline-block;border-radius:20px;padding:2px 9px;font-size:11px;background:#26374d}
 code{background:#0a1524;padding:1px 5px;border-radius:4px}
+.domain-overview{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:6px}
+.domain-tile{border:1px solid var(--line);border-radius:10px;padding:12px 13px;background:#0f1a2b}
+.domain-tile b{display:block;font-size:12.5px;margin-bottom:8px;color:#eaf3fa}
+.domain-tile-counts{display:flex;flex-wrap:wrap;gap:8px;font-size:11px}
+.domain-tile-counts span{padding:2px 8px;border-radius:20px;background:#182537}
+.domain-tile-counts .dok{color:#5fc489}
+.domain-tile-counts .dko{color:#ef7b86}
+.domain-tile-counts .dpending{color:var(--muted)}
 .pw-wrap{position:relative}
 .pw-wrap input{padding-right:40px}
 .pw-toggle{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px;padding:6px 8px}

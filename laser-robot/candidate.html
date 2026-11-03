@@ -63,6 +63,12 @@
     </section>
 
     <section class="card">
+      <h2>Vue d'ensemble par domaine</h2>
+      <p class="muted small">Simple décompte de ce que les réviseurs ont déjà constaté, domaine par domaine — pas un score, pas un classement. Permet de voir d'un coup d'œil où l'examen est avancé et où il reste à faire, sans tirer de conclusion à la place du lecteur.</p>
+      <div id="domainOverview" class="domain-overview"></div>
+    </section>
+
+    <section class="card">
       <div class="sectionhead">
         <h2>Grille nationale — 78 critères</h2>
         <a class="button secondary btn secondary" id="bulkLink" href="#">Mise à jour groupée</a>
@@ -219,6 +225,27 @@ async function loadCandidate() {
   document.getElementById("fBio").textContent = c.biography || "Aucune biographie documentaire enregistrée.";
 }
 
+function renderDomainOverview(domains, criteria, byId) {
+  var html = domains.map(function (d) {
+    var rows = criteria.filter(function (c) { return c.domain_id === d.id; });
+    var counts = { ok: 0, ko: 0, pending: 0 };
+    rows.forEach(function (r) {
+      var status = (byId[r.id] || {}).status || "À documenter";
+      if (status === "Vérifié") counts.ok++;
+      else if (status === "Contesté") counts.ko++;
+      else counts.pending++;
+    });
+    return '<div class="domain-tile">' +
+      '<b>' + escapeHtml(d.id + " · " + d.name) + '</b>' +
+      '<div class="domain-tile-counts">' +
+      '<span class="dok">' + counts.ok + ' vérifié' + (counts.ok > 1 ? 's' : '') + '</span>' +
+      '<span class="dko">' + counts.ko + ' contesté' + (counts.ko > 1 ? 's' : '') + '</span>' +
+      '<span class="dpending">' + counts.pending + ' en attente</span>' +
+      '</div></div>';
+  }).join("");
+  document.getElementById("domainOverview").innerHTML = html;
+}
+
 async function loadGrid() {
   var { data: domains } = await laserSupabase.from("domains").select("*").order("id");
   var { data: criteria } = await laserSupabase.from("criteria").select("*").order("id");
@@ -235,6 +262,8 @@ async function loadGrid() {
   (evidenceRows || []).forEach(function (e) {
     if (e.criterion_id) evCountByCriterion[e.criterion_id] = (evCountByCriterion[e.criterion_id] || 0) + 1;
   });
+
+  renderDomainOverview(domains || [], criteria || [], byId);
 
   var html = (domains || []).map(function (d) {
     var rows = (criteria || []).filter(function (c) { return c.domain_id === d.id; });

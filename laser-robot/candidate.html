@@ -26,8 +26,13 @@
     <section class="card">
       <div class="sectionhead">
         <h2>Identité et parcours public</h2>
-        <button type="button" class="btn secondary" id="toggleIdentityEdit" style="display:none">Modifier</button>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="btn secondary" id="researchBtn" style="display:none">🔍 Rechercher des sources</button>
+          <button type="button" class="btn secondary" id="toggleIdentityEdit" style="display:none">Modifier</button>
+        </div>
       </div>
+      <div id="researchStatus" class="small muted" style="display:none;margin-bottom:10px"></div>
+      <div id="researchResults"></div>
       <div id="identityView">
         <div class="facts">
           <div><small>Date de naissance</small><b id="fBirthDate">Non vérifié</b></div>
@@ -171,8 +176,101 @@ LaserAuth.requireSession().then(async function (session) {
     document.getElementById("toggleIdentityEdit").addEventListener("click", openIdentityEdit);
     document.getElementById("cancelIdentityEdit").addEventListener("click", closeIdentityEdit);
     document.getElementById("identityForm").addEventListener("submit", saveIdentity);
+    document.getElementById("researchBtn").style.display = "inline-flex";
+    document.getElementById("researchBtn").addEventListener("click", runResearch);
   }
 });
+
+var lastFindings = null;
+
+async function runResearch() {
+  var btn = document.getElementById("researchBtn");
+  var statusEl = document.getElementById("researchStatus");
+  btn.disabled = true;
+  statusEl.style.display = "block";
+  statusEl.textContent = "Recherche en cours sur des sources officielles (sanctions, ULCC/CSCCA, biographie)… cela peut prendre une minute.";
+  document.getElementById("researchResults").innerHTML = "";
+
+  var { data, error } = await laserSupabase.functions.invoke("research-candidate", {
+    body: { candidate_id: candidateId, full_name: currentCandidate.full_name }
+  });
+
+  btn.disabled = false;
+  if (error || !data || data.error) {
+    statusEl.textContent = "Erreur : " + (data && data.error ? data.error : (error ? error.message : "inconnue")) + ". La fonction research-candidate est-elle déployée et configurée (ANTHROPIC_API_KEY) ?";
+    return;
+  }
+
+  statusEl.style.display = "none";
+  lastFindings = data.findings;
+  renderResearchResults(data.findings);
+}
+
+function renderResearchResults(f) {
+  var html = '<div class="card" style="background:#0d1828;margin-top:10px">';
+  html += '<h3 style="margin:0 0 10px">Résultats de recherche — à vérifier avant tout usage</h3>';
+  html += '<p class="notice">Rien ici n\'est automatiquement enregistré. Chaque élément reste au statut « Non vérifié » tant qu\'un réviseur n\'a pas lu la source et confirmé.</p>';
+
+  if (f.identity && (f.identity.birth_date || f.identity.birthplace || f.identity.nationality || f.identity.biography || f.identity.contested_notes)) {
+    html += '<div style="margin:14px 0"><b>Identité suggérée :</b><ul class="small">';
+    if (f.identity.birth_date) html += '<li>Date de naissance : ' + escapeHtml(f.identity.birth_date) + '</li>';
+    if (f.identity.birthplace) html += '<li>Lieu de naissance : ' + escapeHtml(f.identity.birthplace) + '</li>';
+    if (f.identity.nationality) html += '<li>Nationalité : ' + escapeHtml(f.identity.nationality) + '</li>';
+    if (f.identity.biography) html += '<li>Biographie : ' + escapeHtml(f.identity.biography) + '</li>';
+    if (f.identity.contested_notes) html += '<li class="muted">⚠️ ' + escapeHtml(f.identity.contested_notes) + '</li>';
+    html += '</ul><button type="button" class="btn secondary smallbtn" id="applyIdentitySuggestion">Pré-remplir le formulaire d\'identité (à confirmer)</button></div>';
+  }
+
+  (f.evidence || []).forEach(function (ev, i) {
+    html += '<article class="evidence" style="border-top:1px solid var(--line);padding-top:12px;margin-top:12px">' +
+      '<div class="crithead"><div><b>' + escapeHtml(ev.title) + '</b><p class="small muted">' + escapeHtml(ev.evidence_type) + ' · ' + escapeHtml(ev.source_name || '') + (ev.publication_date ? ' · ' + escapeHtml(ev.publication_date) : '') + '</p></div></div>' +
+      '<p class="small">' + escapeHtml(ev.summary || '') + '</p>' +
+      (ev.caution ? '<p class="small muted">⚠️ ' + escapeHtml(ev.caution) + '</p>' : '') +
+      (ev.source_url ? '<a href="' + escapeAttr(ev.source_url) + '" target="_blank" rel="noopener noreferrer">Voir la source ↗</a>' : '') +
+      '<div style="margin-top:8px"><button type="button" class="btn smallbtn applyEvidenceBtn" data-index="' + i + '">＋ Ajouter comme élément documentaire (Non vérifié)</button></div>' +
+      '</article>';
+  });
+
+  if ((f.not_found || []).length) {
+    html += '<div style="margin-top:14px"><b class="small muted">Non trouvé / non confirmé :</b><ul class="small muted">' +
+      f.not_found.map(function (s) { return '<li>' + escapeHtml(s) + '</li>'; }).join('') + '</ul></div>';
+  }
+
+  html += '</div>';
+  document.getElementById("researchResults").innerHTML = html;
+
+  var applyIdBtn = document.getElementById("applyIdentitySuggestion");
+  if (applyIdBtn) applyIdBtn.addEventListener("click", function () {
+    openIdentityEdit();
+    if (f.identity.birth_date) document.getElementById("iBirthDate").value = f.identity.birth_date;
+    if (f.identity.birthplace) document.getElementById("iBirthplace").value = f.identity.birthplace;
+    if (f.identity.nationality) document.getElementById("iNationality").value = f.identity.nationality;
+    if (f.identity.biography) document.getElementById("iBio").value = f.identity.biography;
+  });
+
+  document.querySelectorAll(".applyEvidenceBtn").forEach(function (btn) {
+    btn.addEventListener("click", async function () {
+      var ev = lastFindings.evidence[parseInt(btn.getAttribute("data-index"), 10)];
+      var payload = {
+        candidate_id: candidateId,
+        title: ev.title,
+        evidence_type: ev.evidence_type,
+        source_name: ev.source_name || null,
+        source_url: (ev.source_url && /^https?:\/\//.test(ev.source_url)) ? ev.source_url : null,
+        publication_date: ev.publication_date || null,
+        summary: ev.summary || null,
+        verification_status: "Non vérifié",
+        created_by: profileRef.id
+      };
+      var { error } = await laserSupabase.from("evidence").insert(payload);
+      if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
+      LaserShell.toast("Élément ajouté (Non vérifié) — à confirmer après lecture de la source.");
+      btn.disabled = true;
+      btn.textContent = "Ajouté ✓";
+      loadEvidence();
+    });
+  });
+}
 
 var currentCandidate = null;
 

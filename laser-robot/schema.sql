@@ -352,9 +352,14 @@ drop policy if exists "evidence_update_reviewer" on evidence;
 create policy "evidence_update_reviewer" on evidence for update
   using (has_role(auth.uid(), array['admin','reviewer']::laser_role[]));
 
+-- Restreint à admin/reviewer : le journal contient le nom réel de la
+-- personne qui a fait chaque modification (utile en interne pour la
+-- traçabilité), mais ne doit jamais être lisible par un simple compte
+-- lecteur (accès public gratuit) — exposer ces noms au public créerait un
+-- risque réel de ciblage des personnes qui documentent des candidats.
 drop policy if exists "audit_log_select_approved" on audit_log;
 create policy "audit_log_select_approved" on audit_log for select
-  using (has_role(auth.uid(), array['admin','reviewer','lecteur']::laser_role[]));
+  using (has_role(auth.uid(), array['admin','reviewer']::laser_role[]));
 -- Seule une consultation du scanner (lecture) peut être journalisée
 -- directement par le client — toute autre action est déjà journalisée par
 -- les déclencheurs ci-dessus, côté serveur, sans intervention du client.

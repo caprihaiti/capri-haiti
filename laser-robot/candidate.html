@@ -663,8 +663,8 @@ async function loadHistory() {
   var ENTITY_LABELS = { candidates: "identité du candidat", assessments: "critère", evidence: "élément documentaire" };
   box.innerHTML = '<div class="timeline">' + data.map(function (row) {
     return '<div class="timeline-row"><span class="timeline-dot"></span><div>' +
-      '<div class="timeline-text"><b>' + escapeHtml(row.username || "Système") + '</b> — ' +
-      escapeHtml(ACTION_LABELS[row.action] || row.action) + ' (' + escapeHtml(ENTITY_LABELS[row.entity_type] || row.entity_type) + ')' +
+      '<div class="timeline-text"><b>' + escapeHtml(ACTION_LABELS[row.action] || row.action) + '</b>' +
+      ' (' + escapeHtml(ENTITY_LABELS[row.entity_type] || row.entity_type) + ')' +
       (row.details ? ' : ' + escapeHtml(row.details) : '') + '</div>' +
       '<div class="timeline-time">' + new Date(row.at).toLocaleString("fr-FR") + '</div></div></div>';
   }).join('') + '</div>';

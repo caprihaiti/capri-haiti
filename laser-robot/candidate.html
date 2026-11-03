@@ -182,6 +182,9 @@ LaserAuth.requireSession().then(async function (session) {
     document.getElementById("identityForm").addEventListener("submit", saveIdentity);
     document.getElementById("researchBtn").style.display = "inline-flex";
     document.getElementById("researchBtn").addEventListener("click", runResearch);
+    if (new URLSearchParams(window.location.search).get("autorun") === "1") {
+      runResearch();
+    }
   }
 });
 
@@ -215,8 +218,15 @@ function renderResearchResults(f) {
   html += '<h3 style="margin:0 0 10px">Résultats de recherche — à vérifier avant tout usage</h3>';
   html += '<p class="notice">Rien ici n\'est automatiquement enregistré. Chaque élément reste au statut « Non vérifié » tant qu\'un réviseur n\'a pas lu la source et confirmé.</p>';
 
-  if (f.identity && (f.identity.birth_date || f.identity.birthplace || f.identity.nationality || f.identity.biography || f.identity.contested_notes)) {
-    html += '<div style="margin:14px 0"><b>Identité suggérée :</b><ul class="small">';
+  if (f.identity && (f.identity.birth_date || f.identity.birthplace || f.identity.nationality || f.identity.biography || f.identity.photo_url || f.identity.contested_notes)) {
+    html += '<div style="margin:14px 0">';
+    if (f.identity.photo_url && /^https?:\/\//.test(f.identity.photo_url)) {
+      html += '<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:10px">' +
+        '<img src="' + escapeAttr(f.identity.photo_url) + '" alt="" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--line)">' +
+        '<div><p class="small muted" style="margin:0 0 6px">Photo suggérée' + (f.identity.photo_source ? ' — ' + escapeHtml(f.identity.photo_source) : '') + '</p>' +
+        '<button type="button" class="btn smallbtn" id="applyPhotoSuggestion">Utiliser cette photo</button></div></div>';
+    }
+    html += '<b>Identité suggérée :</b><ul class="small">';
     if (f.identity.birth_date) html += '<li>Date de naissance : ' + escapeHtml(f.identity.birth_date) + '</li>';
     if (f.identity.birthplace) html += '<li>Lieu de naissance : ' + escapeHtml(f.identity.birthplace) + '</li>';
     if (f.identity.nationality) html += '<li>Nationalité : ' + escapeHtml(f.identity.nationality) + '</li>';
@@ -250,6 +260,16 @@ function renderResearchResults(f) {
     if (f.identity.birthplace) document.getElementById("iBirthplace").value = f.identity.birthplace;
     if (f.identity.nationality) document.getElementById("iNationality").value = f.identity.nationality;
     if (f.identity.biography) document.getElementById("iBio").value = f.identity.biography;
+  });
+
+  var applyPhotoBtn = document.getElementById("applyPhotoSuggestion");
+  if (applyPhotoBtn) applyPhotoBtn.addEventListener("click", async function () {
+    var { error } = await laserSupabase.from("candidates").update({ photo_url: f.identity.photo_url }).eq("id", candidateId);
+    if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
+    LaserShell.toast("Photo appliquée.");
+    applyPhotoBtn.disabled = true;
+    applyPhotoBtn.textContent = "Appliquée ✓";
+    await loadCandidate();
   });
 
   document.querySelectorAll(".applyEvidenceBtn").forEach(function (btn) {

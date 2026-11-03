@@ -109,7 +109,7 @@ async function createCandidate(e) {
   };
   var { data, error } = await laserSupabase.from("candidates").insert(payload).select("id").single();
   if (error) { LaserShell.toast("Erreur : " + error.message, true); return; }
-  window.location.href = "candidate.html?id=" + data.id;
+  window.location.href = "candidate.html?id=" + data.id + "&autorun=1";
 }
 
 async function loadCandidates() {

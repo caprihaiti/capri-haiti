@@ -55,9 +55,11 @@ const REPORT_TOOL = {
           birthplace: { type: ["string", "null"] },
           nationality: { type: ["string", "null"] },
           biography: { type: ["string", "null"], description: "Fonctions publiques déjà occupées, avec dates si connues." },
-          contested_notes: { type: ["string", "null"], description: "Signale ici toute contradiction entre sources trouvées (ex. lieu de naissance contesté)." },
+          photo_url: { type: ["string", "null"], description: "URL directe d'une photographie publique du candidat (ex. Wikimedia Commons, site gouvernemental officiel, agence de presse) — uniquement un lien d'image réel et stable, jamais inventé. Laisser null si aucune source fiable d'image n'est trouvée." },
+          photo_source: { type: ["string", "null"], description: "Nom de la source de la photo (ex. 'Wikimedia Commons', 'Présidence d'Haïti')." },
+          contested_notes: { type: ["string", "null"], description: "Signale ici toute contradiction entre sources trouvées (ex. lieu de naissance contesté, ou incertitude sur l'identité de la personne sur la photo si le nom est courant)." },
         },
-        required: ["birth_date", "birthplace", "nationality", "biography", "contested_notes"],
+        required: ["birth_date", "birthplace", "nationality", "biography", "photo_url", "photo_source", "contested_notes"],
       },
       evidence: {
         type: "array",
@@ -92,6 +94,7 @@ const SYSTEM_PROMPT = `Tu assistes un outil citoyen de vérification de candidat
 - Distinguer rigoureusement : fait documenté / déclaration du candidat / allégation attribuée / sanction administrative / enquête en cours / décision judiciaire définitive. Une sanction administrative (gel d'avoirs, interdiction de visa) n'est PAS une condamnation judiciaire — ne jamais les confondre.
 - Rester complètement neutre : ne jamais qualifier le candidat de bon, mauvais, compétent ou incompétent. Rapporte des faits sourcés, pas des conclusions.
 - Toujours fournir l'URL réelle de la source quand elle existe.
+- Pour la photo (photo_url) : ne proposer qu'une URL d'image directe et réelle trouvée via la recherche (Wikimedia Commons, site officiel gouvernemental, agence de presse reconnue). Si le nom du candidat est courant ou si tu n'es pas raisonnablement certain que la photo trouvée représente bien cette personne précise (et pas un homonyme), laisser photo_url à null et l'expliquer dans contested_notes plutôt que de proposer une image incertaine.
 - Utilise la recherche web autant que nécessaire avant de répondre.
 - Termine TOUJOURS en appelant l'outil report_findings avec tes résultats structurés.`;
 
@@ -133,7 +136,7 @@ Deno.serve(async (req: Request) => {
     if (!candidateId || !fullName) return json({ error: "candidate_id et full_name sont requis." }, 400);
 
     const userPrompt = `Recherche le candidat présidentiel haïtien suivant : "${fullName}".
-Cherche en priorité : sanctions administratives (Canada, États-Unis/OFAC, Union européenne), mentions dans les rapports du comité de sanctions de l'ONU sur Haïti, rapports de l'ULCC ou de la CSCCA (ex. dossier PetroCaribe), décisions de justice, et faits biographiques de base (date de naissance, lieu de naissance, fonctions publiques déjà occupées). Signale toute contradiction entre sources.`;
+Cherche en priorité : sanctions administratives (Canada, États-Unis/OFAC, Union européenne), mentions dans les rapports du comité de sanctions de l'ONU sur Haïti, rapports de l'ULCC ou de la CSCCA (ex. dossier PetroCaribe), décisions de justice, faits biographiques de base (date de naissance, lieu de naissance, fonctions publiques déjà occupées), et une photographie publique fiable de cette personne précise. Signale toute contradiction entre sources.`;
 
     const anthropicResp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

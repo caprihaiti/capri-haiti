@@ -48,7 +48,7 @@ window.LaserShell = (function () {
         icon(item.icon, 16) + '<span>' + escapeHtml(item.label) + '</span></a>';
     }).join("") +
       '<span class="app-navbar-right">' +
-        '<span class="app-navbar-user"><b>' + escapeHtml(profile.full_name) + '</b> · ' + escapeHtml(window.LaserAuth.roleLabel(profile.role)) + '</span>' +
+        '<span class="app-navbar-user">' + escapeHtml(window.LaserAuth.roleLabel(profile.role)) + '</span>' +
         '<button type="button" class="logout" id="laserLogoutBtn">Se déconnecter</button>' +
       '</span>';
     shell.insertBefore(nav, main);

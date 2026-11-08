@@ -14,7 +14,7 @@
     <div class="app-header">
       <p class="eyebrow">LASER-ROBOT · BAROMÈTRE CITOYEN</p>
       <h1>Baromètre d'intentions de vote</h1>
-      <p class="muted">Si l'élection présidentielle avait lieu aujourd'hui, pour qui auriez-vous l'intention de voter ? Un sondage d'opinion citoyen, ouvert à toute personne inscrite sur LASER-ROBOT — professionnels, ti machann, étudiants, femmes, hommes, retraités.</p>
+      <p class="muted">Si l'élection présidentielle avait lieu aujourd'hui, pour qui auriez-vous l'intention de voter ? Un sondage d'opinion citoyen — professionnels, ti machann, étudiants, femmes, hommes, retraités. Les résultats sont consultables par tous ; seul le vote exige un compte LASER-ROBOT gratuit, pour garantir une intention par personne.</p>
     </div>
 
     <div class="legal-disclaimer">
@@ -42,17 +42,51 @@ var DEPARTMENTS = ["Artibonite", "Centre", "Grand'Anse", "Nippes", "Nord", "Nord
 
 var currentUserId = null, currentProfile = null, allCandidates = [];
 
-LaserAuth.requireSession().then(async function (session) {
-  LaserShell.renderSidebar(session.profile, "barometre");
-  currentUserId = session.user.id;
-  currentProfile = session.profile;
+// Page volontairement PUBLIQUE (contrairement au reste de LASER-ROBOT) :
+// n'importe qui peut consulter la liste des candidats et les résultats sans
+// compte — seul le vote lui-même exige une connexion (RLS côté base,
+// "vote_intentions_insert_self"). Cf. candidates_select_public dans
+// schema.sql pour l'ouverture correspondante en lecture.
+(async function init() {
+  var { data } = await laserSupabase.auth.getSession();
+  var session = data && data.session;
+  if (session) {
+    var profile = await LaserAuth.getProfile(session.user.id);
+    if (profile.role === "pending" || !profile.active) {
+      // Un compte en attente/désactivé est traité comme un visiteur ici :
+      // il peut consulter le baromètre, mais pas encore voter (RLS le
+      // bloquerait de toute façon — requireSession gère l'écran d'attente
+      // sur les autres pages, pas besoin de dupliquer ici).
+      renderGuestHeader();
+    } else {
+      LaserShell.renderSidebar(profile, "barometre");
+      currentUserId = session.user.id;
+      currentProfile = profile;
+    }
+  } else {
+    renderGuestHeader();
+  }
   await loadAll();
-});
+})();
+
+function renderGuestHeader() {
+  var shell = document.getElementById("appShell");
+  var main = shell.querySelector(".app-main");
+  var header = document.createElement("div");
+  header.className = "app-topheader";
+  header.innerHTML =
+    '<div class="app-topheader-brand"><div class="names"><b>CAPRI-HAÏTI</b><small>LASER-ROBOT · Baromètre citoyen</small></div></div>' +
+    '<div class="app-topheader-right"><a class="btn" href="index.html">Se connecter / Créer un compte</a></div>';
+  shell.insertBefore(header, main);
+}
 
 async function loadAll() {
+  var votePromise = currentUserId
+    ? laserSupabase.from("vote_intentions").select("candidate_id").eq("voter_id", currentUserId).maybeSingle()
+    : Promise.resolve({ data: null });
   var [{ data: candidates }, { data: myVote }, { data: summary }] = await Promise.all([
     laserSupabase.from("candidates").select("id, full_name, last_name, political_group, cep_status, photo_url").order("last_name").order("full_name"),
-    laserSupabase.from("vote_intentions").select("candidate_id").eq("voter_id", currentUserId).maybeSingle(),
+    votePromise,
     laserSupabase.rpc("get_vote_intentions_summary"),
   ]);
   allCandidates = candidates || [];
@@ -90,11 +124,14 @@ function renderVoteArea(myVote, totalsByCandidate, totalVotes) {
     var resultHtml = showResults
       ? '<div class="vote-result-bar"><i style="width:' + pct + '%"></i></div><p class="vote-result-pct">' + pct + '% — ' + votes + ' intention(s)</p>'
       : '';
-    var voteBtn = myVote
-      ? (myVote.candidate_id === c.id
-          ? '<button type="button" class="btn" disabled>✓ Votre intention</button>'
-          : '')
-      : '<button type="button" class="btn" data-vote-id="' + c.id + '">J\'ai l\'intention de voter</button>';
+    var voteBtn;
+    if (!currentUserId) {
+      voteBtn = '<a class="btn" href="index.html">Se connecter pour voter</a>';
+    } else if (myVote) {
+      voteBtn = myVote.candidate_id === c.id ? '<button type="button" class="btn" disabled>✓ Votre intention</button>' : '';
+    } else {
+      voteBtn = '<button type="button" class="btn" data-vote-id="' + c.id + '">J\'ai l\'intention de voter</button>';
+    }
     return '<div class="candidate-card vote-card ' + (badge.cls === "refuse" ? "refuse" : "") + '">' +
       '<span class="cep-badge ' + badge.cls + '">' + badge.label + '</span>' +
       photo + '<b>' + escapeHtml(formatDisplayName(c.full_name, c.last_name)) + '</b>' +
@@ -102,11 +139,11 @@ function renderVoteArea(myVote, totalsByCandidate, totalVotes) {
       resultHtml + voteBtn + '</div>';
   }).join("") + '</div>';
 
-  var formHtml = myVote ? "" : renderDemoForm();
+  var formHtml = (currentUserId && !myVote) ? renderDemoForm() : "";
 
   box.innerHTML = resultsNotice + formHtml + grid;
 
-  if (!myVote) {
+  if (currentUserId && !myVote) {
     box.querySelectorAll("[data-vote-id]").forEach(function (btn) {
       btn.addEventListener("click", function () { castVote(btn.getAttribute("data-vote-id")); });
     });
@@ -147,7 +184,7 @@ async function castVote(candidateId) {
 
 function renderAdminPanel() {
   var panel = document.getElementById("adminPanel");
-  if (currentProfile.role !== "admin") { panel.hidden = true; return; }
+  if (!currentProfile || currentProfile.role !== "admin") { panel.hidden = true; return; }
   panel.hidden = false;
   panel.innerHTML = '<div class="card no-print">' +
     '<h2>Administration — statut CEP</h2>' +

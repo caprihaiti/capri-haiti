@@ -421,7 +421,8 @@ create policy "vote_intentions_delete_admin" on vote_intentions for delete
 -- Fonction security definer : contourne volontairement le RLS ci-dessus
 -- pour ne renvoyer QUE des totaux par candidat (même principe que
 -- has_role) — jamais une ligne individuelle ni une donnée démographique
--- isolée. Accessible à tout compte lecteur/reviewer/admin.
+-- isolée. Publique à dessein (voir ci-dessous) : le décompte du baromètre
+-- doit être consultable par un visiteur non connecté.
 create or replace function get_vote_intentions_summary()
 returns table(candidate_id uuid, total_votes bigint)
 language sql
@@ -431,6 +432,16 @@ stable
 as $$
   select vi.candidate_id, count(*) as total_votes
   from vote_intentions vi
-  where has_role(auth.uid(), array['admin','reviewer','lecteur']::laser_role[])
   group by vi.candidate_id;
 $$;
+grant execute on function get_vote_intentions_summary() to anon, authenticated;
+
+-- Le baromètre doit être consultable (liste des candidats + résultats)
+-- par un visiteur non connecté, pour élargir sa portée — seul le VOTE
+-- lui-même reste réservé à un compte (politique "vote_intentions_insert_self"
+-- ci-dessus, qui exige voter_id = auth.uid()). N'ouvre que la table
+-- candidates (nom, parti, statut CEP, photo — déjà destinés à être publics) ;
+-- assessments et evidence restent réservés aux comptes connectés.
+drop policy if exists "candidates_select_public" on candidates;
+create policy "candidates_select_public" on candidates for select
+  using (true);

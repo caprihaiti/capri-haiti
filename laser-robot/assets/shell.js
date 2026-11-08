@@ -11,6 +11,7 @@ window.LaserShell = (function () {
     { key: "scanner", href: "scanner.html", label: "Scanner", icon: "scan" },
     { key: "referentiel", href: "referentiel.html", label: "Analyses", icon: "book" },
     { key: "comparateur", href: "comparateur.html", label: "Comparateur", icon: "compare" },
+    { key: "barometre", href: "barometre.html", label: "Baromètre", icon: "chart" },
     { key: "rapports", href: "rapports.html", label: "Rapports", icon: "report" },
     { key: "account", href: "account.html", label: "Paramètres", icon: "settings" }
   ];

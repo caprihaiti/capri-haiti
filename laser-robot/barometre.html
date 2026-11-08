@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baromètre d'intentions de vote — LASER-ROBOT</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <main class="app-main">
+    <div class="app-header">
+      <p class="eyebrow">LASER-ROBOT · BAROMÈTRE CITOYEN</p>
+      <h1>Baromètre d'intentions de vote</h1>
+      <p class="muted">Si l'élection présidentielle avait lieu aujourd'hui, pour qui auriez-vous l'intention de voter ? Un sondage d'opinion citoyen, ouvert à toute personne inscrite sur LASER-ROBOT — professionnels, ti machann, étudiants, femmes, hommes, retraités.</p>
+    </div>
+
+    <div class="legal-disclaimer">
+      <b>⚠️ Sondage d'intentions — non officiel, ne remplace pas l'élection</b>
+      <p>Ce baromètre mesure une opinion citoyenne exprimée volontairement sur internet. Ce n'est ni l'élection officielle organisée par le Conseil Électoral Provisoire (CEP), ni une évaluation ou un classement établi par LASER-ROBOT. CAPRI-Haïti ne recommande aucun vote et ne tire aucune conclusion de ce baromètre sur la qualité ou l'aptitude d'un candidat — cela reste le rôle exclusif de l'analyse documentaire présentée ailleurs sur la plateforme. Les 21 candidats sont affichés à titre informatif, y compris ceux dont le dossier reste en attente de validation par le CEP.</p>
+    </div>
+
+    <div id="voteArea"><div class="empty-state">Chargement…</div></div>
+
+    <div id="adminPanel" hidden></div>
+  </main>
+</div>
+
+<script src="assets/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="assets/supabase-client.js"></script>
+<script src="assets/auth.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/shell.js"></script>
+<script>
+var MIN_VOTES_TO_SHOW_RESULTS = 50;
+var AGE_BRACKETS = ["18-25", "26-35", "36-50", "51-65", "65 et plus"];
+var CATEGORIES = ["Étudiant(e)", "Ti machann / petit commerce", "Salarié(e) secteur privé", "Fonctionnaire / secteur public", "Agriculteur/agricultrice", "Sans emploi", "Retraité(e)", "Autre"];
+var DEPARTMENTS = ["Artibonite", "Centre", "Grand'Anse", "Nippes", "Nord", "Nord-Est", "Nord-Ouest", "Ouest", "Sud", "Sud-Est", "Diaspora"];
+
+var currentUserId = null, currentProfile = null, allCandidates = [];
+
+LaserAuth.requireSession().then(async function (session) {
+  LaserShell.renderSidebar(session.profile, "barometre");
+  currentUserId = session.user.id;
+  currentProfile = session.profile;
+  await loadAll();
+});
+
+async function loadAll() {
+  var [{ data: candidates }, { data: myVote }, { data: summary }] = await Promise.all([
+    laserSupabase.from("candidates").select("id, full_name, last_name, political_group, cep_status, photo_url").order("last_name").order("full_name"),
+    laserSupabase.from("vote_intentions").select("candidate_id").eq("voter_id", currentUserId).maybeSingle(),
+    laserSupabase.rpc("get_vote_intentions_summary"),
+  ]);
+  allCandidates = candidates || [];
+  var totalsByCandidate = {};
+  (summary || []).forEach(function (row) { totalsByCandidate[row.candidate_id] = Number(row.total_votes); });
+  var totalVotes = Object.keys(totalsByCandidate).reduce(function (s, k) { return s + totalsByCandidate[k]; }, 0);
+
+  renderVoteArea(myVote, totalsByCandidate, totalVotes);
+  renderAdminPanel();
+}
+
+function cepBadge(cepStatus) {
+  var s = (cepStatus || "").toLowerCase();
+  if (s.indexOf("admis") !== -1) return { cls: "admis", label: "🟢 Admis CEP" };
+  if (s.indexOf("refus") !== -1 || s.indexOf("rejet") !== -1) return { cls: "refuse", label: "🔴 Refusé CEP" };
+  return { cls: "attente", label: "🟠 En attente CEP" };
+}
+
+function renderVoteArea(myVote, totalsByCandidate, totalVotes) {
+  var box = document.getElementById("voteArea");
+  var showResults = totalVotes >= MIN_VOTES_TO_SHOW_RESULTS;
+  var sorted = allCandidates.slice().sort(function (a, b) { return (totalsByCandidate[b.id] || 0) - (totalsByCandidate[a.id] || 0); });
+
+  var resultsNotice = !showResults
+    ? '<p class="small muted" style="margin-bottom:14px">Résultats masqués pour l\'instant (minimum ' + MIN_VOTES_TO_SHOW_RESULTS + ' intentions exprimées requis — ' + totalVotes + ' pour l\'instant) — évite les effets d\'entraînement en tout début de sondage.</p>'
+    : '<p class="small muted" style="margin-bottom:14px">' + totalVotes + ' intention(s) exprimée(s) au total.</p>';
+
+  var grid = '<div class="candidate-grid">' + sorted.map(function (c) {
+    var badge = cepBadge(c.cep_status);
+    var photo = c.photo_url && /^https?:\/\//.test(c.photo_url)
+      ? '<img class="cc-photo" src="' + escapeAttr(c.photo_url) + '" alt="">'
+      : '<div class="cc-photo-placeholder">' + LaserIcons.svg("user", 28) + '</div>';
+    var votes = totalsByCandidate[c.id] || 0;
+    var pct = totalVotes ? Math.round(votes / totalVotes * 100) : 0;
+    var resultHtml = showResults
+      ? '<div class="vote-result-bar"><i style="width:' + pct + '%"></i></div><p class="vote-result-pct">' + pct + '% — ' + votes + ' intention(s)</p>'
+      : '';
+    var voteBtn = myVote
+      ? (myVote.candidate_id === c.id
+          ? '<button type="button" class="btn" disabled>✓ Votre intention</button>'
+          : '')
+      : '<button type="button" class="btn" data-vote-id="' + c.id + '">J\'ai l\'intention de voter</button>';
+    return '<div class="candidate-card vote-card ' + (badge.cls === "refuse" ? "refuse" : "") + '">' +
+      '<span class="cep-badge ' + badge.cls + '">' + badge.label + '</span>' +
+      photo + '<b>' + escapeHtml(formatDisplayName(c.full_name, c.last_name)) + '</b>' +
+      '<div class="cc-sub">' + escapeHtml(c.political_group || "") + '</div>' +
+      resultHtml + voteBtn + '</div>';
+  }).join("") + '</div>';
+
+  var formHtml = myVote ? "" : renderDemoForm();
+
+  box.innerHTML = resultsNotice + formHtml + grid;
+
+  if (!myVote) {
+    box.querySelectorAll("[data-vote-id]").forEach(function (btn) {
+      btn.addEventListener("click", function () { castVote(btn.getAttribute("data-vote-id")); });
+    });
+  }
+}
+
+function renderDemoForm() {
+  return '<div class="card">' +
+    '<h2>Avant de voter (facultatif)</h2>' +
+    '<p class="small muted">Ces informations, facultatives, permettent de lire les résultats par tranche d\'âge, sexe, catégorie et département — jamais associées publiquement à votre nom.</p>' +
+    '<div class="vote-demo-grid">' +
+    '<div class="form-field"><label for="demoAge">Tranche d\'âge</label><select id="demoAge"><option value="">Préférence non précisée</option>' + AGE_BRACKETS.map(function (a) { return '<option>' + a + '</option>'; }).join("") + '</select></div>' +
+    '<div class="form-field"><label for="demoSex">Sexe</label><select id="demoSex"><option value="">Préférence non précisée</option><option>Femme</option><option>Homme</option></select></div>' +
+    '<div class="form-field"><label for="demoCat">Catégorie</label><select id="demoCat"><option value="">Préférence non précisée</option>' + CATEGORIES.map(function (c) { return '<option>' + c + '</option>'; }).join("") + '</select></div>' +
+    '<div class="form-field"><label for="demoDept">Département</label><select id="demoDept"><option value="">Préférence non précisée</option>' + DEPARTMENTS.map(function (d) { return '<option>' + d + '</option>'; }).join("") + '</select></div>' +
+    '</div></div>';
+}
+
+async function castVote(candidateId) {
+  var payload = {
+    voter_id: currentUserId,
+    candidate_id: candidateId,
+    age_bracket: (document.getElementById("demoAge") || {}).value || null,
+    sex: (document.getElementById("demoSex") || {}).value || null,
+    category: (document.getElementById("demoCat") || {}).value || null,
+    department: (document.getElementById("demoDept") || {}).value || null,
+  };
+  var { error } = await laserSupabase.from("vote_intentions").insert(payload);
+  if (error) {
+    if (error.code === "23505") { LaserShell.toast("Vous avez déjà exprimé une intention.", true); }
+    else { LaserShell.toast("Erreur : " + error.message, true); }
+    await loadAll();
+    return;
+  }
+  LaserShell.toast("Votre intention a été enregistrée. Merci !");
+  await loadAll();
+}
+
+function renderAdminPanel() {
+  var panel = document.getElementById("adminPanel");
+  if (currentProfile.role !== "admin") { panel.hidden = true; return; }
+  panel.hidden = false;
+  panel.innerHTML = '<div class="card no-print">' +
+    '<h2>Administration — statut CEP</h2>' +
+    '<p class="small muted">Réservé aux administrateurs. Cochez des candidats puis appliquez le statut publié par le CEP — se répercute immédiatement sur les badges du baromètre.</p>' +
+    '<div class="candidate-picker" id="adminPicker"></div>' +
+    '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">' +
+    '<button type="button" class="btn" id="markAdmisBtn">Marquer ADMIS</button>' +
+    '<button type="button" class="btn secondary" id="markRefuseBtn">Marquer REFUSÉ</button>' +
+    '<button type="button" class="btn secondary" id="markAttenteBtn">Remettre EN ATTENTE</button>' +
+    '</div></div>';
+
+  var picker = document.getElementById("adminPicker");
+  var checkedIds = [];
+  picker.innerHTML = allCandidates.map(function (c) {
+    return '<label class="candidate-chip" data-id="' + c.id + '"><input type="checkbox" value="' + c.id + '">' + escapeHtml(formatDisplayName(c.full_name, c.last_name)) + '</label>';
+  }).join("");
+  picker.querySelectorAll('input[type="checkbox"]').forEach(function (box) {
+    box.addEventListener("change", function () {
+      var id = this.value;
+      if (this.checked) checkedIds.push(id); else checkedIds = checkedIds.filter(function (x) { return x !== id; });
+      this.closest(".candidate-chip").classList.toggle("checked", this.checked);
+    });
+  });
+
+  function applyStatus(status) {
+    if (!checkedIds.length) { LaserShell.toast("Sélectionnez au moins un candidat.", true); return; }
+    laserSupabase.from("candidates").update({ cep_status: status }).in("id", checkedIds).then(function (res) {
+      if (res.error) { LaserShell.toast("Erreur : " + res.error.message, true); return; }
+      LaserShell.toast(checkedIds.length + " candidat(s) mis à jour.");
+      loadAll();
+    });
+  }
+  document.getElementById("markAdmisBtn").addEventListener("click", function () { applyStatus("Admis"); });
+  document.getElementById("markRefuseBtn").addEventListener("click", function () { applyStatus("Refusé"); });
+  document.getElementById("markAttenteBtn").addEventListener("click", function () { applyStatus("En attente"); });
+}
+
+function formatDisplayName(fullName, lastName) {
+  if (!lastName || !fullName) return fullName || "";
+  var prenom = fullName;
+  if (fullName.toLowerCase().indexOf(lastName.toLowerCase()) !== -1) {
+    var idx = fullName.toLowerCase().lastIndexOf(lastName.toLowerCase());
+    prenom = (fullName.slice(0, idx) + fullName.slice(idx + lastName.length)).trim();
+  }
+  return lastName.toUpperCase() + (prenom ? ", " + prenom : "");
+}
+
+function escapeHtml(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+</script>
+</body>
+</html>

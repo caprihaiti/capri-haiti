@@ -369,3 +369,68 @@ create policy "audit_log_insert_self_consultation" on audit_log for insert
     actor_id = auth.uid() and action = 'consultation'
     and has_role(auth.uid(), array['admin','reviewer','lecteur']::laser_role[])
   );
+
+-- -----------------------------------------------------------------------------
+-- 7. Baromètre — intentions de vote (sondage citoyen, PAS l'élection
+--    officielle du CEP et PAS l'évaluation documentaire LASER-ROBOT).
+-- -----------------------------------------------------------------------------
+-- Un compte = une intention, jamais modifiable ni supprimable par son
+-- titulaire (contrainte unique sur voter_id) : empêche un même compte de
+-- voter plusieurs fois ou de changer son vote pour gonfler un résultat.
+-- Les champs démographiques sont facultatifs (permettent une lecture par
+-- tranche d'âge / sexe / catégorie / département sans jamais être
+-- obligatoires pour voter).
+create table if not exists vote_intentions (
+  id uuid primary key default gen_random_uuid(),
+  voter_id uuid not null unique references profiles(id) on delete cascade,
+  candidate_id uuid not null references candidates(id) on delete cascade,
+  age_bracket text,
+  sex text,
+  category text,
+  department text,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_vote_intentions_candidate on vote_intentions(candidate_id);
+
+alter table vote_intentions enable row level security;
+
+-- Chacun peut voir UNIQUEMENT sa propre ligne (pour savoir s'il a déjà voté
+-- et pour qui) — jamais celle des autres : un décompte par candidat reste
+-- accessible uniquement via la fonction get_vote_intentions_summary()
+-- ci-dessous, qui ne renvoie que des totaux agrégés, aucune ligne
+-- individuelle, aucune donnée démographique isolée identifiable.
+drop policy if exists "vote_intentions_select_own_or_admin" on vote_intentions;
+create policy "vote_intentions_select_own_or_admin" on vote_intentions for select
+  using (voter_id = auth.uid() or has_role(auth.uid(), array['admin','reviewer']::laser_role[]));
+
+drop policy if exists "vote_intentions_insert_self" on vote_intentions;
+create policy "vote_intentions_insert_self" on vote_intentions for insert
+  with check (
+    voter_id = auth.uid()
+    and has_role(auth.uid(), array['admin','reviewer','lecteur']::laser_role[])
+  );
+
+-- Aucune politique UPDATE : un vote déjà enregistré n'est jamais modifiable
+-- depuis le client, même par son propre titulaire (empêche un script de
+-- changer un vote en boucle). Seul un administrateur peut supprimer une
+-- ligne manifestement frauduleuse (pas de politique DELETE publique).
+drop policy if exists "vote_intentions_delete_admin" on vote_intentions;
+create policy "vote_intentions_delete_admin" on vote_intentions for delete
+  using (has_role(auth.uid(), array['admin']::laser_role[]));
+
+-- Fonction security definer : contourne volontairement le RLS ci-dessus
+-- pour ne renvoyer QUE des totaux par candidat (même principe que
+-- has_role) — jamais une ligne individuelle ni une donnée démographique
+-- isolée. Accessible à tout compte lecteur/reviewer/admin.
+create or replace function get_vote_intentions_summary()
+returns table(candidate_id uuid, total_votes bigint)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select vi.candidate_id, count(*) as total_votes
+  from vote_intentions vi
+  where has_role(auth.uid(), array['admin','reviewer','lecteur']::laser_role[])
+  group by vi.candidate_id;
+$$;
